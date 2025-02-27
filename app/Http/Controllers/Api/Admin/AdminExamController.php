@@ -244,6 +244,9 @@ class AdminExamController extends Controller
         return new ExamResource($exam);
     }
 
+    /**
+     * update
+     */
     public function update(Request $request, Exam $exam)
     {
         $validated = $request->validate([
@@ -251,6 +254,7 @@ class AdminExamController extends Controller
             'description' => 'sometimes|string',
             'duration' => 'sometimes|integer|min:1',
             'passing_score' => 'sometimes|integer|min:0|max:100',
+            'status' => 'sometimes|in:draft,published',
             'max_attempts' => 'sometimes|integer|min:1'
         ]);
 
@@ -259,6 +263,9 @@ class AdminExamController extends Controller
         return new ExamResource($exam);
     }
 
+    /**
+     * publish
+     */
     public function publish(Exam $exam)
     {
         if ($exam->questions()->count() === 0) {

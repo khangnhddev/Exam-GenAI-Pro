@@ -109,5 +109,9 @@ Route::prefix('v1')->group(function () {
         Route::get('/activity-logs/user/{userId}', [ActivityLogController::class, 'getByUser']);
 
         Route::post('/exams/generate-from-file', [AdminExamController::class, 'generateFromFile']);
+
+        Route::apiResource('questions', AdminQuestionController::class);
+        Route::post('questions/generate', [AdminQuestionController::class, 'generate']);
     });
+
 });

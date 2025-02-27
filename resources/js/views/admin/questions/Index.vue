@@ -3,8 +3,8 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="md:flex md:items-center md:justify-between mb-8">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Exam Questions</h1>
-          <p class="mt-2 text-sm text-gray-700">{{ exam?.title }}</p>
+          <h1 class="text-3xl font-bold text-gray-900">Question Bank</h1>
+          <p class="mt-2 text-sm text-gray-700">Manage all questions</p>
         </div>
         <div class="mt-4 flex space-x-3 md:mt-0">
           <button
@@ -17,7 +17,7 @@
             AI Generate
           </button>
           <router-link
-            :to="{ name: 'admin.questions.create', params: { examId }}"
+            :to="{ name: 'admin.questions.create' }"
             class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
             Add Question
@@ -32,7 +32,7 @@
             <div class="px-4 py-4 sm:px-6">
               <div class="flex items-center justify-between">
                 <p class="text-sm font-medium text-indigo-600 truncate">
-                  {{ question.question_text }}
+                  {{ question.text }}
                 </p>
                 <div class="ml-2 flex-shrink-0 flex">
                   <p class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
@@ -54,7 +54,10 @@
                 <div class="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
                   <div class="flex space-x-2">
                     <router-link
-                      :to="{ name: 'admin.questions.edit', params: { examId, questionId: question.id }}"
+                      :to="{ 
+                        name: 'admin.questions.edit', 
+                        params: { id: question.id }
+                      }"
                       class="text-indigo-600 hover:text-indigo-900"
                     >
                       Edit
@@ -146,14 +149,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-const route = useRoute()
 const router = useRouter()
-const examId = route.params.examId
-const questions = ref([]) // Initialize as empty array
-const exam = ref(null)
+const questions = ref([])
 const showAIModal = ref(false)
 const generating = ref(false)
 
@@ -163,30 +163,18 @@ const aiForm = ref({
   count: 5
 })
 
-// Load exam and questions
+// Load questions
 onMounted(async () => {
-  await Promise.all([
-    loadExam(),
-    loadQuestions()
-  ])
+  await loadQuestions()
 })
-
-async function loadExam() {
-  try {
-    const { data } = await axios.get(`/api/v1/admin/exams/${examId}`)
-    exam.value = data
-  } catch (error) {
-    console.error('Error loading exam:', error)
-  }
-}
 
 async function loadQuestions() {
   try {
-    const { data } = await axios.get(`/api/v1/admin/exams/${examId}/questions`)
-    questions.value = data.data // Access data property from Laravel API Resource
+    const { data } = await axios.get('/admin/questions');
+    questions.value = data.data;
   } catch (error) {
     console.error('Error loading questions:', error)
-    questions.value = [] // Set to empty array on error
+    questions.value = []
   }
 }
 
@@ -194,7 +182,7 @@ async function deleteQuestion(questionId) {
   if (!confirm('Are you sure you want to delete this question?')) return
 
   try {
-    await axios.delete(`/api/v1/admin/exams/${examId}/questions/${questionId}`)
+    await axios.delete(`/api/admin/questions/${questionId}`)
     questions.value = questions.value.filter(q => q.id !== questionId)
   } catch (error) {
     console.error('Error deleting question:', error)
@@ -204,7 +192,11 @@ async function deleteQuestion(questionId) {
 async function generateQuestions() {
   generating.value = true
   try {
-    const { data } = await axios.post(`/api/v1/admin/exams/${examId}/questions/generate`, aiForm.value)
+    const { data } = await axios.post('/admin/questions/generate', {
+      topic: aiForm.value.topic,
+      difficulty: aiForm.value.difficulty,
+      count: aiForm.value.count
+    })
     await loadQuestions()
     showAIModal.value = false
   } catch (error) {

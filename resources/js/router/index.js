@@ -3,6 +3,8 @@ import { useAuthStore } from '../stores/auth'
 
 // Import the admin layout
 import AdminLayout from '../layouts/AdminLayout.vue'
+import ActivityLogManager from '../components/admin/ActivityLogManager.vue'
+import KnowledgeBaseManager from '../components/admin/KnowledgeBaseManager.vue'
 
 // Frontend routes
 const frontendRoutes = {
@@ -88,7 +90,18 @@ const adminRoutes = {
             path: 'exams/:id/edit',
             name: 'admin.exams.edit',
             component: () => import('../views/admin/exams/ExamForm.vue'),
-            props: route => ({ id: route.params.id, isEditing: true })
+            props: route => ({
+                id: parseInt(route.params.id),
+                isEditing: true
+            }),
+            beforeEnter: (to, from, next) => {
+                const id = parseInt(to.params.id)
+                if (isNaN(id)) {
+                    next({ name: 'admin.exams.index' })
+                } else {
+                    next()
+                }
+            }
         },
         {
             path: 'questions',
@@ -104,7 +117,10 @@ const adminRoutes = {
             path: 'questions/:id/edit',
             name: 'admin.questions.edit',
             component: () => import('../views/admin/questions/QuestionForm.vue'),
-            props: route => ({ id: route.params.id, isEditing: true })
+            props: route => ({
+                id: parseInt(route.params.id),
+                isEditing: true
+            })
         },
         {
             path: 'certificates',
@@ -121,6 +137,23 @@ const adminRoutes = {
             name: 'admin.exams.questions',
             component: () => import('../views/admin/exams/Questions.vue'),
             props: true
+        },
+        {
+            path: 'activity-logs',
+            name: 'admin-activity-logs',
+            component: ActivityLogManager,
+            meta: { requiresAuth: true, requiresAdmin: false }
+        },
+        {
+            path: 'knowledge-base',
+            name: 'admin-knowledge-base',
+            component: KnowledgeBaseManager,
+            meta: { requiresAuth: true, requiresAdmin: false }
+        },
+        {
+            path: 'analytics',
+            name: 'admin.analytics',
+            component: () => import('../views/admin/Analytics.vue')
         }
     ]
 }

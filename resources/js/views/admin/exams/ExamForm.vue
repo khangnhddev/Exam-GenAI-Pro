@@ -90,6 +90,18 @@
             />
           </div>
 
+          <!-- Status -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Status</label>
+            <select
+              v-model="form.status"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >
+              <option value="draft">Draft</option>
+              <option value="published">Published</option>
+            </select>
+          </div>
+
           <!-- Submit Buttons -->
           <div class="flex justify-end space-x-3">
             <button
@@ -114,60 +126,76 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from 'axios'
 
-const route = useRoute()
-const router = useRouter()
-const examId = route.params.examId
-const isEditing = computed(() => !!examId)
-const loading = ref(false)
+const props = defineProps({
+  id: {
+    type: [String, Number],
+    required: false
+  },
+  isEditing: {
+    type: Boolean,
+    default: false
+  }
+})
 
+const router = useRouter()
+const loading = ref(false)
 const form = ref({
   title: '',
   description: '',
   duration: 60,
   passing_score: 70,
-  max_attempts: 3
+  max_attempts: 2,
+  total_questions: 0,
+  status: 'draft'
 })
 
-const handleSubmit = async () => {
-  loading.value = true
+async function loadExam() {
   try {
-    const url = isEditing.value
-      ? `/admin/exams/${examId}`
-      : '/admin/exams'
+    loading.value = true
+    const { data } = await axios.get(`/admin/exams/${props.id}`);
     
-    const method = isEditing.value ? 'put' : 'post'
-    
-    const { data } = await axios[method](url, form.value)
-    router.push({ name: 'admin.exams.index' })
+    form.value = {
+      title: data.data.title,
+      description: data.data.description,
+      duration: data.data.duration,
+      passing_score: data.data.passing_score,
+      max_attempts: data.data.max_attempts,
+      total_questions: data.data.total_questions,
+      status: data.data.status
+    }
   } catch (error) {
-    console.error('Error saving exam:', error)
+    console.error('Failed to load exam:', error)
   } finally {
     loading.value = false
   }
 }
 
-// Load exam data if editing
-onMounted(async () => {
-  if (isEditing.value) {
+async function handleSubmit() {
+  try {
     loading.value = true
-    try {
-      const { data } = await axios.get(`/api/v1/admin/exams/${examId}`)
-      form.value = {
-        title: data.title,
-        description: data.description,
-        duration: data.duration,
-        passing_score: data.passing_score,
-        max_attempts: data.max_attempts
-      }
-    } catch (error) {
-      console.error('Error loading exam:', error)
-    } finally {
-      loading.value = false
-    }
+    const endpoint = props.isEditing 
+      ? `/admin/exams/${props.id}`
+      : '/admin/exams'
+    
+    const method = props.isEditing ? 'put' : 'post'
+    
+    await axios[method](endpoint, form.value)
+    router.push({ name: 'admin.exams.index' })
+  } catch (error) {
+    console.error('Failed to save exam:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Load exam data when component mounts
+onMounted(() => {
+  if (props.isEditing && props.id) {
+    loadExam()
   }
 })
 </script>
