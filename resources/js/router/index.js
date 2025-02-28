@@ -9,7 +9,7 @@ import KnowledgeBaseManager from '../components/admin/KnowledgeBaseManager.vue'
 // Frontend routes
 const frontendRoutes = {
     path: '/',
-    component: () => import('../layouts/MainLayout.vue'),
+    component: () => import('../Layouts/MainLayout.vue'),
     meta: { requiresAuth: true },
     children: [
         {
@@ -144,16 +144,22 @@ const adminRoutes = {
             component: ActivityLogManager,
             meta: { requiresAuth: true, requiresAdmin: false }
         },
-        {
-            path: 'knowledge-base',
-            name: 'admin-knowledge-base',
-            component: KnowledgeBaseManager,
-            meta: { requiresAuth: true, requiresAdmin: false }
-        },
+        // {
+        //     path: 'knowledge-base',
+        //     name: 'admin-knowledge-base',
+        //     component: KnowledgeBaseManager,
+        //     meta: { requiresAuth: true, requiresAdmin: false }
+        // },
         {
             path: 'analytics',
             name: 'admin.analytics',
             component: () => import('../views/admin/Analytics.vue')
+        },
+        {
+            path: 'knowledge-base',
+            name: 'admin.knowledge-base',
+            component: () => import('@/views/admin/knowledge-base/Index.vue'),
+            meta: { requiresAuth: true, requiresAdmin: false }
         }
     ]
 }

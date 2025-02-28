@@ -15,16 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('exam_id')->constrained()->onDelete('cascade');
-            $table->foreignId('exam_attempt_id')->constrained('exam_attempts')->onDelete('cascade');
             $table->string('certificate_number')->unique();
-            $table->timestamp('issued_at');
-            $table->timestamp('expires_at')->nullable();
-            $table->integer('score');
+            $table->timestamp('issued_date');
+            $table->timestamp('expiry_date')->nullable();
             $table->enum('status', ['active', 'expired', 'revoked'])->default('active');
+            $table->decimal('score', 5, 2);
             $table->timestamps();
-
-            $table->index(['user_id', 'exam_id']);
-            $table->index('certificate_number');
         });
     }
 

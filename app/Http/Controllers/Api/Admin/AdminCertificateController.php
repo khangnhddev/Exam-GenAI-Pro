@@ -3,15 +3,22 @@
 namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CertificateResource;
 use App\Models\Certificate;
 use Illuminate\Http\Request;
 
 class AdminCertificateController extends Controller
 {
+    /**
+     * index
+     */
     public function index()
     {
-        $certificates = Certificate::all();
-        return response()->json($certificates);
+        $certificates = Certificate::with(['user', 'exam'])
+            ->latest()
+            ->paginate(10);
+
+        return CertificateResource::collection($certificates);
     }
 
     public function show(Certificate $certificate)

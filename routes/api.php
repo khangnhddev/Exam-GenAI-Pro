@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\Admin\AdminAnalyticsController;
 use App\Http\Controllers\Api\AIAssistantController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\ActivityLogController;
+use App\Http\Controllers\Api\Admin\KnowledgeBaseController;
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
@@ -112,6 +113,12 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('questions', AdminQuestionController::class);
         Route::post('questions/generate', [AdminQuestionController::class, 'generate']);
+
+        // Knowledge Base Routes
+        Route::get('knowledge-base', [KnowledgeBaseController::class, 'index']);
+        Route::post('knowledge-base/upload', [KnowledgeBaseController::class, 'upload']);
+        // Route::delete('knowledge-base/{id}', [KnowledgeBaseController::class, 'destroy']);
+        // Route::post('knowledge-base/{id}/reprocess', [KnowledgeBaseController::class, 'reprocess']);
     });
 
 });

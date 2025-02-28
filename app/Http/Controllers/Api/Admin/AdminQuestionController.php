@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\QuestionResource;
+use App\Models\FileKnowledgeBase;
 use App\Models\Question;
 use Illuminate\Http\Request;
 use OpenAI\Laravel\Facades\OpenAI;
@@ -156,38 +157,71 @@ class AdminQuestionController extends Controller
     public function generate(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'exam_id' => 'nullable|exists:exams,id', // Make exam_id optional
-            'topic' => 'required|string',
+            'exam_id' => 'nullable|exists:exams,id',
+            'source' => 'required|in:openai,knowledge',
+            'topic' => 'required_if:source,openai|string',
             'difficulty' => 'required|in:easy,medium,hard',
             'count' => 'required|integer|min:1|max:10'
         ]);
 
         try {
-            $response = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo',
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'You are an expert at creating exam questions.'
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => $this->buildPrompt(
-                            $validated['topic'],
-                            $validated['difficulty'],
-                            $validated['count']
-                        )
-                    ]
-                ],
-                'temperature' => 0.7
-            ]);
+            $content = '';
 
-            $generatedQuestions = $this->parseAIResponse($response->choices[0]->message->content);
+            if ($validated['source'] === 'openai') {
+                $response = OpenAI::chat()->create([
+                    'model' => 'gpt-3.5-turbo',
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => 'You are an expert at creating exam questions.'
+                        ],
+                        [
+                            'role' => 'user',
+                            'content' => $this->buildPrompt(
+                                $validated['topic'],
+                                $validated['difficulty'],
+                                $validated['count']
+                            )
+                        ]
+                    ],
+                    'temperature' => 0.7
+                ]);
+                $content = $response->choices[0]->message->content;
+            } else {
+                // Get relevant content from knowledge base
+                $relevantContent = FileKnowledgeBase::orderByRaw('created_at DESC')
+                    ->where('user_id', auth()->id())
+                    ->limit(5)
+                    ->get()
+                    ->pluck('content')
+                    ->join("\n\n");
+
+                $response = OpenAI::chat()->create([
+                    'model' => 'gpt-3.5-turbo',
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => "You are an expert exam question generator. Always return response in valid JSON format."
+                        ],
+                        [
+                            'role' => 'user',
+                            'content' => "Based on this content:\n\n{$relevantContent}\n\n" .
+                                "Generate {$validated['count']} {$validated['difficulty']} level multiple-choice questions. " .
+                                $this->buildPrompt('', $validated['difficulty'], $validated['count'])
+                        ]
+                    ],
+                    'temperature' => 0.7,
+                    'max_tokens' => 2000
+                ]);
+                $content = $response->choices[0]->message->content;
+            }
+
+            $generatedQuestions = $this->parseAIResponse($content);
             $createdQuestions = [];
 
             foreach ($generatedQuestions as $questionData) {
                 $question = Question::create([
-                    'exam_id' => $validated['exam_id'] ?? null, // Make it nullable
+                    'exam_id' => $validated['exam_id'] ?? null,
                     'question_text' => $questionData['question'],
                     'type' => $questionData['type'],
                     'points' => $questionData['points'],
@@ -211,7 +245,8 @@ class AdminQuestionController extends Controller
         } catch (\Exception $e) {
             // \Log::error('Question generation failed:', [
             //     'error' => $e->getMessage(),
-            //     'topic' => $validated['topic']
+            //     'source' => $validated['source'],
+            //     'topic' => $validated['topic'] ?? null
             // ]);
 
             return response()->json([

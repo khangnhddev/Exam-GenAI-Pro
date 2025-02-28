@@ -109,13 +109,16 @@
                             </router-link>
 
                             <!-- Knowledge Base -->
-                            <router-link to="/admin/knowledge-base"
-                                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md" :class="[
+                            <router-link 
+                                to="/admin/knowledge-base"
+                                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md" 
+                                :class="[
                                     $route.path.includes('/knowledge-base')
                                         ? 'bg-indigo-100 text-indigo-600'
                                         : 'text-gray-600 hover:bg-gray-50'
-                                ]">
-                                <span class="mr-3 h-6 w-6">🧠</span>
+                                ]"
+                            >
+                                <span class="mr-3 h-6 w-6">📚</span>
                                 Knowledge Base
                             </router-link>
 

@@ -10,11 +10,16 @@ return new class extends Migration
     {
         Schema::create('file_knowledge_bases', function (Blueprint $table) {
             $table->id();
-            $table->string('file_name');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('filename');
+            $table->string('original_filename');
+            $table->string('file_path');
             $table->string('file_type');
+            $table->bigInteger('file_size')->default(0);
             $table->text('content');
-            $table->vector('embedding', 1536);
-            $table->foreignId('user_id')->constrained();
+            $table->string('status')->default('processing');
+            $table->integer('chunks_count')->default(0);
+            $table->vector('embedding', 1536)->nullable();
             $table->timestamps();
         });
     }

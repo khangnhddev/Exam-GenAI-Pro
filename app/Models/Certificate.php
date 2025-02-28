@@ -12,16 +12,16 @@ class Certificate extends Model
         'exam_id',
         'exam_attempt_id',
         'certificate_number',
-        'issued_at',
-        'expires_at',
-        'score',
-        'status' // active, expired, revoked
+        'issued_date',
+        'expiry_date',
+        'status',
+        'score'
     ];
 
     protected $casts = [
-        'issued_at' => 'datetime',
-        'expires_at' => 'datetime',
-        'score' => 'integer'
+        'issued_date' => 'datetime',
+        'expiry_date' => 'datetime',
+        'score' => 'float'
     ];
 
     public function user(): BelongsTo
@@ -52,6 +52,6 @@ class Certificate extends Model
     public function isValid(): bool
     {
         return $this->status === 'active' && 
-               (!$this->expires_at || $this->expires_at->isFuture());
+               (!$this->expiry_date || $this->expiry_date->isFuture());
     }
 }
