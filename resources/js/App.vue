@@ -4,9 +4,6 @@
     <main>
       <router-view></router-view>
     </main>
-    
-    <!-- AI Assistant -->
-    <AIAssistant />
   </div>
 </template>
 

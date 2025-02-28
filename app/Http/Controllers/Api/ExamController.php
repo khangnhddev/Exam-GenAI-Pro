@@ -13,6 +13,9 @@ use Carbon\Carbon;
 
 class ExamController extends Controller
 {
+    /**
+     * index
+     */
     public function index()
     {
         $user = auth()->user();
@@ -26,22 +29,36 @@ class ExamController extends Controller
         return FeExamResource::collection($exams);
     }
 
-    public function show(Exam $exam): FeExamResource
+    /**
+     * show
+     */
+    public function show(Exam $exam): JsonResponse
     {
-        $user = auth()->user();
-        
         $exam->loadCount('questions');
         $exam->load([
-            'attempts' => function ($query) use ($user) {
-                $query->where('user_id', $user->id)
-                    ->with('certificate');
-            },
-            'questions:id,exam_id,points'
+            'attempts' => function ($query) {
+                $query->where('user_id', auth()->id());
+            }
         ]);
 
-        return new FeExamResource($exam);
+        return response()->json([
+            'data' => [
+                'id' => $exam->id,
+                'title' => $exam->title,
+                'description' => $exam->description,
+                'duration' => $exam->duration,
+                'passing_score' => $exam->passing_score,
+                'total_questions' => $exam->questions_count,
+                'attempts_allowed' => $exam->attempts_allowed,
+                'image_url' => $exam->image_url,
+                'attempts' => $exam->attempts
+            ]
+        ]);
     }
 
+    /**
+     * start exam
+     */
     public function start(Exam $exam): JsonResponse
     {
         $user = auth()->user();
@@ -81,6 +98,10 @@ class ExamController extends Controller
         ]);
     }
 
+    
+    /**
+     * Submit exam
+     */
     public function submit(Request $request, ExamAttempt $attempt): JsonResponse
     {   
         if ($attempt->status !== 'in_progress') {
@@ -160,6 +181,34 @@ class ExamController extends Controller
             ],
             'questions' => $questions,
             'time_remaining' => $timeRemaining
+        ]);
+    }
+
+    public function getAttempts($id)
+    {
+        $attempts = ExamAttempt::where('exam_id', $id)
+            ->where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->select([
+                'id', 
+                'created_at', 
+                'completed_at',
+                'score',
+                'status',
+                'started_at'
+            ])
+            ->get()
+            ->map(function ($attempt) {
+                $duration = Carbon::parse($attempt->started_at)
+                    ->diffInMinutes($attempt->completed_at);
+                    
+                return array_merge($attempt->toArray(), [
+                    'duration' => $duration
+                ]);
+            });
+
+        return response()->json([
+            'data' => $attempts
         ]);
     }
 

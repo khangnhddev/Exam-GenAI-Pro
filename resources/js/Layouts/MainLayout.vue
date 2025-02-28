@@ -7,8 +7,19 @@
           <!-- Left side -->
           <div class="flex items-center">
             <div class="flex-shrink-0">
-              <router-link :to="{ name: 'home' }" class="text-white font-bold text-xl">
-                ExamPro
+              <router-link :to="{ name: 'home' }" class="flex items-center">
+                <!-- Logo SVG -->
+                <svg class="h-8 w-auto mr-2" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M25 2L2 13L25 24L48 13L25 2Z" fill="white"/>
+                  <path d="M25 31L2 20V38L25 49L48 38V20L25 31Z" fill="white" fill-opacity="0.7"/>
+                  <circle cx="25" cy="25" r="8" fill="#4F46E5"/>
+                  <path d="M25 19C23.4087 19 21.8826 19.6321 20.7574 20.7574C19.6321 21.8826 19 23.4087 19 25C19 26.5913 19.6321 28.1174 20.7574 29.2426C21.8826 30.3679 23.4087 31 25 31C26.5913 31 28.1174 30.3679 29.2426 29.2426C30.3679 28.1174 31 26.5913 31 25C31 23.4087 30.3679 21.8826 29.2426 20.7574C28.1174 19.6321 26.5913 19 25 19Z" fill="#4F46E5"/>
+                </svg>
+                <!-- Company Name -->
+                <div class="flex flex-col">
+                  <span class="text-xl font-bold text-white">ExamPro</span>
+                  <span class="text-xs text-indigo-200">Learning Management System</span>
+                </div>
               </router-link>
             </div>
             <div class="hidden md:block ml-10">

@@ -18,13 +18,21 @@
                   v-if="preview || form.avatar"
                   :src="preview || form.avatar"
                   class="h-24 w-24 rounded-full object-cover"
+                  alt="User avatar"
                 >
-                <span
+                <!-- Default SVG Avatar -->
+                <svg
                   v-else
-                  class="h-24 w-24 rounded-full bg-indigo-600 flex items-center justify-center text-white text-2xl"
+                  class="h-24 w-24 rounded-full bg-indigo-100 p-2"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
                 >
-                  {{ form.name?.charAt(0).toUpperCase() }}
-                </span>
+                  <path
+                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
+                    fill="#4F46E5"
+                  />
+                </svg>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700">Photo</label>
@@ -53,6 +61,17 @@
               >
             </div>
 
+            <!-- Fullname -->
+            <div>
+              <label for="fullname" class="block text-sm font-medium text-gray-700">Full Name</label>
+              <input
+                id="fullname"
+                v-model="form.fullname"
+                type="text"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+            </div>
+
             <!-- Email -->
             <div>
               <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
@@ -60,6 +79,17 @@
                 id="email"
                 v-model="form.email"
                 type="email"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+            </div>
+
+            <!-- Department -->
+            <div>
+              <label for="department" class="block text-sm font-medium text-gray-700">Department</label>
+              <input
+                id="department"
+                v-model="form.department"
+                type="text"
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               >
             </div>
@@ -103,7 +133,9 @@ const preview = ref(null)
 
 const form = ref({
   name: '',
+  fullname: '',        // Add fullname
   email: '',
+  department: '',      // Add department
   password: '',
   avatar: null
 })
@@ -111,7 +143,9 @@ const form = ref({
 onMounted(() => {
   if (user.value) {
     form.value.name = user.value.name
+    form.value.fullname = user.value.fullname
     form.value.email = user.value.email
+    form.value.department = user.value.department
     form.value.avatar = user.value.avatar
   }
 })
@@ -129,7 +163,9 @@ async function updateProfile() {
   try {
     const formData = new FormData()
     formData.append('name', form.value.name)
+    formData.append('fullname', form.value.fullname)
     formData.append('email', form.value.email)
+    formData.append('department', form.value.department)
     if (form.value.password) {
       formData.append('password', form.value.password)
     }
