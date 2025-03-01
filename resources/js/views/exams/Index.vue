@@ -5,21 +5,21 @@
       <div class="md:flex md:items-center md:justify-between mb-8">
         <div class="flex-1 min-w-0">
           <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-            Available Certifications
+            Professional Certifications
           </h2>
           <p class="mt-1 text-sm text-gray-500">
-            Advance your career with our professional certification exams
+            Take the next step in your career with our industry-recognized certifications
           </p>
         </div>
       </div>
 
       <!-- Search and Filter Section -->
-      <div class="mb-8 bg-white shadow rounded-lg">
+      <div class="mb-8 bg-white shadow-sm rounded-lg border border-gray-200">
         <div class="p-6">
           <div class="flex flex-col sm:flex-row gap-4">
             <!-- Search Input -->
             <div class="flex-1">
-              <label for="search" class="block text-sm font-medium text-gray-700">Search Exams</label>
+              <label for="search" class="block text-sm font-medium text-gray-700">Search Certifications</label>
               <div class="mt-1 relative rounded-md shadow-sm">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -30,8 +30,8 @@
                   type="search"
                   id="search"
                   v-model="searchQuery"
-                  class="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                  placeholder="Search by exam title or topic..."
+                  class="focus:ring-gray-500 focus:border-gray-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                  placeholder="Search by title or topic..."
                 >
               </div>
             </div>
@@ -42,7 +42,7 @@
               <select
                 id="topic"
                 v-model="selectedTopic"
-                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
               >
                 <option value="">All Topics</option>
                 <option v-for="topic in uniqueTopics" :key="topic" :value="topic">
@@ -57,7 +57,7 @@
               <select
                 id="duration"
                 v-model="selectedDuration"
-                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
               >
                 <option value="">Any Duration</option>
                 <option value="30">&lt; 30 mins</option>
@@ -74,7 +74,7 @@
             <button
               v-if="selectedTopic"
               @click="selectedTopic = ''"
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800"
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
             >
               {{ selectedTopic }}
               <svg class="ml-1.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
@@ -85,33 +85,25 @@
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="loading" class="flex justify-center py-12">
-        <svg class="animate-spin h-8 w-8 text-indigo-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
-
       <!-- Exams Grid -->
-      <div v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div v-if="!loading" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         <div 
           v-for="exam in filteredExams" 
           :key="exam.id" 
-          class="group bg-white overflow-hidden shadow-sm hover:shadow-lg transition-shadow duration-200 rounded-lg"
+          class="group bg-white overflow-hidden rounded-lg border border-gray-200 transition-all duration-200 hover:shadow-lg hover:border-gray-300"
         >
           <!-- Exam Image -->
-          <div class="relative h-48 bg-gray-200">
+          <div class="relative h-48">
             <img 
               :src="exam.image_url" 
               :alt="exam.title"
               class="w-full h-full object-cover"
             >
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 group-hover:from-black/70 transition-all duration-200"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
             <div class="absolute bottom-4 left-4 right-4">
               <h3 class="text-lg font-semibold text-white">{{ exam.title }}</h3>
               <div class="flex items-center mt-1">
-                <span class="px-2 py-1 text-xs font-medium bg-indigo-600 text-white rounded-full">
+                <span class="px-2 py-1 text-xs font-medium bg-white/20 text-white rounded-full backdrop-blur-sm">
                   {{ exam.topics?.[0] }}
                 </span>
               </div>
@@ -120,41 +112,28 @@
 
           <!-- Exam Details -->
           <div class="p-6">
-            <p class="text-sm text-gray-500 line-clamp-2">{{ exam.description }}</p>
+            <p class="text-sm text-gray-600 line-clamp-2">{{ exam.description }}</p>
             
             <!-- Stats Grid -->
             <dl class="mt-4 grid grid-cols-2 gap-4">
               <div class="flex items-center">
-                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div class="ml-2">
-                  <dt class="text-xs font-medium text-gray-500">Duration</dt>
-                  <dd class="text-sm font-medium text-gray-900">{{ exam.duration }} min</dd>
-                </div>
+                <dt class="text-xs font-medium text-gray-500">Duration</dt>
+                <dd class="ml-2 text-sm font-medium text-gray-900">{{ exam.duration }} min</dd>
               </div>
               <div class="flex items-center">
-                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <div class="ml-2">
-                  <dt class="text-xs font-medium text-gray-500">Questions</dt>
-                  <dd class="text-sm font-medium text-gray-900">{{ exam.total_questions }}</dd>
-                </div>
+                <dt class="text-xs font-medium text-gray-500">Questions</dt>
+                <dd class="ml-2 text-sm font-medium text-gray-900">{{ exam.total_questions }}</dd>
               </div>
             </dl>
 
-            <!-- Additional Stats -->
-            <div class="mt-4 flex items-center justify-between pt-4 border-t">
+            <!-- Footer -->
+            <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
               <div class="flex items-center text-sm text-gray-500">
-                <svg class="h-4 w-4 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" />
-                </svg>
                 Pass Rate: {{ exam.passing_score }}%
               </div>
               <router-link
                 :to="{ name: 'exams.show', params: { id: exam.id }}"
-                class="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200"
+                class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150"
               >
                 View Details
                 <svg class="ml-2 -mr-0.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,6 +143,14 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Loading State -->
+      <div v-else class="flex justify-center py-12">
+        <svg class="animate-spin h-8 w-8 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
       </div>
     </div>
   </div>
@@ -209,7 +196,8 @@ const filteredExams = computed(() => {
 onMounted(async () => {
   try {
     const { data } = await axios.get('/exams')
-    exams.value = data.data
+    exams.value = data.data;
+    console.log(data.data);
   } catch (error) {
     console.error('Error loading exams:', error)
   } finally {

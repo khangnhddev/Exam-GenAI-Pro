@@ -244,13 +244,18 @@ class ExamController extends Controller
         return $score;
     }
 
+    /**
+     * generateCertificate
+     */
     private function generateCertificate(ExamAttempt $attempt): void
     {
         Certificate::create([
             'user_id' => $attempt->user_id,
             'exam_id' => $attempt->exam_id,
+            'exam_attempt_id' => $attempt->id,
             'score' => $attempt->score,
-            'issued_at' => now()
+            'issued_at' => now(),
+            'certificate_number' => 'AIPRO-' . strtoupper(uniqid())
         ]);
     }
 }

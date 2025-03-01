@@ -11,6 +11,9 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /**
+     * login
+     */
     public function login(Request $request)
     {
         $request->validate([
@@ -33,6 +36,9 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * logout
+     */
     public function logout(Request $request)
     {   
         $request->user()->currentAccessToken()->delete();

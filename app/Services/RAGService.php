@@ -60,6 +60,9 @@ class RAGService
             ->join("\n\n");
     }
 
+    /**
+     * Generate text embedding for given text
+     */
     public function generateEmbedding(string $text)
     {
         $response = OpenAI::embeddings()->create([
@@ -70,6 +73,9 @@ class RAGService
         return $response->embeddings[0]->embedding;
     }
 
+    /**
+     * Generate response for user query
+     */
     public function generateResponse(string $query, array $context, string $relevantContent)
     {
         $systemPrompt = "You are an AI Learning Assistant for ExamPro. Use the following context to provide personalized help:\n\n";

@@ -1,32 +1,39 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Top Navigation Bar -->
-    <div class="bg-white shadow">
-      <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="h-screen flex flex-col bg-white">
+    <!-- Top Navigation Bar - Fixed -->
+    <div class="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
+      <div class="max-w-full mx-auto px-4">
         <div class="flex justify-between items-center h-16">
+          <!-- Left: Exam Title -->
           <div class="flex items-center">
             <h1 class="text-xl font-bold text-gray-900">{{ exam?.title }}</h1>
           </div>
+
+          <!-- Right: Stats -->
           <div class="flex items-center space-x-8">
+            <!-- Question Counter -->
             <div class="text-center">
-              <div class="text-sm font-medium text-gray-500">Questions</div>
+              <div class="text-sm font-medium text-gray-500">Question</div>
               <div class="text-lg font-bold text-gray-900">{{ currentIndex + 1 }}/{{ questions.length }}</div>
             </div>
+            
+            <!-- Timer -->
             <div class="text-center">
               <div class="text-sm font-medium text-gray-500">Time Remaining</div>
-              <div class="text-lg font-bold text-indigo-600">{{ formatTime(timeRemaining) }}</div>
+              <div class="text-lg font-bold text-gray-900">{{ formatTime(timeRemaining) }}</div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="flex h-[calc(100vh-4rem)]">
+    <!-- Main Content Area - Adjusted for fixed header -->
+    <div class="flex flex-1 mt-16">
       <!-- Question Content - Left Side -->
-      <div class="flex-1 overflow-y-auto p-6">
-        <div v-if="currentQuestion" class="max-w-3xl mx-auto">
-          <div class="bg-white shadow-sm rounded-lg">
+      <div class="flex-1 overflow-y-auto">
+        <div v-if="currentQuestion" class="max-w-3xl mx-auto p-6">
+          <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <!-- Question Text -->
             <div class="p-6">
               <h4 class="text-lg font-medium text-gray-900 mb-6">
                 {{ currentQuestion.question_text }}
@@ -40,10 +47,10 @@
                   class="relative"
                 >
                   <label 
-                    class="flex items-start p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors duration-150"
+                    class="flex items-start p-4 border rounded-lg cursor-pointer transition-colors duration-150"
                     :class="{
-                      'border-indigo-500 bg-indigo-50': isSelected(option.id),
-                      'border-gray-200': !isSelected(option.id)
+                      'border-gray-900 bg-gray-50': isSelected(option.id),
+                      'border-gray-200 hover:bg-gray-50': !isSelected(option.id)
                     }"
                   >
                     <div class="flex items-center h-5">
@@ -52,7 +59,7 @@
                         :name="'question-' + currentQuestion.id"
                         :value="option.id"
                         v-model="selectedOptions"
-                        class="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                        class="h-4 w-4 text-gray-900 border-gray-300 rounded focus:ring-gray-500"
                       />
                     </div>
                     <div class="ml-3 flex-1">
@@ -75,7 +82,7 @@
               <button
                 v-if="currentIndex < questions.length - 1"
                 @click="nextQuestion"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800"
               >
                 Next
               </button>
@@ -83,7 +90,7 @@
                 v-else
                 @click="submitExam"
                 :disabled="submitting"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800"
               >
                 {{ submitting ? 'Submitting...' : 'Submit Exam' }}
               </button>
@@ -92,7 +99,7 @@
         </div>
       </div>
 
-      <!-- Question Navigation - Right Side -->
+      <!-- Question Navigator - Right Side -->
       <div class="w-80 bg-white border-l border-gray-200 overflow-y-auto">
         <div class="p-6">
           <h3 class="text-lg font-medium text-gray-900 mb-4">Question Navigator</h3>
@@ -101,11 +108,11 @@
               v-for="(question, index) in questions"
               :key="question.id"
               @click="currentIndex = index"
-              class="h-10 w-10 flex items-center justify-center rounded-lg text-sm font-medium"
+              class="h-10 w-10 flex items-center justify-center rounded-lg text-sm font-medium transition-colors duration-150"
               :class="{
-                'bg-indigo-600 text-white': currentIndex === index,
+                'bg-gray-900 text-white': currentIndex === index,
                 'bg-gray-100 text-gray-700 hover:bg-gray-200': currentIndex !== index,
-                'ring-2 ring-offset-2 ring-indigo-500': hasAnswer(question.id)
+                'ring-2 ring-offset-2 ring-gray-900': hasAnswer(question.id)
               }"
             >
               {{ index + 1 }}

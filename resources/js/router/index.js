@@ -46,9 +46,27 @@ const frontendRoutes = {
             component: () => import('../views/certificates/Index.vue')
         },
         {
+            path: 'certificates/:id',
+            name: 'certificates.show',
+            component: () => import('../views/certificates/Show.vue'),
+            props: true
+        },
+        {
             path: 'profile',
             name: 'profile',
             component: () => import('../views/Profile.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: 'settings',
+            name: 'settings',
+            component: () => import('../views/Settings.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
+            path: 'resources',
+            name: 'resources',
+            component: () => import('../views/resources/Index.vue'),
             meta: { requiresAuth: true }
         }
     ]
@@ -160,6 +178,12 @@ const adminRoutes = {
             name: 'admin.knowledge-base',
             component: () => import('@/views/admin/knowledge-base/Index.vue'),
             meta: { requiresAuth: true, requiresAdmin: false }
+        },
+        {
+            path: 'resources',
+            name: 'admin.resources',
+            component: () => import('../views/admin/resources/Index.vue'),
+            meta: { requiresAuth: true }
         }
     ]
 }
@@ -180,6 +204,24 @@ const authRoutes = [
             await authStore.logout()
             next({ name: 'login' })
         }
+    },
+    {
+        path: '/register',
+        name: 'register',
+        component: () => import('../views/auth/Register.vue'),
+        meta: { requiresGuest: true }
+    },
+    {
+        path: '/forgot-password',
+        name: 'forgot-password',
+        component: () => import('../views/auth/ForgotPassword.vue'),
+        meta: { requiresGuest: true }
+    },
+    {
+        path: '/reset-password/:token',
+        name: 'reset-password',
+        component: () => import('../views/auth/ResetPassword.vue'),
+        meta: { requiresGuest: true }
     }
 ]
 

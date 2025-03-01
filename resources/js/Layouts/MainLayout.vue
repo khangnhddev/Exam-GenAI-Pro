@@ -1,7 +1,7 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
+  <div class="min-h-screen bg-gray-50">
     <!-- Navigation -->
-    <nav class="bg-indigo-600">
+    <nav class="bg-white border-b border-gray-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <!-- Left side -->
@@ -10,29 +10,27 @@
               <router-link :to="{ name: 'home' }" class="flex items-center">
                 <!-- Logo SVG -->
                 <svg class="h-8 w-auto mr-2" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M25 2L2 13L25 24L48 13L25 2Z" fill="white"/>
-                  <path d="M25 31L2 20V38L25 49L48 38V20L25 31Z" fill="white" fill-opacity="0.7"/>
-                  <circle cx="25" cy="25" r="8" fill="#4F46E5"/>
-                  <path d="M25 19C23.4087 19 21.8826 19.6321 20.7574 20.7574C19.6321 21.8826 19 23.4087 19 25C19 26.5913 19.6321 28.1174 20.7574 29.2426C21.8826 30.3679 23.4087 31 25 31C26.5913 31 28.1174 30.3679 29.2426 29.2426C30.3679 28.1174 31 26.5913 31 25C31 23.4087 30.3679 21.8826 29.2426 20.7574C28.1174 19.6321 26.5913 19 25 19Z" fill="#4F46E5"/>
+                  <path d="M25 2L2 13L25 24L48 13L25 2Z" fill="#2563EB" />
+                  <path d="M25 31L2 20V38L25 49L48 38V20L25 31Z" fill="#1D4ED8" fill-opacity="0.7" />
                 </svg>
                 <!-- Company Name -->
                 <div class="flex flex-col">
-                  <span class="text-xl font-bold text-white">ExamPro</span>
-                  <span class="text-xs text-indigo-200">Learning Management System</span>
+                  <span class="text-xl font-bold text-gray-900">AIPro</span>
+                  <span class="text-xs text-gray-500">AI Certification Platform</span>
                 </div>
               </router-link>
             </div>
             <div class="hidden md:block ml-10">
-              <div class="flex space-x-4">
-                <router-link
-                  v-for="item in navigation"
-                  :key="item.name"
+              <div class="flex space-x-6">
+                <router-link 
+                  v-for="item in navigation" 
+                  :key="item.name" 
                   :to="item.to"
-                  class="px-3 py-2 rounded-md text-sm font-medium"
+                  class="text-sm font-medium transition-colors duration-150"
                   :class="[
                     route.name === item.to.name
-                      ? 'bg-indigo-700 text-white'
-                      : 'text-indigo-200 hover:bg-indigo-500 hover:text-white'
+                      ? 'text-blue-600'
+                      : 'text-gray-700 hover:text-blue-600'
                   ]"
                 >
                   {{ item.name }}
@@ -44,54 +42,49 @@
           <!-- Right side -->
           <div class="hidden md:block">
             <div class="ml-4 flex items-center md:ml-6">
-              <!-- Profile dropdown -->
-              <div class="ml-3 relative">
-                <div>
-                  <button
-                    @click="showProfileMenu = !showProfileMenu"
-                    class="max-w-xs bg-indigo-600 rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white"
-                  >
-                    <span class="sr-only">Open user menu</span>
-                    <img
-                      v-if="user?.avatar"
-                      :src="user.avatar"
-                      class="h-8 w-8 rounded-full"
-                    >
-                    <span v-else class="h-8 w-8 rounded-full bg-indigo-700 flex items-center justify-center text-white">
-                      {{ user?.name?.charAt(0).toUpperCase() }}
-                    </span>
-                  </button>
-                </div>
+              <!-- Notification button -->
+              <button class="p-1 rounded-full text-gray-400 hover:text-gray-500">
+                <BellIcon class="h-6 w-6" />
+              </button>
 
-                <div
-                  v-if="showProfileMenu"
-                  class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5"
+              <!-- Profile dropdown -->
+              <div class="relative ml-3">
+                <button 
+                  @click="showProfileMenu = !showProfileMenu"
+                  class="profile-menu flex items-center max-w-xs text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
                 >
-                  <router-link
-                    :to="{ name: 'profile' }"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Your Profile
-                  </router-link>
-                  <router-link
-                    :to="{ name: 'my-learning' }"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    My Learning
-                  </router-link>
-                  <router-link
-                    :to="{ name: 'certificates' }"
-                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Certificates
-                  </router-link>
-                  <button
-                    @click="logout"
-                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Sign out
-                  </button>
-                </div>
+                  <span class="sr-only">Open user menu</span>
+                  <img 
+                    class="h-8 w-8 rounded-full"
+                    :src="userAvatar"
+                    :alt="user?.name || 'User'"
+                  />
+                </button>
+
+                <!-- Dropdown menu -->
+                <transition enter-active-class="transition ease-out duration-100"
+                  enter-from-class="transform opacity-0 scale-95" enter-to-class="transform opacity-100 scale-100"
+                  leave-active-class="transition ease-in duration-75" leave-from-class="transform opacity-100 scale-100"
+                  leave-to-class="transform opacity-0 scale-95">
+                  <div v-show="showProfileMenu"
+                    class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                    <router-link v-for="item in profileMenuItems" :key="item.name" :to="item.to"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600" @click="showProfileMenu = false">
+                      <div class="flex items-center">
+                        <component :is="item.icon" class="mr-3 h-5 w-5 text-gray-400" />
+                        {{ item.name }}
+                      </div>
+                    </router-link>
+
+                    <button @click="handleLogout"
+                      class="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600">
+                      <div class="flex items-center">
+                        <ArrowRightOnRectangleIcon class="mr-3 h-5 w-5 text-red-400" />
+                        Sign out
+                      </div>
+                    </button>
+                  </div>
+                </transition>
               </div>
             </div>
           </div>
@@ -110,20 +103,87 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import AILearningAssistant from '../components/AILearningAssistant.vue'
+import {
+  HomeIcon,
+  AcademicCapIcon,
+  BookOpenIcon,
+  ClipboardDocumentListIcon,
+  BellIcon,
+  ArrowRightOnRectangleIcon,
+  UserCircleIcon,
+  Cog6ToothIcon
+} from '@heroicons/vue/24/outline'
 
 const route = useRoute()
 const router = useRouter()
 const { user, logout } = useAuth()
 const showProfileMenu = ref(false)
+const isLoading = ref(true)
+
+// Add computed property for user avatar
+const userAvatar = computed(() => {
+  if (!user.value) return 'https://ui-avatars.com/api/?name=User'
+  return user.value.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.value.name)}`
+})
 
 const navigation = [
-  { name: 'Home', to: { name: 'home' } },
-  { name: 'Exams', to: { name: 'exams.index' } },
-  { name: 'My Learning', to: { name: 'my-learning' } },
-  { name: 'Certificates', to: { name: 'certificates' } }
+  { name: 'Explore', to: { name: 'exams.index' } },
+  { name: 'Resources', to: { name: 'resources' } }
 ]
+
+const profileMenuItems = [
+  {
+    name: 'Your Profile',
+    to: { name: 'profile' },
+    icon: UserCircleIcon
+  },
+  {
+    name: 'My Learning Dashboard',
+    to: { name: 'my-learning' },
+    icon: BookOpenIcon
+  },
+  {
+    name: 'My Certificates',
+    to: { name: 'certificates' },
+    icon: AcademicCapIcon
+  }
+]
+
+// Add click outside handler to close menu
+onMounted(async () => {
+  document.addEventListener('click', closeProfileMenu)
+  try {
+    await user.value // Wait for user to be loaded
+  } catch (error) {
+    console.error('Error loading user:', error)
+  } finally {
+    isLoading.value = false
+  }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeProfileMenu)
+})
+
+function closeProfileMenu(event) {
+  if (!event.target.closest('.profile-menu')) {
+    showProfileMenu.value = false
+  }
+}
+
+// Handle logout
+async function handleLogout() {
+  await logout()
+  showProfileMenu.value = false
+}
 </script>
+
+<style scoped>
+.profile-menu {
+  cursor: pointer;
+}
+</style>

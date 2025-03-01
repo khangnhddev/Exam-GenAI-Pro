@@ -34,13 +34,6 @@ class User extends Authenticatable
         'password' => 'hashed',
     ];
 
-    /**
-     * Get the enrollments for the user.
-     */
-    public function enrollments(): HasMany
-    {
-        return $this->hasMany(Enrollment::class);
-    }
 
     /**
      * Get the certificates earned by the user.
@@ -69,6 +62,9 @@ class User extends Authenticatable
             ->first();
     }
 
+    /**
+     * Get the user's avatar URL
+     */
     public function getAvatarUrlAttribute()
     {
         if (!$this->avatar) {
@@ -87,4 +83,12 @@ class User extends Authenticatable
             ->logOnlyDirty()
             ->setDescriptionForEvent(fn(string $eventName) => "User has been {$eventName}");
     }
+
+    // /**
+    //  * User roles relationship
+    //  */
+    // public function roles(): BelongsToMany
+    // {
+    //     //return $this->belongsToMany(Role::class);
+    // }
 }
