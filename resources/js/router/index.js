@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import axios from 'axios'
 
 // Import the admin layout
 import AdminLayout from '../layouts/AdminLayout.vue'
@@ -10,23 +11,25 @@ import KnowledgeBaseManager from '../components/admin/KnowledgeBaseManager.vue'
 const frontendRoutes = {
     path: '/',
     component: () => import('../Layouts/MainLayout.vue'),
-    meta: { requiresAuth: true },
     children: [
         {
             path: '',
             name: 'home',
-            component: () => import('../views/Home.vue')
+            component: () => import('../views/Home.vue'),
+            meta: { requiresAuth: false }
         },
         {
             path: 'exams',
             name: 'exams.index',
-            component: () => import('../views/exams/Index.vue')
+            component: () => import('../views/exams/Index.vue'),
+            meta: { requiresAuth: false }
         },
         {
             path: 'exams/:id',
             name: 'exams.show',
             component: () => import('../views/exams/Show.vue'),
-            props: true
+            props: true,
+            meta: { requiresAuth: false }
         },
         {
             path: 'exams/:id/attempt/:attemptId?',
@@ -38,18 +41,21 @@ const frontendRoutes = {
         {
             path: 'my-learning',
             name: 'my-learning',
-            component: () => import('../views/my-learning/Index.vue')
+            component: () => import('../views/my-learning/Index.vue'),
+            meta: { requiresAuth: true }
         },
         {
             path: 'certificates',
             name: 'certificates',
-            component: () => import('../views/certificates/Index.vue')
+            component: () => import('../views/certificates/Index.vue'),
+            meta: { requiresAuth: true }
         },
         {
             path: 'certificates/:id',
             name: 'certificates.show',
             component: () => import('../views/certificates/Show.vue'),
-            props: true
+            props: true,
+            meta: { requiresAuth: true }
         },
         {
             path: 'profile',
@@ -67,7 +73,7 @@ const frontendRoutes = {
             path: 'resources',
             name: 'resources',
             component: () => import('../views/resources/Index.vue'),
-            meta: { requiresAuth: true }
+            meta: { requiresAuth: false }
         }
     ]
 }
@@ -249,5 +255,31 @@ router.beforeEach((to, from, next) => {
         next()
     }
 })
+
+const fetchUser = async () => {
+    try {
+        const response = await axios.get('/api/auth/user')
+        authStore.setUser(response.data)
+        return response.data
+    } catch (error) {
+        authStore.setToken(null)
+        authStore.setUser(null)
+        throw error
+    }
+}
+
+const checkAuth = async () => {
+    try {
+        if (!authStore.token) return false
+        
+        if (!authStore.user) {
+            await fetchUser()
+        }
+        return true
+    } catch (error) {
+        console.error('Error checking auth:', error)
+        return false
+    }
+}
 
 export default router

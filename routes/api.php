@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\AIAssistantController;
 use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\KnowledgeBaseController;
+use App\Http\Controllers\Api\Admin\AdminDepartmentController;
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/register', [AuthController::class, 'register']);
@@ -121,6 +122,12 @@ Route::prefix('v1')->group(function () {
         Route::post('knowledge-base/upload', [KnowledgeBaseController::class, 'upload']);
         // Route::delete('knowledge-base/{id}', [KnowledgeBaseController::class, 'destroy']);
         // Route::post('knowledge-base/{id}/reprocess', [KnowledgeBaseController::class, 'reprocess']);
+
+        // Department Routes
+        Route::apiResource('departments', AdminDepartmentController::class);
+        Route::get('departments/{department}/users', [AdminDepartmentController::class, 'getUsers']);
+        Route::post('departments/{department}/users', [AdminDepartmentController::class, 'assignUsers']);
+        Route::delete('departments/{department}/users/{user}', [AdminDepartmentController::class, 'removeUser']);
     });
 
 });

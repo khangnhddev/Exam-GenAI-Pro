@@ -6,20 +6,13 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
         $this->call([
-            // // UserSeeder::class,
-            // CourseSeeder::class,
-            // LessonSeeder::class,
-            // // EnrollmentSeeder::class,
-            // // ProgressSeeder::class,
-            // // CertificateSeeder::class,
-            // // AssessmentSeeder::class,
-            // // QuestionSeeder::class,
-            // // OptionSeeder::class,
-            // // AssessmentResultSeeder::class,
+            // UserSeeder::class,
             ExamSeeder::class,
+            QuestionSeeder::class,
+            ResourceSeeder::class,
         ]);
     }
 }

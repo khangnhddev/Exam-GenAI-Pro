@@ -1,121 +1,171 @@
 <template>
-  <div class="h-screen flex flex-col bg-white">
-    <!-- Top Navigation Bar - Fixed -->
-    <div class="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
-      <div class="max-w-full mx-auto px-4">
-        <div class="flex justify-between items-center h-16">
-          <!-- Left: Exam Title -->
-          <div class="flex items-center">
-            <h1 class="text-xl font-bold text-gray-900">{{ exam?.title }}</h1>
+  <div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-bold text-gray-900">{{ exam?.title }}</h1>
+        <div class="flex items-center space-x-4">
+          <!-- Timer -->
+          <div class="flex items-center bg-white rounded-lg px-4 py-2 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="text-lg font-semibold">{{ formatTime(timeLeft) }}</span>
+          </div>
+          <!-- Exit Button -->
+          <button 
+            @click="confirmExit"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            EXIT
+          </button>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-xl font-semibold text-gray-900">
+            QUESTION {{ currentQuestionIndex + 1 }}
+          </h2>
+          <span class="text-sm text-gray-500">Time Left: {{ formatTime(timeLeft) }}</span>
+        </div>
+
+        <div v-if="currentQuestion" class="space-y-6">
+          <!-- Question Text -->
+          <div class="prose max-w-none">
+            <p class="text-lg text-gray-700">{{ currentQuestion.question_text }}</p>
           </div>
 
-          <!-- Right: Stats -->
-          <div class="flex items-center space-x-8">
-            <!-- Question Counter -->
-            <div class="text-center">
-              <div class="text-sm font-medium text-gray-500">Question</div>
-              <div class="text-lg font-bold text-gray-900">{{ currentIndex + 1 }}/{{ questions.length }}</div>
-            </div>
-            
-            <!-- Timer -->
-            <div class="text-center">
-              <div class="text-sm font-medium text-gray-500">Time Remaining</div>
-              <div class="text-lg font-bold text-gray-900">{{ formatTime(timeRemaining) }}</div>
-            </div>
+          <!-- Options -->
+          <div class="space-y-4">
+            <template v-if="currentQuestion.type === 'single'">
+              <label 
+                v-for="(option, index) in currentQuestion.options" 
+                :key="index"
+                class="relative flex items-center p-4 rounded-lg border cursor-pointer hover:bg-gray-50 focus-within:ring-2 focus-within:ring-indigo-500"
+                :class="{
+                  'border-gray-200': !isOptionSelected(index),
+                  'border-indigo-500 bg-indigo-50': isOptionSelected(index)
+                }"
+              >
+                <input
+                  type="radio"
+                  :name="'question-' + currentQuestion.id"
+                  :value="index"
+                  v-model="selectedAnswers[currentQuestion.id]"
+                  class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                />
+                <span class="ml-3 flex flex-col">
+                  <span class="text-sm font-medium text-gray-900">{{ option }}</span>
+                </span>
+              </label>
+            </template>
+
+            <template v-else-if="currentQuestion.type === 'multiple'">
+              <label 
+                v-for="(option, index) in currentQuestion.options" 
+                :key="index"
+                class="relative flex items-center p-4 rounded-lg border cursor-pointer hover:bg-gray-50 focus-within:ring-2 focus-within:ring-indigo-500"
+                :class="{
+                  'border-gray-200': !isOptionSelected(index),
+                  'border-indigo-500 bg-indigo-50': isOptionSelected(index)
+                }"
+              >
+                <input
+                  type="checkbox"
+                  :value="index"
+                  v-model="selectedAnswers[currentQuestion.id]"
+                  class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                />
+                <span class="ml-3 flex flex-col">
+                  <span class="text-sm font-medium text-gray-900">{{ option }}</span>
+                </span>
+              </label>
+            </template>
           </div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="flex justify-between items-center">
+        <button
+          @click="previousQuestion"
+          :disabled="currentQuestionIndex === 0"
+          class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Previous
+        </button>
+
+        <div class="flex space-x-4">
+          <button
+            v-if="currentQuestionIndex < questions.length - 1"
+            @click="nextQuestion"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Next
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <button
+            v-else
+            @click="submitExam"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Submit Exam
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Main Content Area - Adjusted for fixed header -->
-    <div class="flex flex-1 mt-16">
-      <!-- Question Content - Left Side -->
-      <div class="flex-1 overflow-y-auto">
-        <div v-if="currentQuestion" class="max-w-3xl mx-auto p-6">
-          <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
-            <!-- Question Text -->
-            <div class="p-6">
-              <h4 class="text-lg font-medium text-gray-900 mb-6">
-                {{ currentQuestion.question_text }}
-              </h4>
-              
-              <!-- Options -->
-              <div class="space-y-4">
-                <div 
-                  v-for="option in currentQuestion.options" 
-                  :key="option.id"
-                  class="relative"
-                >
-                  <label 
-                    class="flex items-start p-4 border rounded-lg cursor-pointer transition-colors duration-150"
-                    :class="{
-                      'border-gray-900 bg-gray-50': isSelected(option.id),
-                      'border-gray-200 hover:bg-gray-50': !isSelected(option.id)
-                    }"
-                  >
-                    <div class="flex items-center h-5">
-                      <input
-                        :type="currentQuestion.type === 'multiple' ? 'checkbox' : 'radio'"
-                        :name="'question-' + currentQuestion.id"
-                        :value="option.id"
-                        v-model="selectedOptions"
-                        class="h-4 w-4 text-gray-900 border-gray-300 rounded focus:ring-gray-500"
-                      />
-                    </div>
-                    <div class="ml-3 flex-1">
-                      <span class="text-sm text-gray-700">{{ option.text }}</span>
-                    </div>
-                  </label>
-                </div>
+    <!-- Exit Confirmation Modal -->
+    <div v-if="showExitModal" class="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+          <div class="sm:flex sm:items-start">
+            <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+              <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+              <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                Exit Exam
+              </h3>
+              <div class="mt-2">
+                <p class="text-sm text-gray-500">
+                  Are you sure you want to exit? Your progress will be saved, but the exam timer will continue running.
+                </p>
               </div>
             </div>
-
-            <!-- Navigation Buttons -->
-            <div class="bg-gray-50 px-6 py-4 rounded-b-lg flex justify-between">
-              <button
-                @click="previousQuestion"
-                :disabled="currentIndex === 0"
-                class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <button
-                v-if="currentIndex < questions.length - 1"
-                @click="nextQuestion"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800"
-              >
-                Next
-              </button>
-              <button
-                v-else
-                @click="submitExam"
-                :disabled="submitting"
-                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800"
-              >
-                {{ submitting ? 'Submitting...' : 'Submit Exam' }}
-              </button>
-            </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Question Navigator - Right Side -->
-      <div class="w-80 bg-white border-l border-gray-200 overflow-y-auto">
-        <div class="p-6">
-          <h3 class="text-lg font-medium text-gray-900 mb-4">Question Navigator</h3>
-          <div class="grid grid-cols-5 gap-2">
+          <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
             <button
-              v-for="(question, index) in questions"
-              :key="question.id"
-              @click="currentIndex = index"
-              class="h-10 w-10 flex items-center justify-center rounded-lg text-sm font-medium transition-colors duration-150"
-              :class="{
-                'bg-gray-900 text-white': currentIndex === index,
-                'bg-gray-100 text-gray-700 hover:bg-gray-200': currentIndex !== index,
-                'ring-2 ring-offset-2 ring-gray-900': hasAnswer(question.id)
-              }"
+              type="button"
+              @click="exit"
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
             >
-              {{ index + 1 }}
+              Exit
+            </button>
+            <button
+              type="button"
+              @click="showExitModal = false"
+              class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+            >
+              Cancel
             </button>
           </div>
         </div>
@@ -131,130 +181,94 @@ import axios from 'axios'
 
 const route = useRoute()
 const router = useRouter()
+
 const exam = ref(null)
 const questions = ref([])
-const currentIndex = ref(0)
-const timeRemaining = ref(0)
-const submitting = ref(false)
-const timer = ref(null)
+const currentQuestionIndex = ref(0)
+const selectedAnswers = ref({})
+const timeLeft = ref(0)
+const showExitModal = ref(false)
+let timer = null
 
-const selectedOptions = ref([]) // Keep this as empty array
-const answers = ref({})
+const currentQuestion = computed(() => questions.value[currentQuestionIndex.value])
 
-const currentQuestion = computed(() => questions.value[currentIndex.value])
-
-onMounted(async () => {
-  try {
-    const { data } = await axios.get(`/exams/${route.params.id}/attempt/${route.params.attemptId}`)
-    exam.value = data.exam
-    questions.value = data.questions
-    timeRemaining.value = parseInt(data.time_remaining, 10)
-    startTimer()
-  } catch (error) {
-    console.error('Error loading exam:', error)
+const isOptionSelected = (optionIndex) => {
+  const answer = selectedAnswers.value[currentQuestion.value.id]
+  if (Array.isArray(answer)) {
+    return answer.includes(optionIndex)
   }
-})
+  return answer === optionIndex
+}
 
-onUnmounted(() => {
-  if (timer.value) clearInterval(timer.value)
-})
+const formatTime = (seconds) => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const remainingSeconds = seconds % 60
+  return `${String(hours).padStart(2, '0')} : ${String(minutes).padStart(2, '0')} : ${String(remainingSeconds).padStart(2, '0')}`
+}
 
-function startTimer() {
-  timer.value = setInterval(() => {
-    if (timeRemaining.value > 0) {
-      timeRemaining.value--
+const startTimer = () => {
+  timer = setInterval(() => {
+    if (timeLeft.value > 0) {
+      timeLeft.value--
     } else {
-      clearInterval(timer.value)
+      clearInterval(timer)
       submitExam()
     }
   }, 1000)
 }
 
-function formatTime(seconds) {
-  if (!seconds && seconds !== 0) return '00:00'
-  
-  const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
-  
-  // Format hours if duration is more than 60 minutes
-  if (minutes >= 60) {
-    const hours = Math.floor(minutes / 60)
-    const remainingMinutes = minutes % 60
-    return `${hours.toString().padStart(2, '0')}:${remainingMinutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
-  }
-  
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`
-}
-
-// Update the isSelected function to handle both single and multiple choice
-function isSelected(optionId) {
-  if (!selectedOptions.value) {
-    selectedOptions.value = []
-  }
-  return Array.isArray(selectedOptions.value) 
-    ? selectedOptions.value.includes(optionId)
-    : selectedOptions.value === optionId
-}
-
-// Add this function with the other functions
-function hasAnswer(questionId) {
-  return !!answers.value[questionId]?.length
-}
-
-// Update the saveCurrentAnswers function
-function saveCurrentAnswers() {
-  if (currentQuestion.value) {
-    // Handle both single and multiple choice questions
-    const value = currentQuestion.value.type === 'multiple'
-      ? selectedOptions.value
-      : [selectedOptions.value]
-    answers.value[currentQuestion.value.id] = value
-  }
-}
-
-// Update the loadSavedAnswers function
-function loadSavedAnswers() {
-  if (currentQuestion.value) {
-    const savedAnswer = answers.value[currentQuestion.value.id] || []
-    selectedOptions.value = currentQuestion.value.type === 'multiple'
-      ? savedAnswer
-      : savedAnswer[0] || null
-  }
-}
-
-function nextQuestion() {
-  saveCurrentAnswers()
-  if (currentIndex.value < questions.value.length - 1) {
-    currentIndex.value++
-    loadSavedAnswers()
-  }
-}
-
-function previousQuestion() {
-  saveCurrentAnswers()
-  if (currentIndex.value > 0) {
-    currentIndex.value--
-    loadSavedAnswers()
-  }
-}
-
-async function submitExam() {
-  saveCurrentAnswers()
-  submitting.value = true
-  
+const loadExam = async () => {
   try {
-    await axios.post(`/exams/attempts/${route.params.attemptId}/submit`, {
-      answers: answers.value
+    const response = await axios.get(`/exams/${route.params.id}/attempt/${route.params.attemptId || ''}`)
+    exam.value = response.data.exam
+    questions.value = response.data.questions
+    timeLeft.value = exam.value.duration * 60 // Convert minutes to seconds
+    startTimer()
+  } catch (error) {
+    console.error('Error loading exam:', error)
+  }
+}
+
+const nextQuestion = () => {
+  if (currentQuestionIndex.value < questions.value.length - 1) {
+    currentQuestionIndex.value++
+  }
+}
+
+const previousQuestion = () => {
+  if (currentQuestionIndex.value > 0) {
+    currentQuestionIndex.value--
+  }
+}
+
+const submitExam = async () => {
+  try {
+    await axios.post(`/api/exams/${route.params.id}/submit`, {
+      answers: selectedAnswers.value,
+      attempt_id: route.params.attemptId
     })
-    console.log('Submit exam successful')
-    // router.push({
-    //   name: 'exams.review',
-    //   params: { id: route.params.id, attemptId: route.params.attemptId }
-    // })
+    router.push({ name: 'exams.result', params: { id: route.params.id } })
   } catch (error) {
     console.error('Error submitting exam:', error)
-  } finally {
-    submitting.value = false
   }
 }
+
+const confirmExit = () => {
+  showExitModal.value = true
+}
+
+const exit = () => {
+  router.push({ name: 'exams.index' })
+}
+
+onMounted(() => {
+  loadExam()
+})
+
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer)
+  }
+})
 </script>

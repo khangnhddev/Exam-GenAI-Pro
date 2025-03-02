@@ -11,6 +11,53 @@ class ExamSeeder extends Seeder
 {
     public function run(): void
     {
+        $exams = [
+            [
+                'title' => 'JavaScript Fundamentals',
+                'description' => 'Test your knowledge of JavaScript basics including variables, functions, and control flow.',
+                'duration' => 30, // minutes
+                'passing_score' => 70,
+                'status' => 'published',
+                'attempts_allowed' => 3,
+            ],
+            [
+                'title' => 'Vue.js Essentials',
+                'description' => 'Comprehensive test covering Vue.js core concepts, components, and state management.',
+                'duration' => 45,
+                'passing_score' => 75,
+                'status' => 'published',
+                'attempts_allowed' => 2,
+            ],
+            [
+                'title' => 'Laravel Backend Development',
+                'description' => 'Advanced test on Laravel framework including routing, controllers, and database management.',
+                'duration' => 60,
+                'passing_score' => 80,
+                'status' => 'published',
+                'attempts_allowed' => 2,
+            ],
+            [
+                'title' => 'Web Security Basics',
+                'description' => 'Test covering fundamental web security concepts and best practices.',
+                'duration' => 40,
+                'passing_score' => 75,
+                'status' => 'published',
+                'attempts_allowed' => 2,
+            ],
+            [
+                'title' => 'Database Design',
+                'description' => 'Assessment of database design principles and SQL knowledge.',
+                'duration' => 50,
+                'passing_score' => 70,
+                'status' => 'draft',
+                'attempts_allowed' => 2,
+            ],
+        ];
+
+        foreach ($exams as $exam) {
+            Exam::create($exam);
+        }
+
         // Create Python Basic Exam
         $pythonExam = Exam::create([
             'title' => 'Python Basic Certification',
@@ -80,47 +127,6 @@ class ExamSeeder extends Seeder
             'question_id' => $q2->id,
             'option_text' => 'boolean',
             'is_correct' => true
-        ]);
-
-        // Create JavaScript Basic Exam
-        $jsExam = Exam::create([
-            'title' => 'JavaScript Fundamentals',
-            'description' => 'Test your JavaScript knowledge',
-            'duration' => 45,
-            'passing_score' => 60,
-            'total_questions' => 2,
-            'attempts_allowed' => 3,
-            'status' => 'published'
-        ]);
-
-        // Question for JavaScript
-        $jsQ1 = Question::create([
-            'exam_id' => $jsExam->id,
-            'question_text' => 'What is the result of typeof null?',
-            'type' => 'single',
-            'points' => 10,
-            'explanation' => 'In JavaScript, typeof null returns "object", which is considered a bug in the language.'
-        ]);
-
-        Option::create([
-            'question_id' => $jsQ1->id,
-            'option_text' => '"object"',
-            'is_correct' => true
-        ]);
-        Option::create([
-            'question_id' => $jsQ1->id,
-            'option_text' => '"null"',
-            'is_correct' => false
-        ]);
-        Option::create([
-            'question_id' => $jsQ1->id,
-            'option_text' => '"undefined"',
-            'is_correct' => false
-        ]);
-        Option::create([
-            'question_id' => $jsQ1->id,
-            'option_text' => 'null',
-            'is_correct' => false
         ]);
 
         // ChatGPT Developer Certification

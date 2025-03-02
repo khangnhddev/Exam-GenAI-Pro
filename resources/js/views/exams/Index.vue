@@ -1,207 +1,221 @@
 <template>
   <div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Header Section -->
-      <div class="md:flex md:items-center md:justify-between mb-8">
-        <div class="flex-1 min-w-0">
-          <h2 class="text-2xl font-bold leading-7 text-gray-900 sm:text-3xl sm:truncate">
-            Professional Certifications
-          </h2>
-          <p class="mt-1 text-sm text-gray-500">
-            Take the next step in your career with our industry-recognized certifications
-          </p>
+      <div class="mb-8">
+        <div class="flex items-center gap-2 mb-4">
+          <div class="flex items-center bg-gradient-to-r from-indigo-600 to-purple-600 p-1.5 rounded-lg">
+            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="text-sm font-medium text-indigo-600 uppercase tracking-wider">AI</span>
+            <span class="text-sm font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent uppercase tracking-wider">Pro</span>
+            <span class="text-sm font-medium text-indigo-600 uppercase tracking-wider ml-1">Certification</span>
+          </div>
         </div>
+        <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Professional Certifications</h1>
+        <p class="mt-2 text-lg text-gray-600">Validate your expertise with AI Pro's industry-recognized certifications</p>
       </div>
 
       <!-- Search and Filter Section -->
-      <div class="mb-8 bg-white shadow-sm rounded-lg border border-gray-200">
-        <div class="p-6">
-          <div class="flex flex-col sm:flex-row gap-4">
-            <!-- Search Input -->
-            <div class="flex-1">
-              <label for="search" class="block text-sm font-medium text-gray-700">Search Certifications</label>
-              <div class="mt-1 relative rounded-md shadow-sm">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="search"
-                  id="search"
-                  v-model="searchQuery"
-                  class="focus:ring-gray-500 focus:border-gray-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
-                  placeholder="Search by title or topic..."
-                >
+      <div class="bg-white rounded-lg shadow-sm p-4 mb-8">
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="flex-1">
+            <div class="relative">
+              <input type="text" 
+                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" 
+                placeholder="Search exams..."
+                v-model="searchQuery">
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
               </div>
             </div>
-
-            <!-- Topic Filter -->
-            <div class="sm:w-48">
-              <label for="topic" class="block text-sm font-medium text-gray-700">Topic</label>
-              <select
-                id="topic"
-                v-model="selectedTopic"
-                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
-              >
-                <option value="">All Topics</option>
-                <option v-for="topic in uniqueTopics" :key="topic" :value="topic">
-                  {{ topic }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Duration Filter -->
-            <div class="sm:w-48">
-              <label for="duration" class="block text-sm font-medium text-gray-700">Duration</label>
-              <select
-                id="duration"
-                v-model="selectedDuration"
-                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm rounded-md"
-              >
-                <option value="">Any Duration</option>
-                <option value="30">&lt; 30 mins</option>
-                <option value="60">&lt; 1 hour</option>
-                <option value="120">&lt; 2 hours</option>
-                <option value="121">&gt; 2 hours</option>
-              </select>
-            </div>
           </div>
-
-          <!-- Active Filters -->
-          <div v-if="hasActiveFilters" class="mt-4 flex items-center space-x-2">
-            <span class="text-sm text-gray-700">Active filters:</span>
-            <button
-              v-if="selectedTopic"
-              @click="selectedTopic = ''"
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
-            >
-              {{ selectedTopic }}
-              <svg class="ml-1.5 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-              </svg>
-            </button>
+          <div class="flex gap-4">
+            <select v-model="selectedCategory" 
+              class="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+              <option value="">All Categories</option>
+              <option v-for="category in categories" :key="category" :value="category">
+                {{ category }}
+              </option>
+            </select>
+            <select v-model="selectedDifficulty" 
+              class="block w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+              <option value="">All Difficulties</option>
+              <option v-for="level in difficulties" :key="level" :value="level">
+                {{ level }}
+              </option>
+            </select>
           </div>
         </div>
       </div>
 
       <!-- Exams Grid -->
-      <div v-if="!loading" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <div 
-          v-for="exam in filteredExams" 
-          :key="exam.id" 
-          class="group bg-white overflow-hidden rounded-lg border border-gray-200 transition-all duration-200 hover:shadow-lg hover:border-gray-300"
-        >
-          <!-- Exam Image -->
-          <div class="relative h-48">
-            <img 
-              :src="exam.image_url" 
-              :alt="exam.title"
-              class="w-full h-full object-cover"
-            >
-            <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-            <div class="absolute bottom-4 left-4 right-4">
-              <h3 class="text-lg font-semibold text-white">{{ exam.title }}</h3>
-              <div class="flex items-center mt-1">
-                <span class="px-2 py-1 text-xs font-medium bg-white/20 text-white rounded-full backdrop-blur-sm">
-                  {{ exam.topics?.[0] }}
-                </span>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div v-for="exam in filteredExams" :key="exam.id" 
+          class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
+          <!-- Exam Header -->
+          <div class="relative h-48 bg-gradient-to-r from-indigo-500 to-purple-600 p-6 flex items-center justify-center">
+            <div class="text-center">
+              <h3 class="text-2xl font-bold text-white mb-2">{{ exam.title }}</h3>
+              <div class="flex items-center justify-center gap-4">
+                <div class="flex items-center">
+                  <svg class="w-5 h-5 text-white opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="ml-1 text-white">{{ exam.duration }} mins</span>
+                </div>
+                <div class="flex items-center">
+                  <svg class="w-5 h-5 text-white opacity-75" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="ml-1 text-white">{{ exam.questions }} Questions</span>
+                </div>
               </div>
             </div>
           </div>
-
-          <!-- Exam Details -->
+          
+          <!-- Exam Content -->
           <div class="p-6">
-            <p class="text-sm text-gray-600 line-clamp-2">{{ exam.description }}</p>
+            <div class="flex items-center gap-2 mb-3">
+              <span :class="[
+                'px-2 py-1 text-xs font-medium rounded-full',
+                exam.difficulty === 'Beginner' ? 'bg-green-100 text-green-800' :
+                exam.difficulty === 'Intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-red-100 text-red-800'
+              ]">
+                {{ exam.difficulty }}
+              </span>
+              <span class="text-sm text-gray-500">{{ exam.category }}</span>
+            </div>
             
-            <!-- Stats Grid -->
-            <dl class="mt-4 grid grid-cols-2 gap-4">
-              <div class="flex items-center">
-                <dt class="text-xs font-medium text-gray-500">Duration</dt>
-                <dd class="ml-2 text-sm font-medium text-gray-900">{{ exam.duration }} min</dd>
-              </div>
-              <div class="flex items-center">
-                <dt class="text-xs font-medium text-gray-500">Questions</dt>
-                <dd class="ml-2 text-sm font-medium text-gray-900">{{ exam.total_questions }}</dd>
-              </div>
-            </dl>
-
-            <!-- Footer -->
-            <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-              <div class="flex items-center text-sm text-gray-500">
-                Pass Rate: {{ exam.passing_score }}%
-              </div>
-              <router-link
-                :to="{ name: 'exams.show', params: { id: exam.id }}"
-                class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150"
-              >
-                View Details
-                <svg class="ml-2 -mr-0.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            <p class="text-gray-600 mb-4 line-clamp-2">{{ exam.description }}</p>
+            
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-              </router-link>
+                <span class="text-sm text-gray-500">Pass Score: {{ exam.passing_score }}%</span>
+              </div>
+              <button @click="startExam(exam)" 
+                class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                Start Exam
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div v-else class="flex justify-center py-12">
-        <svg class="animate-spin h-8 w-8 text-gray-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      <!-- Empty State -->
+      <div v-if="filteredExams.length === 0" class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+            d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No exams found</h3>
+        <p class="mt-1 text-sm text-gray-500">Try adjusting your search or filter criteria</p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
-const exams = ref([])
-const loading = ref(true)
+const router = useRouter()
 const searchQuery = ref('')
-const selectedTopic = ref('')
-const selectedDuration = ref('')
+const selectedCategory = ref('')
+const selectedDifficulty = ref('')
 
-// Get unique topics from all exams
-const uniqueTopics = computed(() => {
-  return [...new Set(exams.value.flatMap(exam => exam.topics || []))]
-})
+const categories = ['Programming', 'Machine Learning', 'Data Science', 'DevOps', 'Cloud Computing']
+const difficulties = ['Beginner', 'Intermediate', 'Advanced']
 
-// Check if any filters are active
-const hasActiveFilters = computed(() => {
-  return searchQuery.value || selectedTopic.value || selectedDuration.value
-})
+// Example data - replace with actual API call
+const exams = ref([
+  {
+    id: 1,
+    title: 'Python Developer Certification',
+    description: 'Validate your Python programming skills with our comprehensive certification exam covering core concepts and advanced topics.',
+    category: 'Programming',
+    difficulty: 'Intermediate',
+    duration: 90,
+    questions: 50,
+    passing_score: 70
+  },
+  {
+    id: 2,
+    title: 'Machine Learning Specialist',
+    description: 'Test your knowledge in machine learning algorithms, model evaluation, and practical implementation.',
+    category: 'Machine Learning',
+    difficulty: 'Advanced',
+    duration: 120,
+    questions: 60,
+    passing_score: 75
+  },
+  {
+    id: 3,
+    title: 'AWS Cloud Practitioner',
+    description: 'Demonstrate your understanding of AWS Cloud concepts, services, and basic architecture principles.',
+    category: 'Cloud Computing',
+    difficulty: 'Beginner',
+    duration: 60,
+    questions: 40,
+    passing_score: 65
+  },
+  {
+    id: 4,
+    title: 'Data Science Fundamentals',
+    description: 'Prove your proficiency in data analysis, visualization, and statistical methods.',
+    category: 'Data Science',
+    difficulty: 'Intermediate',
+    duration: 90,
+    questions: 45,
+    passing_score: 70
+  },
+  {
+    id: 5,
+    title: 'DevOps Engineer Certification',
+    description: 'Validate your expertise in CI/CD pipelines, containerization, and automation tools.',
+    category: 'DevOps',
+    difficulty: 'Advanced',
+    duration: 100,
+    questions: 55,
+    passing_score: 80
+  }
+])
 
-// Filter exams based on search and filters
 const filteredExams = computed(() => {
   return exams.value.filter(exam => {
-    const matchesSearch = !searchQuery.value || 
-      exam.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      exam.topics?.some(topic => topic.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    const matchesSearch = exam.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+                         exam.description.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesCategory = !selectedCategory.value || exam.category === selectedCategory.value
+    const matchesDifficulty = !selectedDifficulty.value || exam.difficulty === selectedDifficulty.value
     
-    const matchesTopic = !selectedTopic.value || 
-      exam.topics?.includes(selectedTopic.value)
-    
-    const matchesDuration = !selectedDuration.value ||
-      (selectedDuration.value === '121' ? exam.duration >= 120 : exam.duration <= selectedDuration.value)
-    
-    return matchesSearch && matchesTopic && matchesDuration
+    return matchesSearch && matchesCategory && matchesDifficulty
   })
 })
 
-onMounted(async () => {
-  try {
-    const { data } = await axios.get('/exams')
-    exams.value = data.data;
-    console.log(data.data);
-  } catch (error) {
-    console.error('Error loading exams:', error)
-  } finally {
-    loading.value = false
-  }
-})
+const startExam = (exam) => {
+  router.push({ name: 'exams.show', params: { id: exam.id }})
+}
 </script>
+
+<style>
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style>

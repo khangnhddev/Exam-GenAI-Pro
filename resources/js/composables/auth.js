@@ -31,10 +31,8 @@ export function useAuth() {
   }
 
   const checkAuth = async () => {
-    try {
-      await authStore.checkAuth()
-    } catch (error) {
-      console.error('Error checking auth:', error)
+    if (authStore.token && !authStore.user) {
+      await authStore.fetchUser()
     }
   }
 
@@ -83,4 +81,4 @@ export function useAuth() {
     forgotPassword,
     resetPassword
   }
-}
+} 
