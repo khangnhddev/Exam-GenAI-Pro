@@ -6,6 +6,7 @@ import axios from 'axios'
 import AdminLayout from '../layouts/AdminLayout.vue'
 import ActivityLogManager from '../components/admin/ActivityLogManager.vue'
 import KnowledgeBaseManager from '../components/admin/KnowledgeBaseManager.vue'
+import GeneralSettings from '@/views/admin/settings/General.vue'
 
 // Frontend routes
 const frontendRoutes = {
@@ -168,12 +169,6 @@ const adminRoutes = {
             component: ActivityLogManager,
             meta: { requiresAuth: true, requiresAdmin: false }
         },
-        // {
-        //     path: 'knowledge-base',
-        //     name: 'admin-knowledge-base',
-        //     component: KnowledgeBaseManager,
-        //     meta: { requiresAuth: true, requiresAdmin: false }
-        // },
         {
             path: 'analytics',
             name: 'admin.analytics',
@@ -190,6 +185,27 @@ const adminRoutes = {
             name: 'admin.resources',
             component: () => import('../views/admin/resources/Index.vue'),
             meta: { requiresAuth: true }
+        },
+        {
+            path: 'departments',
+            name: 'admin.departments',
+            component: () => import('@/views/admin/departments/Index.vue'),
+            meta: { requiresAuth: true, isAdmin: true }
+        },
+        {
+            path: 'settings',
+            children: [
+                {
+                    path: 'general',
+                    name: 'admin.settings.general',
+                    component: GeneralSettings,
+                    meta: {
+                        title: 'General Settings',
+                        requiresAuth: true,
+                        adminOnly: true
+                    }
+                }
+            ]
         }
     ]
 }

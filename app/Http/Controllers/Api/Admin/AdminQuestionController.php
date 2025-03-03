@@ -159,7 +159,7 @@ class AdminQuestionController extends Controller
         $validated = $request->validate([
             'exam_id' => 'nullable|exists:exams,id',
             'source' => 'required|in:openai,knowledge',
-            'topic' => 'required_if:source,openai|string',
+            'topic' => 'required_if:source,openai|string|nullable',
             'difficulty' => 'required|in:easy,medium,hard',
             'count' => 'required|integer|min:1|max:10'
         ]);
@@ -178,7 +178,7 @@ class AdminQuestionController extends Controller
                         [
                             'role' => 'user',
                             'content' => $this->buildPrompt(
-                                $validated['topic'],
+                                $validated['topic'] ?? '',
                                 $validated['difficulty'],
                                 $validated['count']
                             )

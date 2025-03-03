@@ -96,7 +96,7 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                    {{ user.department }}
+                    {{ getDepartmentName(user.department_id) }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -141,121 +141,158 @@
 
     <!-- Create User Modal -->
     <TransitionRoot appear :show="showCreateModal" as="template">
-      <Dialog as="div" @close="showCreateModal = false" :open="showCreateModal" class="relative z-10">
-        <div class="fixed inset-0 bg-black bg-opacity-25" />
+      <Dialog as="div" @close="showCreateModal = false" class="relative z-10">
+        <TransitionChild
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div class="fixed inset-0 bg-black bg-opacity-25" />
+        </TransitionChild>
 
         <div class="fixed inset-0 overflow-y-auto">
-          <div class="flex min-h-full items-center justify-center p-4">
-            <DialogPanel
-              class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
-              <DialogTitle as="h3" class="text-lg font-bold leading-6 text-gray-900 pb-4 border-b">
-                Create New User
-              </DialogTitle>
-
-              <form @submit.prevent="handleSubmit" class="mt-6 space-y-6">
-                <!-- Full Name -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Full Name</label>
-                  <input 
-                    v-model="form.fullname"
-                    type="text" 
-                    required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    placeholder="Enter full name"
-                  />
-                </div>
-
-                <!-- Username -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Username</label>
-                  <input 
-                    v-model="form.name"
-                    type="text" 
-                    required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    placeholder="Enter username"
-                  />
-                </div>
-
-                <!-- Email -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Email Address</label>
-                  <input 
-                    v-model="form.email"
-                    type="email" 
-                    required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    placeholder="user@example.com"
-                  />
-                </div>
-
-                <!-- Department -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Department</label>
-                  <select 
-                    v-model="form.department"
-                    required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  >
-                    <option value="">Select Department</option>
-                    <option value="IT">Information Technology</option>
-                    <option value="HR">Human Resources</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="Operations">Operations</option>
-                  </select>
-                </div>
-
-                <!-- Role -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Role</label>
-                  <select 
-                    v-model="form.role"
-                    required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  >
-                    <option value="">Select Role</option>
-                    <option value="admin">Administrator</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="student">Student</option>
-                  </select>
-                </div>
-
-                <!-- Password -->
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Password</label>
-                  <input 
-                    v-model="form.password"
-                    type="password" 
-                    required
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                    placeholder="Enter password"
-                  />
-                </div>
-
-                <!-- Form Actions -->
-                <div class="mt-6 flex items-center justify-end space-x-3 pt-4 border-t">
+          <div class="flex min-h-full items-center justify-center p-4 text-center">
+            <TransitionChild
+              as="template"
+              enter="duration-300 ease-out"
+              enter-from="opacity-0 scale-95"
+              enter-to="opacity-100 scale-100"
+              leave="duration-200 ease-in"
+              leave-from="opacity-100 scale-100"
+              leave-to="opacity-0 scale-95"
+            >
+              <DialogPanel class="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <!-- Close button -->
+                <div class="absolute top-0 right-0 pt-4 pr-4">
                   <button
                     type="button"
-                    class="inline-flex justify-center rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     @click="showCreateModal = false"
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    :disabled="loading"
-                    class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                      <path class="opacity-75" fill="currentColor" d="M4 12a 8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    {{ loading ? 'Creating...' : 'Create User' }}
+                    <span class="sr-only">Close</span>
+                    <XMarkIcon class="h-6 w-6" aria-hidden="true" />
                   </button>
                 </div>
-              </form>
-            </DialogPanel>
+
+                <DialogTitle as="h3" class="text-lg font-medium leading-6 text-gray-900">
+                  Create New User
+                </DialogTitle>
+
+                <form @submit.prevent="handleSubmit" class="mt-4">
+                  <div class="space-y-4">
+                    <!-- Full Name -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                      <input 
+                        v-model="form.fullname"
+                        type="text" 
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        placeholder="Enter full name"
+                      />
+                    </div>
+
+                    <!-- Username -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700">Username</label>
+                      <input 
+                        v-model="form.name"
+                        type="text" 
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        placeholder="Enter username"
+                      />
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700">Email Address</label>
+                      <input 
+                        v-model="form.email"
+                        type="email" 
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        placeholder="user@example.com"
+                      />
+                    </div>
+
+                    <!-- Department -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700">Department</label>
+                      <select 
+                        v-model="form.department_id"
+                        required
+                        :disabled="loadingDepartments"
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      >
+                        <option value="">{{ loadingDepartments ? 'Loading departments...' : 'Select Department' }}</option>
+                        <option v-for="dept in departments" 
+                                :key="dept.id" 
+                                :value="dept.id"
+                                class="py-1">
+                          {{ dept.name }}
+                        </option>
+                      </select>
+                      <p v-if="departmentError" class="mt-1 text-sm text-red-600">
+                        {{ departmentError }}
+                      </p>
+                    </div>
+
+                    <!-- Role -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700">Role</label>
+                      <select 
+                        v-model="form.role"
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      >
+                        <option value="">Select Role</option>
+                        <option value="admin">Administrator</option>
+                        <option value="teacher">Teacher</option>
+                        <option value="student">Student</option>
+                      </select>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700">Password</label>
+                      <input 
+                        v-model="form.password"
+                        type="password" 
+                        required
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        placeholder="Enter password"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="mt-6 flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      class="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                      @click="showCreateModal = false"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      :disabled="loading"
+                      class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <svg v-if="loading" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                        <path class="opacity-75" fill="currentColor" d="M4 12a 8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      {{ loading ? 'Creating...' : 'Create User' }}
+                    </button>
+                  </div>
+                </form>
+              </DialogPanel>
+            </TransitionChild>
           </div>
         </div>
       </Dialog>
@@ -268,7 +305,8 @@ import { ref, computed, onMounted } from 'vue'
 import { format } from 'date-fns'
 import axios from 'axios' // Add this import
 import SearchFilterPanel from '@/components/admin/SearchFilterPanel.vue'
-import { Dialog, DialogPanel, DialogTitle } from '@headlessui/vue'
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
+import { XMarkIcon } from '@heroicons/vue/24/outline'
 
 // Initialize users as empty array
 const users = ref([])
@@ -277,11 +315,15 @@ const selectedRole = ref('')
 const loading = ref(true)
 const error = ref(null)
 const showCreateModal = ref(false)
+const departments = ref([])
+const loadingDepartments = ref(false)
+const departmentError = ref(null)
+
 const form = ref({
   name: '',
   fullname: '',
   email: '',
-  department: '',
+  department_id: '',
   password: '',
   role: ''
 })
@@ -292,6 +334,28 @@ const roleFilters = [
   { value: 'teacher', label: 'Teacher' },
   { value: 'student', label: 'Student' }
 ]
+
+// Add computed property for department names
+const getDepartmentName = (departmentId) => {
+  const department = departments.value?.find(d => d.id === departmentId);
+  console.log(departmentId);
+  return department ? department.name : 'N/A'
+}
+
+// Fetch departments
+async function fetchDepartments() {
+  loadingDepartments.value = true
+  departmentError.value = null
+  try {
+    const response = await axios.get('/admin/departments')
+    departments.value = response.data.data
+  } catch (err) {
+    departmentError.value = err.response?.data?.message || 'Error loading departments'
+    console.error('Error fetching departments:', err)
+  } finally {
+    loadingDepartments.value = false
+  }
+}
 
 // Add error handling in computed property
 const filteredUsers = computed(() => {
@@ -308,13 +372,18 @@ const filteredUsers = computed(() => {
   })
 })
 
-// Add loading and error states to the fetch function
+// Fetch departments on component mount
 onMounted(async () => {
   try {
+    // Fetch departments first
+    await fetchDepartments()
+    
+    // Then fetch users
     loading.value = true
     error.value = null
     const response = await axios.get('/admin/users')
-    users.value = response.data.data
+    users.value = response.data.data;
+    console.log(users.value);
   } catch (err) {
     error.value = err.response?.data?.message || 'Error loading users'
     console.error('Error fetching users:', err)
@@ -329,6 +398,7 @@ function formatDate(date) {
 
 function createUser() {
   showCreateModal.value = true
+  fetchDepartments()
 }
 
 function editUser(user) {
@@ -350,22 +420,27 @@ async function handleSubmit() {
   loading.value = true
   try {
     const { data } = await axios.post('/api/admin/users', form.value)
+    
+    // Refresh users list to get updated data including department
+    const response = await axios.get('/admin/users')
+    users.value = response.data.data
 
     // Reset form and close modal
     form.value = {
       name: '',
       fullname: '',
       email: '',
-      department: '',
+      department_id: '',
       password: '',
       role: ''
     }
     showCreateModal.value = false
 
-    // Emit event to refresh user list
-    emit('user-created')
+    // Show success message
+    toast.success('User created successfully!')
   } catch (error) {
     console.error('Error creating user:', error)
+    toast.error(error.response?.data?.message || 'Error creating user')
   } finally {
     loading.value = false
   }

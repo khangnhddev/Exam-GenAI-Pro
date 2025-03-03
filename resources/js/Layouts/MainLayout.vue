@@ -176,12 +176,12 @@ const profileMenuItems = [
     icon: UserCircleIcon
   },
   {
-    name: 'My Learning Dashboard',
+    name: 'Learning Dashboard',
     to: { name: 'my-learning' },
     icon: BookOpenIcon
   },
   {
-    name: 'My Certificates',
+    name: 'Certificates',
     to: { name: 'certificates' },
     icon: AcademicCapIcon
   }

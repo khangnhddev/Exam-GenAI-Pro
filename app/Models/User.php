@@ -19,9 +19,9 @@ class User extends Authenticatable
         'name',
         'fullname',
         'email',
-        'department',
         'password',
         'avatar',
+        'department_id'
     ];
 
     protected $hidden = [
@@ -91,4 +91,9 @@ class User extends Authenticatable
     // {
     //     //return $this->belongsToMany(Role::class);
     // }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
 }

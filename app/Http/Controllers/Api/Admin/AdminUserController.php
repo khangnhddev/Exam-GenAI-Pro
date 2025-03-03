@@ -9,12 +9,23 @@ use Illuminate\Http\Request;
 
 class AdminUserController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
         $users = User::withCount(['examAttempts', 'certificates'])->get();
         return AdminUserResource::collection($users);
     }
 
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\Response
+     */
     public function show(User $user)
     {
         $user->load(['examAttempts', 'certificates']);

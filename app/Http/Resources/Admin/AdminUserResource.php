@@ -24,6 +24,7 @@ class AdminUserResource extends JsonResource
             'is_admin' => (bool) $this->is_admin,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            'department_id' => $this->department_id,
             'last_login_at' => $this->last_login_at,
             // Add relationships data
             'exam_attempts_count' => $this->whenLoaded('examAttempts', function() {

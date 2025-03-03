@@ -30,26 +30,26 @@
         </div>
 
         <!-- Certificate Preview -->
-        <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+        <div class="bg-white shadow-lg rounded-lg overflow-hidden border-2 border-blue-600">
           <!-- Certificate Header -->
-          <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div class="px-6 py-4 border-b border-gray-200 bg-blue-50">
             <div class="flex items-center justify-between">
-              <h2 class="text-xl font-bold text-gray-900">
+              <h2 class="text-xl font-bold text-blue-900">
                 Certificate of Completion
               </h2>
               <div class="flex space-x-4">
                 <button
                   @click="downloadCertificate"
-                  class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <DocumentArrowDownIcon class="mr-2 h-5 w-5" />
                   Download
                 </button>
                 <button
                   @click="shareCertificate"
-                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  class="inline-flex items-center px-4 py-2 border border-blue-300 rounded-md shadow-sm text-sm font-medium text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  <ShareIcon class="mr-2 h-5 w-5 text-gray-500" />
+                  <ShareIcon class="mr-2 h-5 w-5 text-blue-500" />
                   Share
                 </button>
               </div>
@@ -57,47 +57,47 @@
           </div>
 
           <!-- Certificate Content -->
-          <div class="px-6 py-8">
+          <div class="px-6 py-8 border-4 border-blue-600 m-4 rounded-lg">
             <div class="max-w-3xl mx-auto text-center">
               <img 
                 src="/images/aipro-logo.svg" 
                 class="h-16 mx-auto mb-6" 
                 alt="AIPro Logo" 
               />
-              <h1 class="text-4xl font-bold text-gray-900 mb-4">AIPro Certificate</h1>
-              <p class="text-lg text-gray-600 mb-8">Certificate of Achievement in AI Proficiency</p>
-              <p class="text-2xl font-semibold text-gray-900 mb-4">
+              <h1 class="text-4xl font-bold text-blue-900 mb-4">AIPro Certificate</h1>
+              <p class="text-lg text-blue-600 mb-8">Certificate of Achievement in AI Proficiency</p>
+              <p class="text-2xl font-semibold text-blue-900 mb-4">
                 {{ certificate.user?.name || 'Loading...' }}
               </p>
-              <p class="text-lg text-gray-600 mb-8">has successfully completed the course</p>
-              <p class="text-3xl font-bold text-gray-900 mb-8">
+              <p class="text-lg text-blue-600 mb-8">has successfully completed the course</p>
+              <p class="text-3xl font-bold text-blue-900 mb-8">
                 {{ certificate.exam?.title || certificate.exam_title }}
               </p>
               <div class="flex justify-center space-x-12 mb-8">
                 <div>
-                  <p class="text-sm text-gray-500">Issue Date</p>
-                  <p class="text-lg font-medium text-gray-900">
+                  <p class="text-sm text-blue-500">Issue Date</p>
+                  <p class="text-lg font-medium text-blue-900">
                     {{ certificate.issued_at ? formatDate(certificate.issued_at) : '-' }}
                   </p>
                 </div>
                 <div>
-                  <p class="text-sm text-gray-500">Certificate ID</p>
-                  <p class="text-lg font-medium text-gray-900">
+                  <p class="text-sm text-blue-500">Certificate ID</p>
+                  <p class="text-lg font-medium text-blue-900">
                     {{ certificate.certificate_number || '-' }}
                   </p>
                 </div>
                 <div>
-                  <p class="text-sm text-gray-500">Score Achieved</p>
-                  <p class="text-lg font-medium" :class="getScoreClass()">
+                  <p class="text-sm text-blue-500">Score Achieved</p>
+                  <p class="text-lg font-medium text-blue-900">
                     {{ certificate.score || 0 }}%
                   </p>
                 </div>
               </div>
               
               <!-- Verification QR Code -->
-              <div class="inline-block p-4 bg-gray-50 rounded-lg">
-                <QRCode :value="verificationUrl" :size="120" level="H" />
-                <p class="mt-2 text-sm text-gray-500">Scan to verify certificate</p>
+              <div class="inline-block p-4 bg-blue-50 rounded-lg">
+                <QRCode :value="verificationUrl" :size="120" level="H" :options="{ color: { dark: '#2563EB', light: '#ffffff' } }" />
+                <p class="mt-2 text-sm text-blue-500">Scan to verify certificate</p>
               </div>
             </div>
           </div>
@@ -105,29 +105,29 @@
 
         <!-- Additional Information -->
         <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <div class="bg-white shadow rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Exam Details</h3>
+          <div class="bg-white shadow rounded-lg p-6 border border-blue-100">
+            <h3 class="text-lg font-medium text-blue-900 mb-4">Exam Details</h3>
             <dl class="space-y-4">
               <div>
-                <dt class="text-sm font-medium text-gray-500">Duration</dt>
-                <dd class="mt-1 text-base text-gray-900">
+                <dt class="text-sm font-medium text-blue-500">Duration</dt>
+                <dd class="mt-1 text-base text-blue-900">
                   {{ certificate.exam?.duration || 0 }} minutes
                 </dd>
               </div>
               <div>
-                <dt class="text-sm font-medium text-gray-500">Questions</dt>
-                <dd class="mt-1 text-base text-gray-900">
+                <dt class="text-sm font-medium text-blue-500">Questions</dt>
+                <dd class="mt-1 text-base text-blue-900">
                   {{ certificate.exam?.total_questions || 0 }}
                 </dd>
               </div>
               <div>
-                <dt class="text-sm font-medium text-gray-500">Topics Covered</dt>
+                <dt class="text-sm font-medium text-blue-500">Topics Covered</dt>
                 <dd class="mt-1">
                   <div class="flex flex-wrap gap-2">
                     <span
                       v-for="topic in (certificate.exam?.topics || [])"
                       :key="topic"
-                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                      class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                     >
                       {{ topic }}
                     </span>
@@ -137,27 +137,27 @@
             </dl>
           </div>
 
-          <div class="bg-white shadow rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Verification Info</h3>
+          <div class="bg-white shadow rounded-lg p-6 border border-blue-100">
+            <h3 class="text-lg font-medium text-blue-900 mb-4">Verification Info</h3>
             <dl class="space-y-4">
               <div>
-                <dt class="text-sm font-medium text-gray-500">Status</dt>
+                <dt class="text-sm font-medium text-blue-500">Status</dt>
                 <dd class="mt-1">
                   <span
                     class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                    :class="certificate.is_valid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                    :class="certificate.is_valid ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'"
                   >
                     {{ certificate.is_valid ? 'Valid' : 'Expired' }}
                   </span>
                 </dd>
               </div>
               <div>
-                <dt class="text-sm font-medium text-gray-500">Verification URL</dt>
+                <dt class="text-sm font-medium text-blue-500">Verification URL</dt>
                 <dd class="mt-1">
                   <a 
                     :href="verificationUrl"
                     target="_blank"
-                    class="text-sm text-gray-900 hover:text-gray-600 break-all"
+                    class="text-sm text-blue-900 hover:text-blue-600 break-all"
                   >
                     {{ verificationUrl }}
                   </a>
