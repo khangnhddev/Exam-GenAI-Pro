@@ -27,6 +27,11 @@ use Inertia\Inertia;
 // require __DIR__.'/auth.php';
 
 // Tất cả các route không phải API sẽ trả về Vue app
+
+Route::get('/test', function () {
+    return 'Khang dev test test ok ok blalba';
+});
+
 Route::get('{any}', function () {
     return view('app');
 })->where('any', '.*');

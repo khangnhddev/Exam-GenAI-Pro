@@ -148,8 +148,9 @@ const isLoading = ref(true)
 
 // Add computed property for user avatar
 const userAvatar = computed(() => {
+  console.log(user.value.fullname);
   if (!user.value) return 'https://ui-avatars.com/api/?name=User'
-  return user.value.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.value.name)}`
+  return user.value.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.value.fullname)}`
 })
 
 const navigation = computed(() => {
@@ -158,7 +159,6 @@ const navigation = computed(() => {
     return [
       { name: 'Explore', to: { name: 'exams.index' } },
       { name: 'Resources', to: { name: 'resources' } },
-      { name: 'My Learning', to: { name: 'my-learning' } }
     ]
   }
   

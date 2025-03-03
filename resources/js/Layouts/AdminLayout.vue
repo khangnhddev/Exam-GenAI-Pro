@@ -13,14 +13,14 @@
                                         <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                                                 d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                                        </svg>
+                        </svg>
                                     </div>
                                     <div class="flex items-center gap-1 ml-2">
                                         <span class="text-lg font-medium text-indigo-600">AI</span>
                                         <span class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Pro</span>
                                     </div>
                                 </div>
-                            </div>
+                        </div>
                         </router-link>
                     </div>
 
@@ -69,20 +69,20 @@
 
                                 <!-- Single menu item -->
                                 <router-link v-else 
-                                    :to="item.path"
-                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
-                                    :class="[
-                                        isActive(item.path)
-                                            ? 'bg-indigo-50 text-indigo-600'
-                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                :to="item.path"
+                                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                                :class="[
+                                    isActive(item.path)
+                                        ? 'bg-indigo-50 text-indigo-600'
+                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                     ]">
                                     <component :is="item.icon" 
-                                        class="mr-3 flex-shrink-0 h-6 w-6" 
-                                        :class="[
-                                            isActive(item.path) ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                                    class="mr-3 flex-shrink-0 h-6 w-6"
+                                    :class="[
+                                        isActive(item.path) ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
                                         ]" />
-                                    {{ item.name }}
-                                </router-link>
+                                {{ item.name }}
+                            </router-link>
                             </div>
                         </nav>
                     </div>
@@ -118,7 +118,7 @@
                     <span class="sr-only">Open sidebar</span>
                     <MenuIcon class="h-6 w-6" />
                 </button>
-
+                
                 <!-- Top nav content -->
                 <div class="flex-1 px-4 flex justify-between">
                     <div class="flex-1 flex items-center">
@@ -153,7 +153,7 @@
                             </ol>
                         </nav>
                     </div>
-
+                    
                     <!-- Right side navigation items -->
                     <div class="ml-4 flex items-center space-x-4">
                         <!-- Search -->
@@ -194,7 +194,7 @@
                             <button @click.stop="showNotifications = !showNotifications"
                                 class="dropdown-trigger p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <div class="relative">
-                                    <BellIcon class="h-6 w-6" />
+                            <BellIcon class="h-6 w-6" />
                                     <span class="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-xs font-bold text-white">
                                         3
                                     </span>
@@ -253,7 +253,7 @@
                                 </router-link>
                                 <button @click="handleLogout" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     Sign out
-                                </button>
+                        </button>
                             </div>
                         </div>
                     </div>
@@ -591,7 +591,7 @@ const isActive = (path) => {
 
 const handleLogout = async () => {
     try {
-        await authStore.logout()
+    await authStore.logout()
         router.push('/')
     } catch (error) {
         console.error('Logout failed:', error)

@@ -35,26 +35,36 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * login
+   * @param {*} credentials 
+   * @returns 
+   */
   const login = async (credentials) => {
     try {
       const response = await axios.post('/auth/login', credentials)
-      const { token, user: userData } = response.data
+      const { token, user: userData } = response.data.data
+      
+      setToken(token);
+      setUser(userData);
 
-      setToken(token)
-      setUser(userData)
-
-      return response.data
+      return response.data.data;
     } catch (error) {
       throw error
     }
   }
 
+  /**
+   * register
+   * @param {*} userData 
+   * @returns 
+   */
   const register = async (userData) => {
     try {
-      const response = await axios.post('/api/auth/register', userData)
-      const { access_token, user: newUser } = response.data
+      const response = await axios.post('/auth/register', userData)
+      const { token, user: newUser } = response.data
 
-      setToken(access_token)
+      setToken(token)
       setUser(newUser)
 
       return response.data
