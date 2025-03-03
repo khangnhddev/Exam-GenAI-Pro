@@ -75,7 +75,19 @@ const frontendRoutes = {
             name: 'resources',
             component: () => import('../views/resources/Index.vue'),
             meta: { requiresAuth: false }
-        }
+        },
+        // {
+        //     path: '/exams',
+        //     name: 'exams.index',
+        //     component: () => import('@/views/exams/Index.vue'),
+        //     meta: { requiresAuth: true }
+        // },
+        // {
+        //     path: '/exams/:id/take',
+        //     name: 'exams.take',
+        //     component: () => import('@/views/exams/Take.vue'),
+        //     meta: { requiresAuth: true }
+        // }
     ]
 }
 

@@ -56,8 +56,27 @@
         </div>
       </div>
 
+      <!-- Loading State -->
+      <div v-if="loading" class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error" class="bg-red-50 border-l-4 border-red-400 p-4 mb-8">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <p class="text-sm text-red-700">{{ error }}</p>
+          </div>
+        </div>
+      </div>
+
       <!-- Exams Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div v-for="exam in filteredExams" :key="exam.id" 
           class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300">
           <!-- Exam Header -->
@@ -130,10 +149,13 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import examService from '@/services/examService'
+import { useToast } from 'vue-toastification'
 
 const router = useRouter()
+const toast = useToast()
 const searchQuery = ref('')
 const selectedCategory = ref('')
 const selectedDifficulty = ref('')
@@ -141,59 +163,41 @@ const selectedDifficulty = ref('')
 const categories = ['Programming', 'Machine Learning', 'Data Science', 'DevOps', 'Cloud Computing']
 const difficulties = ['Beginner', 'Intermediate', 'Advanced']
 
-// Example data - replace with actual API call
-const exams = ref([
-  {
-    id: 1,
-    title: 'Python Developer Certification',
-    description: 'Validate your Python programming skills with our comprehensive certification exam covering core concepts and advanced topics.',
-    category: 'Programming',
-    difficulty: 'Intermediate',
-    duration: 90,
-    questions: 50,
-    passing_score: 70
-  },
-  {
-    id: 2,
-    title: 'Machine Learning Specialist',
-    description: 'Test your knowledge in machine learning algorithms, model evaluation, and practical implementation.',
-    category: 'Machine Learning',
-    difficulty: 'Advanced',
-    duration: 120,
-    questions: 60,
-    passing_score: 75
-  },
-  {
-    id: 3,
-    title: 'AWS Cloud Practitioner',
-    description: 'Demonstrate your understanding of AWS Cloud concepts, services, and basic architecture principles.',
-    category: 'Cloud Computing',
-    difficulty: 'Beginner',
-    duration: 60,
-    questions: 40,
-    passing_score: 65
-  },
-  {
-    id: 4,
-    title: 'Data Science Fundamentals',
-    description: 'Prove your proficiency in data analysis, visualization, and statistical methods.',
-    category: 'Data Science',
-    difficulty: 'Intermediate',
-    duration: 90,
-    questions: 45,
-    passing_score: 70
-  },
-  {
-    id: 5,
-    title: 'DevOps Engineer Certification',
-    description: 'Validate your expertise in CI/CD pipelines, containerization, and automation tools.',
-    category: 'DevOps',
-    difficulty: 'Advanced',
-    duration: 100,
-    questions: 55,
-    passing_score: 80
+const exams = ref([])
+const loading = ref(true)
+const error = ref(null)
+
+// Fetch all exams
+const fetchExams = async () => {
+  try {
+    loading.value = true
+    const response = await examService.getAllExams();
+    console.log(response);
+    exams.value = response.data.data
+  } catch (err) {
+    error.value = 'Failed to load exams. Please try again later.'
+    toast.error(error.value)
+  } finally {
+    loading.value = false
   }
-])
+}
+
+// Start an exam
+const startExam = async (exam) => {
+  try {
+    router.push({ name: 'exams.show', params: { id: exam.id }})
+    // const response = await examService.startExam(examId);
+    // toast.success('Exam started successfully!')
+    // router.push(`/exams/${examId}/take`)
+  } catch (err) {
+    toast.error('Failed to start exam. Please try again.')
+  }
+}
+
+// Fetch exams when component mounts
+onMounted(() => {
+  fetchExams()
+})
 
 const filteredExams = computed(() => {
   return exams.value.filter(exam => {
@@ -205,10 +209,6 @@ const filteredExams = computed(() => {
     return matchesSearch && matchesCategory && matchesDifficulty
   })
 })
-
-const startExam = (exam) => {
-  router.push({ name: 'exams.show', params: { id: exam.id }})
-}
 </script>
 
 <style>

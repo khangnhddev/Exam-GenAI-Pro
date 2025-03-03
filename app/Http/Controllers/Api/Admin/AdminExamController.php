@@ -12,18 +12,29 @@ use OpenAI\Laravel\Facades\OpenAI;
 use App\Services\FileProcessingService;
 use App\Services\RAGService;
 use App\Models\FileKnowledgeBase;
+use Illuminate\Support\Facades\Log;
 
 class AdminExamController extends Controller
 {
     protected $fileProcessingService;
     protected $ragService;
 
+    /**
+     * Constructor
+     * @param FileProcessingService $fileProcessingService
+     * @param RAGService $ragService
+     * @return void
+     */
     public function __construct(FileProcessingService $fileProcessingService, RAGService $ragService)
     {
         $this->fileProcessingService = $fileProcessingService;
         $this->ragService = $ragService;
     }
 
+    /**
+     * index
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index()
     {
         $exams = Exam::withCount('questions')
@@ -246,6 +257,9 @@ class AdminExamController extends Controller
 
     /**
      * update
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Models\Exam $exam
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, Exam $exam)
     {
@@ -259,6 +273,7 @@ class AdminExamController extends Controller
         ]);
 
         $exam->update($validated);
+        Log::debug($request->title);
 
         return new ExamResource($exam);
     }
