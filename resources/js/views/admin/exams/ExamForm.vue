@@ -97,6 +97,25 @@
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
           </div>
 
+          <!-- Topics Covered -->
+          <div class="mt-6">
+            <label for="topics" class="block text-sm font-medium text-gray-700">
+              Topics Covered
+            </label>
+            <div class="mt-1">
+              <textarea
+                id="topics"
+                v-model="form.topics_covered"
+                rows="3"
+                class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                placeholder="Enter topics covered in this exam"
+              ></textarea>
+            </div>
+            <p class="mt-2 text-sm text-gray-500">
+              List the main topics that will be covered in this exam
+            </p>
+          </div>
+
           <!-- Status -->
           <div>
             <label class="block text-sm font-medium text-gray-700">Status</label>
@@ -157,7 +176,8 @@ const form = ref({
   total_questions: 0,
   status: 'draft',
   image_path: '',
-  image_alt: ''
+  image_alt: '',
+  topics_covered: ''
 })
 
 async function loadExam() {
@@ -176,7 +196,8 @@ async function loadExam() {
       total_questions: data.data.total_questions,
       status: data.data.status,
       image_path: data.data.image_path,
-      image_alt: data.data.image_alt
+      image_alt: data.data.image_alt,
+      topics_covered: data.data.topics_covered
     }
   } catch (error) {
     console.error('Failed to load exam:', error)
@@ -200,7 +221,8 @@ async function handleSubmit() {
       duration: form.value.duration,
       passing_score: form.value.passing_score,
       max_attempts: form.value.max_attempts,
-      status: form.value.status
+      status: form.value.status,
+      topics_covered: form.value.topics_covered
     }
 
     // Handle image separately if needed

@@ -18,14 +18,16 @@ class Exam extends Model
         'max_attempts',
         'total_questions',
         'status',
-        'attempts_allowed'
+        'attempts_allowed',
+        'topics_covered',
     ];
 
     protected $casts = [
         'duration' => 'integer',
         'passing_score' => 'integer',
         'total_questions' => 'integer',
-        'attempts_allowed' => 'integer'
+        'attempts_allowed' => 'integer',
+        'topics_covered' => 'array',
     ];
 
     protected $attributes = [

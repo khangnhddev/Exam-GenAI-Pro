@@ -61,13 +61,13 @@
                   </svg>
                   <span class="ml-2">Passing Score: {{ exam.passing_score }}%</span>
                 </div>
-                <div class="flex items-center text-gray-700">
+                <!-- <div class="flex items-center text-gray-700">
                   <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                   </svg>
                   <span class="ml-2">Attempts Allowed: {{ exam.attempts_allowed }}</span>
-                </div>
+                </div> -->
               </div>
 
               <div class="space-y-4">
@@ -110,9 +110,7 @@
                       No attempts yet
                     </td>
                   </tr>
-                  <tr v-for="attempt in formattedAttempts" 
-                      :key="attempt.id" 
-                      class="hover:bg-gray-50">
+                  <tr v-for="attempt in formattedAttempts" :key="attempt.id" class="hover:bg-gray-50">
                     <td class="px-6 py-4 text-sm font-medium text-gray-900">
                       {{ attempt.attempt_number }}
                     </td>
@@ -133,8 +131,8 @@
                     <td class="px-6 py-4">
                       <span :class="[
                         'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
-                        attempt.score >= exam.passing_score 
-                          ? 'bg-green-100 text-green-800' 
+                        attempt.score >= exam.passing_score
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       ]">
                         {{ attempt.score >= exam.passing_score ? 'PASSED' : 'FAILED' }}
@@ -143,14 +141,14 @@
                     <td class="px-6 py-4 text-sm font-medium">
                       <button 
                         @click="router.push(`/exams/attempts/${attempt.id}/review`)"
-                        class="text-blue-600 hover:text-blue-900"
+                        class="text-indigo-600 hover:text-indigo-900"
                       >
                         Review
                       </button>
                       <button 
-                        v-if="attempt.score >= exam.passing_score"
+                        v-if="attempt.score >= exam.passing_score" 
                         @click="downloadCertificate(attempt.id)"
-                        class="ml-4 text-green-600 hover:text-green-900"
+                        class="ml-4 text-indigo-600 hover:text-indigo-900"
                       >
                         Certificate
                       </button>
@@ -171,7 +169,8 @@
                 <div class="flex items-center justify-between">
                   <h3 class="text-lg font-medium text-white">Exam Results</h3>
                   <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white bg-opacity-20">
-                    <svg v-if="examResults.passed" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg v-if="examResults.passed" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24"
+                      stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
                     <svg v-else class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -180,7 +179,7 @@
                   </div>
                 </div>
               </div>
-              
+
               <div class="p-6">
                 <div class="space-y-4">
                   <!-- Score -->
@@ -212,7 +211,8 @@
                       </div>
                       <div class="flex justify-between text-sm">
                         <span class="text-gray-500">Completed:</span>
-                        <span class="font-medium text-gray-900">{{ new Date(examResults.completed_at).toLocaleDateString() }}</span>
+                        <span class="font-medium text-gray-900">{{ new
+                          Date(examResults.completed_at).toLocaleDateString() }}</span>
                       </div>
                     </div>
                   </div>
@@ -237,8 +237,8 @@
               <div class="flex flex-col items-center text-center">
                 <!-- Take Assessment Button -->
                 <button v-if="canAttempt" @click="startExam"
-                  class="w-full px-6 py-3 text-lg font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mb-8">
-                  Take Assessment
+                  class="w-full px-6 py-3 text-lg font-medium text-white bg-indigo-600 hover:bg-indigo- rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mb-8">
+                  {{ hasAttempted ? 'Retake Assessment' : 'Take Assessment' }}
                 </button>
                 <div v-else
                   class="w-full px-6 py-3 text-lg font-medium text-white bg-gray-400 rounded-lg cursor-not-allowed mb-8">
@@ -276,44 +276,74 @@
                 </div>
 
                 <!-- Locked Badge -->
-                <div class="relative w-48 h-48">
-                  <!-- Circle Background -->
-                  <svg class="w-full h-full" viewBox="0 0 192 192">
-                    <!-- Outer Circle -->
-                    <circle cx="96" cy="96" r="88" fill="none" stroke="#E5E7EB" stroke-width="2" />
-                    <!-- Inner Circle -->
-                    <circle cx="96" cy="96" r="84" fill="none" stroke="#D1D5DB" stroke-width="1" />
-                    <!-- Top Text -->
-                    <path id="topCircle" d="M96,30 A50,50 0 0,1 96,30" fill="none" />
-                    <text>
-                      <textPath href="#topCircle" startOffset="50%" text-anchor="middle">
-                        <tspan class="text-xs font-medium uppercase tracking-wider" fill="#6B7280">AI Pro Badge</tspan>
-                      </textPath>
-                    </text>
-                    <!-- Bottom Text -->
-                    <path id="bottomCircle" d="M96,162 A50,50 0 0,0 96,162" fill="none" />
-                    <text>
-                      <textPath href="#bottomCircle" startOffset="50%" text-anchor="middle">
-                        <tspan class="text-xs font-medium uppercase tracking-wider" fill="#6B7280">Assessment</tspan>
-                      </textPath>
-                    </text>
-                  </svg>
+                <div class="relative flex flex-col items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                  <!-- Badge Design -->
+                  <div class="relative w-32 h-32 mb-6">
+                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full opacity-10 animate-pulse"></div>
+                    <div class="absolute inset-2 bg-white rounded-full shadow-inner"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                      <svg class="w-16 h-16 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                        </path>
+                      </svg>
+                    </div>
+                  </div>
 
-                  <!-- Center Content -->
-                  <div class="absolute inset-0 flex flex-col items-center justify-center">
-                    <!-- Lock Icon -->
-                    <svg class="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24">
-                      <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-                        d="M7 11V8a5 5 0 0110 0v3m-5 4v2" />
-                      <rect width="14" height="10" x="5" y="11" stroke="currentColor" stroke-width="2" rx="2" />
-                    </svg>
-                    <!-- LOCKED text -->
-                    <span class="mt-2 text-xl font-semibold text-gray-400 tracking-[0.2em]">LOCKED</span>
-                    <!-- Browser Icon -->
-                    <svg class="w-8 h-8 mt-2 text-gray-400" viewBox="0 0 24 24" fill="none">
-                      <rect x="3" y="6" width="18" height="12" stroke="currentColor" stroke-width="2" rx="2" />
-                      <path d="M3 10H21" stroke="currentColor" stroke-width="2" />
-                    </svg>
+                  <!-- Badge Title -->
+                  <h3 class="text-lg font-bold text-gray-900 mb-2">Professional Assessment</h3>
+                  
+                  <!-- Badge Description -->
+                  <p class="text-sm text-gray-600 text-center mb-6">
+                    Complete this assessment to earn your professional certification badge
+                  </p>
+
+                  <!-- Requirements List -->
+                  <div class="w-full space-y-3 mb-6">
+                    <div class="flex items-center text-sm text-gray-600">
+                      <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                      <span>Pass with {{ exam.passing_score }}% or higher</span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-600">
+                      <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                      <span>Complete within {{ exam.duration }} minutes</span>
+                    </div>
+                    <div class="flex items-center text-sm text-gray-600">
+                      <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                      <span>{{ exam.total_questions }} questions to answer</span>
+                    </div>
+                  </div>
+
+                  <!-- Progress Indicator -->
+                  <div class="w-full bg-gray-100 rounded-full h-2 mb-4">
+                    <div 
+                      class="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full" 
+                      :style="`width: ${(userAttempts.value?.length || 0) / exam.attempts_allowed * 100}%`"
+                    ></div>
+                  </div>
+                  <p class="text-sm text-gray-500 mb-6">
+                    {{ userAttempts.value?.length || 0 }}/{{ exam.attempts_allowed }} attempts used
+                  </p>
+
+                  <!-- Start Button (already exists in your template, styling updated) -->
+                  <button 
+                    v-if="canAttempt" 
+                    @click="startExam"
+                    class="w-full px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  >
+                    {{ hasAttempted ? 'Retake Assessment' : 'Start Assessment' }}
+                  </button>
+                  <div 
+                    v-else
+                    class="w-full px-6 py-3 text-lg font-medium text-center text-gray-500 bg-gray-100 rounded-lg cursor-not-allowed"
+                  >
+                    No Attempts Remaining
                   </div>
                 </div>
               </div>
@@ -361,6 +391,11 @@ const canAttempt = computed(() => {
   return userAttempts.value.length < exam.value.attempts_allowed
 })
 
+const hasAttempted = computed(() => {
+  return true;
+  return userAttempts.value?.length > 0
+})
+
 const hasPassed = computed(() => {
   if (!userAttempts.value?.length) return false
   return userAttempts.value.some(attempt => attempt.score >= exam.value.passing_score)
@@ -398,7 +433,7 @@ const loadExam = async () => {
       axios.get(`/exams/${route.params.id}`),
       axios.get(`/exams/${route.params.id}/attempts`)
     ])
-    
+
     exam.value = examResponse.data.data
     attemptHistory.value = historyResponse.data.data
   } catch (error) {

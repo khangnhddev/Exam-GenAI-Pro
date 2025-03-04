@@ -114,12 +114,12 @@ const adminRoutes = {
             name: 'admin.users.index',
             component: () => import('../views/admin/users/Index.vue')
         },
-        {
-            path: 'users/:id',
-            name: 'admin.users.show',
-            component: () => import('../views/admin/users/Show.vue'),
-            props: true
-        },
+        // {
+        //     path: 'users/:id',
+        //     name: 'admin.users.show',
+        //     component: () => import('../views/admin/users/Show.vue'),
+        //     props: true
+        // },
         {
             path: 'exams',
             name: 'admin.exams.index',
@@ -188,11 +188,11 @@ const adminRoutes = {
             component: ActivityLogManager,
             meta: { requiresAuth: true, requiresAdmin: false }
         },
-        {
-            path: 'analytics',
-            name: 'admin.analytics',
-            component: () => import('../views/admin/Analytics.vue')
-        },
+        // {
+        //     path: 'analytics',
+        //     name: 'admin.analytics',
+        //     component: () => import('../views/admin/Analytics.vue')
+        // },
         {
             path: 'knowledge-base',
             name: 'admin.knowledge-base',
