@@ -117,7 +117,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import SearchFilterPanel from '@/components/admin/SearchFilterPanel.vue'
+import SearchFilterPanel from '@/Components/admin/SearchFilterPanel.vue'
 
 const exams = ref([])
 const searchQuery = ref('')
