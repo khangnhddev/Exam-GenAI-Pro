@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white border-b border-gray-200">
+    <!-- Hide navigation when in exam mode or result page -->
+    <nav v-if="!isHideNavigation" class="bg-white border-b border-gray-200">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <!-- Left side -->
@@ -186,6 +186,11 @@ const profileMenuItems = [
     icon: AcademicCapIcon
   }
 ]
+
+// Check if current route should hide navigation
+const isHideNavigation = computed(() => {
+  return ['exams.attempt', 'exams.result'].includes(route.name)
+})
 
 // Add click outside handler to close menu
 onMounted(async () => {

@@ -10,6 +10,7 @@ use App\Models\ExamAttempt;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ExamController extends Controller
 {
@@ -24,7 +25,7 @@ class ExamController extends Controller
                 // $query->where('user_id', $user->id);
             }])
             ->get();
-            
+
         return FeExamResource::collection($exams);
     }
 
@@ -61,17 +62,17 @@ class ExamController extends Controller
     public function start(Exam $exam): JsonResponse
     {
         $user = auth()->user();
-        
+
         // Check attempts limit
         $attemptCount = ExamAttempt::where('user_id', $user->id)
             ->where('exam_id', $exam->id)
             ->count();
-            
-        if ($attemptCount >= $exam->attempts_allowed) {
-            return response()->json([
-                'message' => 'Maximum attempts reached'
-            ], 403);
-        }
+
+        // if ($attemptCount >= $exam->attempts_allowed) {
+        //     return response()->json([
+        //         'message' => 'Maximum attempts reached'
+        //     ], 403);
+        // }
 
         // Create new attempt
         $attempt = ExamAttempt::create([
@@ -97,17 +98,20 @@ class ExamController extends Controller
         ]);
     }
 
-    
+
     /**
      * Submit exam
      */
     public function submit(Request $request, ExamAttempt $attempt): JsonResponse
-    {   
-        if ($attempt->status !== 'in_progress') {
-            return response()->json(['message' => 'Invalid attempt'], 400);
-        }
+    {
+        // Log the attempt
+        Log::debug('Submit exam', ['attempt' => $attempt]);
 
-        
+        // if ($attempt->status !== 'in_progress') {
+        //     return response()->json(['message' => 'Invalid attempt'], 400);
+        // }
+
+
         if (Carbon::parse($attempt->started_at)
             ->addMinutes($attempt->exam->duration)
             ->isPast()
@@ -119,10 +123,10 @@ class ExamController extends Controller
         $validated = $request->validate([
             'answers' => 'required|array'
         ]);
-        
+
 
         $score = $this->calculateScore($attempt->exam, $validated['answers']);
-        
+
         $attempt->update([
             'completed_at' => now(),
             'score' => $score,
@@ -132,10 +136,10 @@ class ExamController extends Controller
 
         $passed = $score >= $attempt->exam->passing_score;
 
-        
-        if ($passed) {
-            $this->generateCertificate($attempt);
-        }
+
+        // if ($passed) {
+        //     $this->generateCertificate($attempt);
+        // }
 
         return response()->json([
             'score' => $score,
@@ -146,7 +150,7 @@ class ExamController extends Controller
     }
 
     /**
-     * Get exam attempt review
+     * Get exam attempt
      * 
      */
     public function getAttempt(Exam $exam, ExamAttempt $attempt)
@@ -183,31 +187,28 @@ class ExamController extends Controller
         ]);
     }
 
-    public function getAttempts($id)
+    /**
+     * Get exam attempts
+     */
+    public function getAttempts(Exam $exam)
     {
-        $attempts = ExamAttempt::where('exam_id', $id)
+        $attempts = $exam->attempts()
             ->where('user_id', auth()->id())
+            ->with(['user'])
             ->orderBy('created_at', 'desc')
-            ->select([
-                'id', 
-                'created_at', 
-                'completed_at',
-                'score',
-                'status',
-                'started_at'
-            ])
-            ->get()
-            ->map(function ($attempt) {
-                $duration = Carbon::parse($attempt->started_at)
-                    ->diffInMinutes($attempt->completed_at);
-                    
-                return array_merge($attempt->toArray(), [
-                    'duration' => $duration
-                ]);
-            });
+            ->get();
 
         return response()->json([
-            'data' => $attempts
+            'data' => $attempts->map(function ($attempt) {
+                return [
+                    'id' => $attempt->id,
+                    'attempt_number' => $attempt->attempt_number,
+                    'score' => $attempt->score,
+                    'created_at' => $attempt->created_at,
+                    'completed_at' => $attempt->completed_at,
+                    'status' => $attempt->status
+                ];
+            })
         ]);
     }
 
@@ -217,29 +218,32 @@ class ExamController extends Controller
     private function calculateScore(Exam $exam, array $answers): int
     {
         $score = 0;
-        foreach ($answers as $questionId => $selectedOptions) {
-            $question = $exam->questions()->find($questionId);
-            if (!$question) continue;
+        // foreach ($answers as $answer) {
+        //     $questionId = $answer['question_id'];
+        //     $selectedOptions = is_array($answer['answer']) ? $answer['answer'] : [$answer['answer']];
 
-            $correctOptions = $question->options()
-                ->where('is_correct', true)
-                ->pluck('id')
-                ->toArray();
+        //     $question = $exam->questions()->find($questionId);
+        //     if (!$question) continue;
 
-            if ($question->type === 'single') {
-                if (count($selectedOptions) === 1 && 
-                    in_array($selectedOptions[0], $correctOptions)) {
-                    $score += $question->points;
-                }
-            } else {
-                $selectedCorrect = array_intersect($selectedOptions, $correctOptions);
-                $selectedIncorrect = array_diff($selectedOptions, $correctOptions);
-                if (count($selectedCorrect) === count($correctOptions) && 
-                    empty($selectedIncorrect)) {
-                    $score += $question->points;
-                }
-            }
-        }
+        //     $correctOptions = $question->options()
+        //         ->where('is_correct', true)
+        //         ->pluck('id')
+        //         ->toArray();
+
+        //     if ($question->type === 'single') {
+        //         if (count($selectedOptions) === 1 && 
+        //             in_array($selectedOptions[0], $correctOptions)) {
+        //             $score += $question->points;
+        //         }
+        //     } else {
+        //         $selectedCorrect = array_intersect($selectedOptions, $correctOptions);
+        //         $selectedIncorrect = array_diff($selectedOptions, $correctOptions);
+        //         if (count($selectedCorrect) === count($correctOptions) && 
+        //             empty($selectedIncorrect)) {
+        //             $score += $question->points;
+        //         }
+        //     }
+        // }
         return $score;
     }
 
@@ -255,6 +259,30 @@ class ExamController extends Controller
             'score' => $attempt->score,
             'issued_at' => now(),
             'certificate_number' => 'AIPRO-' . strtoupper(uniqid())
+        ]);
+    }
+
+    /**
+     * Get attempt results
+     * 
+     * @param ExamAttempt $attempt
+     * @return JsonResponse
+     */
+    public function getAttemptResults(ExamAttempt $attempt)
+    {
+        if ($attempt->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        return response()->json([
+            'score' => $attempt->score,
+            'passing_score' => $attempt->exam->passing_score,
+            'passed' => $attempt->score >= $attempt->exam->passing_score,
+            'completed_at' => $attempt->completed_at,
+            'duration' => Carbon::parse($attempt->started_at)
+                ->diffInMinutes($attempt->completed_at),
+            'answers' => $attempt->answers,
+            'status' => $attempt->status
         ]);
     }
 }

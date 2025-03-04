@@ -33,9 +33,16 @@ const frontendRoutes = {
             meta: { requiresAuth: false }
         },
         {
-            path: 'exams/:id/attempt/:attemptId?',
+            path: 'exams/:id/attempt/:attemptId',
             name: 'exams.attempt',
             component: () => import('../views/exams/AttemptExam.vue'),
+            props: true,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: 'exams/attempts/:attemptId/result',
+            name: 'exams.result',
+            component: () => import('../views/exams/Result.vue'),
             props: true,
             meta: { requiresAuth: true }
         },

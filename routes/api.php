@@ -35,8 +35,6 @@ Route::prefix('v1')->group(function () {
         Route::put('/profile', [ProfileController::class, 'update']);
         Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
 
-        Route::get('my-learning', [MyLearningController::class, 'index']);
-
         Route::get('exams', [ExamController::class, 'index']);
 
         Route::prefix('exams')->group(function () {
@@ -46,6 +44,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/attempts/{attempt}/review', [ExamController::class, 'review'])
                 ->name('exams.review');
             Route::get('/{exam}/attempt/{attempt}', [ExamController::class, 'getAttempt']);
+            Route::get('/attempts/{attempt}/results', [ExamController::class, 'getAttemptResults']);
+            Route::get('/{exam}/attempts', [ExamController::class, 'getAttempts']);
         });
 
         Route::prefix('certificates')->group(function () {
