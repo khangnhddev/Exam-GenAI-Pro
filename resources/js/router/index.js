@@ -3,9 +3,9 @@ import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
 
 // Import the admin layout
-import AdminLayout from '../layouts/AdminLayout.vue'
-import ActivityLogManager from '../components/admin/ActivityLogManager.vue'
-import KnowledgeBaseManager from '../components/admin/KnowledgeBaseManager.vue'
+import AdminLayout from '../Layouts/AdminLayout.vue'
+import ActivityLogManager from '../Components/admin/ActivityLogManager.vue'
+// import KnowledgeBaseManager from '../components/admin/KnowledgeBaseManager.vue'
 import GeneralSettings from '@/views/admin/settings/General.vue'
 
 // Frontend routes
