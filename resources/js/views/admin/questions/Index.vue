@@ -303,7 +303,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue'
 import axios from 'axios'
-import SearchFilterPanel from '@/components/admin/SearchFilterPanel.vue'
+import SearchFilterPanel from '@/Components/admin/SearchFilterPanel.vue'
 
 const questions = ref([])
 const searchQuery = ref('')
