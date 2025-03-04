@@ -304,7 +304,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { format } from 'date-fns'
 import axios from 'axios' // Add this import
-import SearchFilterPanel from '@/components/admin/SearchFilterPanel.vue'
+import SearchFilterPanel from '@/Components/admin/SearchFilterPanel.vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 
