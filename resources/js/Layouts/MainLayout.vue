@@ -128,7 +128,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
-import AILearningAssistant from '../components/AILearningAssistant.vue'
+import AILearningAssistant from '../Components/AILearningAssistant.vue'
 import {
   HomeIcon,
   AcademicCapIcon,
