@@ -420,7 +420,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import axios from 'axios'
-import ExamResultModal from '@/components/ExamResultModal.vue'
+import ExamResultModal from '@/Components/ExamResultModal.vue'
 
 const route = useRoute()
 const router = useRouter()
