@@ -121,7 +121,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import SearchFilterPanel from '@/Components/admin/SearchFilterPanel.vue'
-import DefaultExamIcon from '@/components/DefaultExamIcon.vue'
+import DefaultExamIcon from '@/Components/DefaultExamIcon.vue'
 
 const exams = ref([])
 const searchQuery = ref('')
