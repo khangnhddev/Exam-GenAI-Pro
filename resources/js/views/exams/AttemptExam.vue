@@ -173,7 +173,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
-import AssessmentResultModal from '@/components/AssessmentResultModal.vue'
+import AssessmentResultModal from '../../Components/AssessmentResultModal.vue'
 
 const route = useRoute()
 const router = useRouter()
