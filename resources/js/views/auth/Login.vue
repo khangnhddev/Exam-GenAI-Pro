@@ -11,7 +11,7 @@
     </div>
 
     <!-- Login Content -->
-    <div class="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
+    <div class="sm:mx-auto sm:w-full sm:max-w-lg relative z-10">
       <!-- Logo/Brand -->
       <div class="flex items-center justify-center gap-2 mb-6">
         <div class="flex items-center bg-gradient-to-r from-indigo-600 to-purple-600 p-2 rounded-xl">
@@ -37,8 +37,8 @@
       </p>
     </div>
 
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-      <div class="bg-white/10 backdrop-blur-lg py-8 px-4 shadow-2xl rounded-2xl sm:px-10 border border-white/20">
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-lg relative z-10">
+      <div class="bg-white/10 backdrop-blur-lg py-10 px-8 shadow-2xl rounded-2xl sm:px-12 border border-white/20">
         <form class="space-y-6" @submit.prevent="handleLogin">
           <!-- Email Input -->
           <div>

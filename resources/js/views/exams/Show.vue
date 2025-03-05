@@ -443,6 +443,7 @@ const exam = ref({
   ]
 })
 const userAttempts = ref([])
+// Initialize attemptHistory with an empty array
 const attemptHistory = ref([])
 const examResults = ref(null)
 
@@ -460,7 +461,10 @@ const hasPassed = computed(() => {
   return userAttempts.value.some(attempt => attempt.score >= exam.value.passing_score)
 })
 
+// Add null check in computed property
 const formattedAttempts = computed(() => {
+  if (!attemptHistory.value) return []
+  
   return attemptHistory.value.map(attempt => ({
     ...attempt,
     skillLevel: getSkillLevel(attempt.score),
@@ -484,6 +488,7 @@ function getSkillLevel(score) {
  * 
  * @returns {void}
  */
+// Update the loadExam function with better error handling
 const loadExam = async () => {
   try {
     loading.value = true
@@ -492,12 +497,17 @@ const loadExam = async () => {
       axios.get(`/exams/${route.params.id}/attempts`)
     ])
 
-    exam.value = examResponse.data.data;
-    attemptHistory.value = historyResponse.data.data;
-    userAttempts.value = examResponse.data.data.attempts; // Add this line
+    // Add null checks and default values
+    exam.value = examResponse.data.data || {}
+    attemptHistory.value = historyResponse.data.data || []
+    userAttempts.value = examResponse.data.data?.attempts || []
+    
   } catch (error) {
     console.error('Error loading exam:', error)
     toast.error('Failed to load exam data')
+    // Set default values on error
+    attemptHistory.value = []
+    userAttempts.value = []
   } finally {
     loading.value = false
   }
