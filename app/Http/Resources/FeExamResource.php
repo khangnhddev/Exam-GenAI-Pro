@@ -14,41 +14,39 @@ class FeExamResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $lastAttempt = $this->attempts->last();
-
         return [
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
             'duration' => $this->duration,
             'passing_score' => $this->passing_score,
-            'total_questions' => $this->questions_count,
             'attempts_allowed' => $this->attempts_allowed,
-            'topics' => $this->topics ?? [],
+            'total_questions' => $this->questions_count,
+            'topics' => json_decode($this->topics_covered) ?? [],
             'image_url' => $this->image_url,
-            'attempts' => $this->attempts,
-            'status' => $this->status,
-            'attempts_made' => $this->attempts->count(),
-            'can_attempt' => $this->attempts->count() < $this->attempts_allowed,
-            'last_attempt' => $lastAttempt ? [
-                'id' => $lastAttempt->id,
-                'score' => $lastAttempt->score,
-                'status' => $lastAttempt->status,
-                'started_at' => $lastAttempt->started_at,
-                'completed_at' => $lastAttempt->completed_at,
-                'passed' => $lastAttempt->score >= $this->passing_score
-            ] : null,
+            'attempts' => $this->when($this->attempts, function() {
+                return $this->attempts->map(function($attempt) {
+                    return [
+                        'id' => $attempt->id,
+                        'score' => $attempt->score,
+                        'status' => $attempt->status,
+                        'completed_at' => $attempt->completed_at,
+                        'created_at' => $attempt->created_at,
+                        'attempt_number' => $attempt->attempt_number,
+                    ];
+                });
+            }),
+            'has_attempts' => $this->attempts->isNotEmpty(),
+            'last_attempt' => $this->when($this->attempts->isNotEmpty(), function() {
+                $lastAttempt = $this->attempts->sortByDesc('created_at')->first();
+                return [
+                    'score' => $lastAttempt->score,
+                    'passed' => $lastAttempt->score >= $this->passing_score,
+                    'completed_at' => $lastAttempt->completed_at,
+                ];
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            $this->mergeWhen($request->routeIs('*.show'), [
-                'settings' => $this->settings,
-                'total_points' => $this->questions->sum('points'),
-                'certificate' => $lastAttempt && $lastAttempt->certificate ? [
-                    'id' => $lastAttempt->certificate->id,
-                    'issued_at' => $lastAttempt->certificate->issued_at,
-                    'download_url' => route('certificates.download', $lastAttempt->certificate->id)
-                ] : null
-            ])
         ];
     }
 }

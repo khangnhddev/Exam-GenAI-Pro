@@ -18,7 +18,7 @@ class FeCertificateResource extends JsonResource
             'id' => $this->id,
             'exam_title' => $this->exam->title,
             'certificate_number' => $this->certificate_number,
-            'issued_at' => $this->issued_at?->format('Y-m-d'),
+            'issued_at' => $this->issued_date?->format('Y-m-d'),
             'expires_at' => $this->expires_at?->format('Y-m-d'),
             'score' => $this->score,
             'status' => $this->status,

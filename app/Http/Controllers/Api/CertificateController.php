@@ -7,24 +7,22 @@ use App\Http\Resources\FeCertificateResource;
 use App\Models\Certificate;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use PDF;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class CertificateController extends Controller
 {
     /**
      * index
      */
-    public function index(): JsonResponse
+    public function index()
     {
         $certificates = auth()->user()
             ->certificates()
             ->with(['exam'])
             ->latest()
             ->get();
-
-        return response()->json([
-            'data' => FeCertificateResource::collection($certificates)
-        ]);
+        
+        return  FeCertificateResource::collection($certificates);
     }
 
     /**
@@ -36,8 +34,7 @@ class CertificateController extends Controller
     public function show(Certificate $certificate): JsonResponse
     {
         try {
-            
-            $certificate->load(['exam', 'user', 'examAttempt']);
+            $certificate->load(['exam', 'user', 'attempt']);
 
             return response()->json([
                 'status' => true,
@@ -61,32 +58,30 @@ class CertificateController extends Controller
      */
     public function download(Certificate $certificate)
     {
-        $this->authorize('view', $certificate);
+        // if ($certificate->user_id !== auth()->id()) {
+        //     return response()->json(['message' => 'Unauthorized'], 403);
+        // }
 
-        $pdf = PDF::loadView('certificates.template', [
-            'certificate' => $certificate->load(['exam', 'user'])
+        // Generate PDF
+        $pdf = PDF::loadView('pdf.certificate', [
+            'certificate' => $certificate,
+            'user' => $certificate->user,
+            'exam' => $certificate->exam
         ]);
 
-        return $pdf->download(
-            "certificate-{$certificate->certificate_number}.pdf"
-        );
+        return $pdf->download("certificate-{$certificate->certificate_number}.pdf");
     }
 
-    public function verify(Request $request): JsonResponse
+    public function verify(Certificate $certificate): JsonResponse
     {
-        $certificate = Certificate::where('certificate_number', $request->number)
-            ->with(['exam', 'user'])
-            ->firstOrFail();
-
         return response()->json([
-            'is_valid' => $certificate->isValid(),
-            'certificate' => [
-                'number' => $certificate->certificate_number,
-                'holder_name' => $certificate->user->name,
+            'isValid' => true,
+            'data' => [
+                'certificate_number' => $certificate->certificate_number,
+                'user_name' => $certificate->user->name,
                 'exam_title' => $certificate->exam->title,
-                'issued_at' => $certificate->issued_at->format('Y-m-d'),
-                'expires_at' => $certificate->expires_at?->format('Y-m-d'),
-                'status' => $certificate->status
+                'issued_at' => $certificate->created_at->format('Y-m-d'),
+                'score' => $certificate->score
             ]
         ]);
     }

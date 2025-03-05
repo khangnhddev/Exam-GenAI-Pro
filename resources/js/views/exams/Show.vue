@@ -1,4 +1,73 @@
 <template>
+  <!-- Hero Section - Full Width -->
+  <div class="bg-gradient-to-br from-indigo-600 to-purple-600 w-full">
+    <div class="grid grid-cols-1 lg:grid-cols-2">
+      <!-- Left Content -->
+      <div class="text-white p-12 lg:pl-24">
+        <h1 class="text-4xl font-bold mb-4">{{ exam.title }}</h1>
+        <p class="text-lg text-indigo-100 mb-8">{{ exam.description }}</p>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+          <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
+            <div class="text-2xl font-bold">{{ exam.total_questions }}</div>
+            <div class="text-sm text-indigo-200">Questions</div>
+          </div>
+          <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
+            <div class="text-2xl font-bold">{{ exam.duration }}m</div>
+            <div class="text-sm text-indigo-200">Duration</div>
+          </div>
+          <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
+            <div class="text-2xl font-bold">{{ exam.passing_score }}%</div>
+            <div class="text-sm text-indigo-200">Pass Score</div>
+          </div>
+          <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
+            <div class="text-2xl font-bold">{{ userAttempts?.length || 0 }}/{{ exam.attempts_allowed }}</div>
+            <div class="text-sm text-indigo-200">Attempts</div>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <button v-if="canAttempt" @click="startExam"
+          class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white shadow-sm transition-all duration-200">
+          Start Assessment
+          <svg class="ml-2 -mr-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right Content - Certificate Preview -->
+      <div class="hidden lg:flex items-center justify-center p-12 lg:pr-24">
+        <div class="relative w-full max-w-md">
+          <!-- Certificate Design -->
+          <div class="bg-white rounded-lg shadow-xl p-8 transform rotate-3">
+            <div class="border-4 border-indigo-200 border-dashed rounded-lg p-6">
+              <div class="text-center">
+                <div class="text-xl text-indigo-600 font-semibold mb-2">Certificate of Completion</div>
+                <div class="text-sm text-gray-600">Professional Assessment</div>
+                <div class="mt-6">
+                  <svg class="w-24 h-24 mx-auto text-indigo-600 opacity-25" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Decorative Elements -->
+          <div
+            class="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-purple-400 to-indigo-400 rounded-full opacity-50 blur-xl">
+          </div>
+          <div
+            class="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full opacity-50 blur-xl">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="min-h-screen bg-gray-50 py-8">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Loading State -->
@@ -21,6 +90,91 @@
           <!-- Exam Title and Description -->
           <h1 class="text-4xl font-bold text-gray-900 mb-4">{{ exam.title }}</h1>
           <p class="text-lg text-gray-600 mb-8">{{ exam.description }}</p>
+
+          <!-- Add this section right after the title and description, before Assessment Overview -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Assessment Card -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+              <div class="flex items-center gap-4 mb-4">
+                <div class="flex-shrink-0">
+                  <svg class="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">Assessment</h3>
+                  <p class="text-sm text-gray-500">Test your knowledge</p>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-500">Questions:</span>
+                  <span class="font-medium">{{ exam.total_questions }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-500">Time Limit:</span>
+                  <span class="font-medium">{{ exam.duration }} mins</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Certificate Card -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+              <div class="flex items-center gap-4 mb-4">
+                <div class="flex-shrink-0">
+                  <svg class="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">Certificate</h3>
+                  <p class="text-sm text-gray-500">Upon completion</p>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-500">Passing Score:</span>
+                  <span class="font-medium">{{ exam.passing_score }}%</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-500">Attempts:</span>
+                  <span class="font-medium">{{ userAttempts?.length || 0 }}/{{ exam.attempts_allowed }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status Card -->
+            <div class="bg-white rounded-lg shadow-sm p-6">
+              <div class="flex items-center gap-4 mb-4">
+                <div class="flex-shrink-0">
+                  <svg class="w-8 h-8 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">Your Status</h3>
+                  <p class="text-sm text-gray-500">Current progress</p>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-500">Best Score:</span>
+                  <span class="font-medium">{{ bestScore }}%</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span :class="[
+                    'inline-flex items-center px-2 py-0.5 rounded text-xs font-medium',
+                    hasPassed ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                  ]">
+                    {{ hasPassed ? 'PASSED' : 'NOT COMPLETED' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- Assessment Overview -->
           <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
@@ -139,17 +293,12 @@
                       </span>
                     </td>
                     <td class="px-6 py-4 text-sm font-medium">
-                      <button 
-                        @click="router.push(`/exams/attempts/${attempt.id}/review`)"
-                        class="text-indigo-600 hover:text-indigo-900"
-                      >
+                      <button @click="router.push(`/exams/attempts/${attempt.id}/review`)"
+                        class="text-indigo-600 hover:text-indigo-900">
                         Review
                       </button>
-                      <button 
-                        v-if="attempt.score >= exam.passing_score" 
-                        @click="downloadCertificate(attempt.id)"
-                        class="ml-4 text-indigo-600 hover:text-indigo-900"
-                      >
+                      <button v-if="attempt.score >= exam.passing_score" @click="downloadCertificate(attempt.id)"
+                        class="ml-4 text-indigo-600 hover:text-indigo-900">
                         Certificate
                       </button>
                     </td>
@@ -163,158 +312,73 @@
         <!-- Sidebar -->
         <div class="lg:col-span-1">
           <div class="sticky top-8 space-y-6">
-            <!-- Results Section -->
-            <div v-if="examResults" class="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div class="p-6 bg-gradient-to-br from-indigo-500 to-purple-600">
-                <div class="flex items-center justify-between">
-                  <h3 class="text-lg font-medium text-white">Exam Results</h3>
-                  <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-white bg-opacity-20">
-                    <svg v-if="examResults.passed" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24"
-                      stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    <svg v-else class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <div class="p-6">
-                <div class="space-y-4">
-                  <!-- Score -->
-                  <div class="text-center">
-                    <div class="text-3xl font-bold" :class="examResults.passed ? 'text-green-600' : 'text-red-600'">
-                      {{ examResults.score }}%
-                    </div>
-                    <div class="text-sm text-gray-500 mt-1">Your Score</div>
-                  </div>
-
-                  <div class="border-t border-gray-200 pt-4">
-                    <!-- Status Badge -->
-                    <div class="flex justify-center">
-                      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-                        :class="examResults.passed ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                        {{ examResults.passed ? 'PASSED' : 'FAILED' }}
-                      </span>
-                    </div>
-
-                    <!-- Additional Info -->
-                    <div class="mt-4 space-y-2">
-                      <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">Passing Score:</span>
-                        <span class="font-medium text-gray-900">{{ examResults.passing_score }}%</span>
-                      </div>
-                      <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">Duration:</span>
-                        <span class="font-medium text-gray-900">{{ examResults.duration }} mins</span>
-                      </div>
-                      <div class="flex justify-between text-sm">
-                        <span class="text-gray-500">Completed:</span>
-                        <span class="font-medium text-gray-900">{{ new
-                          Date(examResults.completed_at).toLocaleDateString() }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Action Buttons -->
-                  <div class="mt-6 space-y-3">
-                    <button v-if="examResults.passed" @click="downloadCertificate"
-                      class="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">
-                      Download Certificate
-                    </button>
-                    <button @click="router.push('/exams')"
-                      class="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
-                      Back to Exams
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <!-- Take Assessment Card -->
             <div v-if="!examResults" class="bg-white rounded-xl shadow-sm p-8">
               <div class="flex flex-col items-center text-center">
-                <!-- Take Assessment Button -->
-                <button v-if="canAttempt" @click="startExam"
-                  class="w-full px-6 py-3 text-lg font-medium text-white bg-indigo-600 hover:bg-indigo- rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mb-8">
-                  {{ hasAttempted ? 'Retake Assessment' : 'Take Assessment' }}
-                </button>
-                <div v-else
-                  class="w-full px-6 py-3 text-lg font-medium text-white bg-gray-400 rounded-lg cursor-not-allowed mb-8">
-                  No Attempts Remaining
-                </div>
+                <div
+                  class="relative flex flex-col items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200">
+                  <!-- Certificate Design -->
+                  <div class="relative w-48 h-48 mb-6">
+                    <!-- Certificate Background -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg shadow-md">
+                      <!-- Certificate Content (Blurred when locked) -->
+                      <div :class="[
+                        'absolute inset-0 flex flex-col items-center justify-center p-4 transition-all duration-300',
+                        !hasPassed ? 'filter blur-sm' : ''
+                      ]">
+                        <svg class="w-16 h-16 text-indigo-600 mb-2" viewBox="0 0 24 24" fill="none"
+                          stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11">
+                          </path>
+                        </svg>
+                        <div class="text-xs font-semibold text-indigo-600 uppercase tracking-wider">Certificate of</div>
+                        <div class="text-sm font-bold text-gray-900 mt-1">Completion</div>
+                      </div>
 
-                <!-- Time and Attempts Info -->
-                <div class="flex items-center gap-8 mb-8">
-                  <div class="flex items-center gap-2">
-                    <svg class="w-6 h-6 text-indigo-600" viewBox="0 0 24 24" fill="none">
-                      <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
-                    </svg>
-                    <div class="flex flex-col items-start">
-                      <span class="text-2xl font-bold text-gray-900">{{ exam.duration }}</span>
-                      <span class="text-sm text-gray-500">minutes</span>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <svg class="w-6 h-6 text-indigo-600" viewBox="0 0 24 24" fill="none">
-                      <path d="M4 4V9H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                      <path d="M20 4V9H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                      <path d="M4 20V15H9" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                      <path d="M20 20V15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    </svg>
-                    <div class="flex flex-col items-start">
-                      <span class="text-2xl font-bold text-gray-900">{{ exam.attempts_allowed }}</span>
-                      <span class="text-sm text-gray-500">attempts</span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Locked Badge -->
-                <div class="relative flex flex-col items-center justify-center p-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200">
-                  <!-- Badge Design -->
-                  <div class="relative w-32 h-32 mb-6">
-                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full opacity-10 animate-pulse"></div>
-                    <div class="absolute inset-2 bg-white rounded-full shadow-inner"></div>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                      <svg class="w-16 h-16 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                          d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                        </path>
-                      </svg>
+                      <!-- Lock Overlay -->
+                      <div v-if="!hasPassed"
+                        class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-lg">
+                        <svg class="w-12 h-12 text-white opacity-75" fill="none" viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z">
+                          </path>
+                        </svg>
+                      </div>
                     </div>
                   </div>
 
                   <!-- Badge Title -->
-                  <h3 class="text-lg font-bold text-gray-900 mb-2">Professional Assessment</h3>
-                  
+                  <h3 class="text-lg font-bold text-gray-900 mb-2">
+                    {{ hasPassed ? 'Certificate Unlocked!' : 'Locked Certificate' }}
+                  </h3>
+
                   <!-- Badge Description -->
                   <p class="text-sm text-gray-600 text-center mb-6">
-                    Complete this assessment to earn your professional certification badge
+                    {{ hasPassed
+                      ? 'Congratulations! You can now claim your professional certificate.'
+                      : 'Complete this assessment to unlock your professional certificate.'
+                    }}
                   </p>
 
                   <!-- Requirements List -->
                   <div class="w-full space-y-3 mb-6">
                     <div class="flex items-center text-sm text-gray-600">
                       <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span>Pass with {{ exam.passing_score }}% or higher</span>
                     </div>
                     <div class="flex items-center text-sm text-gray-600">
                       <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span>Complete within {{ exam.duration }} minutes</span>
                     </div>
                     <div class="flex items-center text-sm text-gray-600">
                       <svg class="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                       </svg>
                       <span>{{ exam.total_questions }} questions to answer</span>
                     </div>
@@ -322,27 +386,20 @@
 
                   <!-- Progress Indicator -->
                   <div class="w-full bg-gray-100 rounded-full h-2 mb-4">
-                    <div 
-                      class="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full" 
-                      :style="`width: ${(userAttempts.value?.length || 0) / exam.attempts_allowed * 100}%`"
-                    ></div>
+                    <div class="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full"
+                      :style="`width: ${(userAttempts.value?.length || 0) / exam.attempts_allowed * 100}%`"></div>
                   </div>
                   <p class="text-sm text-gray-500 mb-6">
                     {{ userAttempts.value?.length || 0 }}/{{ exam.attempts_allowed }} attempts used
                   </p>
 
                   <!-- Start Button (already exists in your template, styling updated) -->
-                  <button 
-                    v-if="canAttempt" 
-                    @click="startExam"
-                    class="w-full px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    {{ hasAttempted ? 'Retake Assessment' : 'Start Assessment' }}
+                  <button v-if="canAttempt" @click="hasPassed ? downloadCertificate() : startExam()"
+                    class="w-full px-6 py-3 text-lg font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    {{ hasPassed ? 'Claim Certificate' : (hasAttempted ? 'Retake Assessment' : 'Start Assessment') }}
                   </button>
-                  <div 
-                    v-else
-                    class="w-full px-6 py-3 text-lg font-medium text-center text-gray-500 bg-gray-100 rounded-lg cursor-not-allowed"
-                  >
+                  <div v-else
+                    class="w-full px-6 py-3 text-lg font-medium text-center text-gray-500 bg-gray-100 rounded-lg cursor-not-allowed">
                     No Attempts Remaining
                   </div>
                 </div>
@@ -353,6 +410,9 @@
       </div>
     </div>
   </div>
+
+  <ExamResultModal :is-open="!!examResults" :results="examResults" @close="closeResults"
+    @download-certificate="downloadCertificate" />
 </template>
 
 <script setup>
@@ -360,6 +420,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import axios from 'axios'
+import ExamResultModal from '@/components/ExamResultModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -386,13 +447,11 @@ const attemptHistory = ref([])
 const examResults = ref(null)
 
 const canAttempt = computed(() => {
-  return true;
   if (!exam.value || !userAttempts.value) return false
   return userAttempts.value.length < exam.value.attempts_allowed
 })
 
 const hasAttempted = computed(() => {
-  return true;
   return userAttempts.value?.length > 0
 })
 
@@ -427,15 +486,15 @@ function getSkillLevel(score) {
  */
 const loadExam = async () => {
   try {
-    console.log('Load exam');
     loading.value = true
     const [examResponse, historyResponse] = await Promise.all([
       axios.get(`/exams/${route.params.id}`),
       axios.get(`/exams/${route.params.id}/attempts`)
     ])
 
-    exam.value = examResponse.data.data
-    attemptHistory.value = historyResponse.data.data
+    exam.value = examResponse.data.data;
+    attemptHistory.value = historyResponse.data.data;
+    userAttempts.value = examResponse.data.data.attempts; // Add this line
   } catch (error) {
     console.error('Error loading exam:', error)
     toast.error('Failed to load exam data')
@@ -496,6 +555,35 @@ const fetchExamResults = async () => {
   } catch (error) {
     console.error('Error fetching results:', error)
   }
+}
+
+const averageScore = computed(() => {
+  if (!userAttempts.value.length) return 0
+  const totalScore = userAttempts.value.reduce((acc, attempt) => acc + attempt.score, 0)
+  return (totalScore / userAttempts.value.length).toFixed(2)
+})
+
+const bestScore = computed(() => {
+  if (!userAttempts.value.length) return 0
+  return Math.max(...userAttempts.value.map(attempt => attempt.score))
+})
+
+const currentSkillLevel = computed(() => {
+  if (!userAttempts.value.length) return { label: 'N/A', class: '' }
+  const latestAttempt = userAttempts.value[userAttempts.value.length - 1]
+  return getSkillLevel(latestAttempt.score)
+})
+
+const progressPercentage = computed(() => {
+  if (!userAttempts.value.length) return 0
+  const latestAttempt = userAttempts.value[userAttempts.value.length - 1]
+  return (latestAttempt.score / 100) * 100
+})
+
+const closeResults = () => {
+  examResults.value = null
+  // Remove attemptId from URL
+  router.replace({ query: {} })
 }
 
 onMounted(() => {

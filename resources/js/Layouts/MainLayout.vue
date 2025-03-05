@@ -1,7 +1,8 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Hide navigation when in exam mode or result page -->
-    <nav v-if="!isHideNavigation" class="bg-white border-b border-gray-200">
+  <div class="min-h-screen bg-gray-50 flex flex-col">
+    <!-- Changed nav to fixed position -->
+    <nav v-if="!isHideNavigation" 
+      class="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 backdrop-blur-lg bg-white/80">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <!-- Left side -->
@@ -114,13 +115,16 @@
       </div>
     </nav>
 
-    <!-- Page Content -->
-    <main class="py-10">
+    <!-- Add padding-top to main content to prevent overlap -->
+    <main class="flex-1 py-10 mt-16">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <router-view></router-view>
-        <AILearningAssistant />
+        <!-- <AILearningAssistant /> -->
       </div>
     </main>
+
+    <!-- Add Footer -->
+    <Footer v-if="!isHideNavigation" />
   </div>
 </template>
 
@@ -129,6 +133,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import AILearningAssistant from '../Components/AILearningAssistant.vue'
+import Footer from '../Components/Footer.vue'
 import {
   HomeIcon,
   AcademicCapIcon,

@@ -32,7 +32,7 @@ class ExamController extends Controller
     /**
      * show
      */
-    public function show(Exam $exam): JsonResponse
+    public function show(Exam $exam)
     {
         $exam->loadCount('questions');
         $exam->load([
@@ -40,20 +40,8 @@ class ExamController extends Controller
                 $query->where('user_id', auth()->id());
             }
         ]);
-
-        return response()->json([
-            'data' => [
-                'id' => $exam->id,
-                'title' => $exam->title,
-                'description' => $exam->description,
-                'duration' => $exam->duration,
-                'passing_score' => $exam->passing_score,
-                'total_questions' => $exam->questions_count,
-                'attempts_allowed' => $exam->attempts_allowed,
-                'image_url' => $exam->image_url,
-                'attempts' => $exam->attempts
-            ]
-        ]);
+        
+        return new FeExamResource($exam);
     }
 
     /**
@@ -104,13 +92,11 @@ class ExamController extends Controller
      */
     public function submit(Request $request, ExamAttempt $attempt): JsonResponse
     {
-        // Log the attempt
-        Log::debug('Submit exam', ['attempt' => $attempt]);
+        // Log::debug('Submit exam', ['attempt' => $attempt]);
 
         // if ($attempt->status !== 'in_progress') {
         //     return response()->json(['message' => 'Invalid attempt'], 400);
         // }
-
 
         if (Carbon::parse($attempt->started_at)
             ->addMinutes($attempt->exam->duration)
@@ -127,6 +113,8 @@ class ExamController extends Controller
 
         $score = $this->calculateScore($attempt->exam, $validated['answers']);
 
+        Log::debug('score: '.print_r($score,true));
+        
         $attempt->update([
             'completed_at' => now(),
             'score' => $score,
@@ -145,6 +133,7 @@ class ExamController extends Controller
             'score' => $score,
             'passing_score' => $attempt->exam->passing_score,
             'passed' => $passed,
+            'attempt_id' => $attempt->id,
             'review_url' => route('exams.review', $attempt->id)
         ]);
     }
@@ -213,37 +202,89 @@ class ExamController extends Controller
     }
 
     /**
-     * Calculate exam score
+     * calculateScore
      */
     private function calculateScore(Exam $exam, array $answers): int
     {
-        $score = 0;
-        // foreach ($answers as $answer) {
-        //     $questionId = $answer['question_id'];
-        //     $selectedOptions = is_array($answer['answer']) ? $answer['answer'] : [$answer['answer']];
+        $totalQuestions = $exam->questions->count();
+        $correctAnswers = 0;
+        
+        Log::debug('Incoming answers:', $answers);
+        
+        if ($totalQuestions === 0 || empty($answers)) {
+            Log::debug('No questions or answers');
+            return 0;
+        }
 
-        //     $question = $exam->questions()->find($questionId);
-        //     if (!$question) continue;
+        foreach ($exam->questions as $question) {
+            $questionId = $question->id;
+            
+            Log::debug('Processing question:', [
+                'question_id' => $questionId,
+                'type' => $question->type
+            ]);
+            
+            // Kiểm tra xem có answer cho question này không
+            if (!array_key_exists($questionId, $answers)) {
+                Log::debug("No answer for question {$questionId}");
+                continue;
+            }
 
-        //     $correctOptions = $question->options()
-        //         ->where('is_correct', true)
-        //         ->pluck('id')
-        //         ->toArray();
+            $userAnswer = $answers[$questionId];
+            
+            // Convert user answer to array of integers
+            $selectedOptions = [];
+            if (is_array($userAnswer)) {
+                $selectedOptions = array_map('intval', $userAnswer);
+            } else {
+                $selectedOptions = [intval($userAnswer)];
+            }
+            
+            // Remove any zero or empty values
+            $selectedOptions = array_filter($selectedOptions);
 
-        //     if ($question->type === 'single') {
-        //         if (count($selectedOptions) === 1 && 
-        //             in_array($selectedOptions[0], $correctOptions)) {
-        //             $score += $question->points;
-        //         }
-        //     } else {
-        //         $selectedCorrect = array_intersect($selectedOptions, $correctOptions);
-        //         $selectedIncorrect = array_diff($selectedOptions, $correctOptions);
-        //         if (count($selectedCorrect) === count($correctOptions) && 
-        //             empty($selectedIncorrect)) {
-        //             $score += $question->points;
-        //         }
-        //     }
-        // }
+            // Get correct options
+            $correctOptions = $question->options()
+                ->where('is_correct', true)
+                ->pluck('id')
+                ->map(function ($id) {
+                    return (int) $id;
+                })
+                ->toArray();
+
+            Log::debug('Answer comparison:', [
+                'question_id' => $questionId,
+                'type' => $question->type,
+                'selected_options' => $selectedOptions,
+                'correct_options' => $correctOptions
+            ]);
+
+            // Check if answer is correct based on question type
+            if ($question->type === 'single') {
+                if (!empty($selectedOptions) && 
+                    in_array($selectedOptions[0], $correctOptions)) {
+                    $correctAnswers++;
+                    Log::debug("Question {$questionId} is correct");
+                }
+            } else {
+                // For multiple choice, all selected options must match correct options
+                sort($selectedOptions);
+                sort($correctOptions);
+                if ($selectedOptions === $correctOptions) {
+                    $correctAnswers++;
+                    Log::debug("Question {$questionId} is correct");
+                }
+            }
+        }
+        
+        $score = $totalQuestions > 0 ? (int)round(($correctAnswers / $totalQuestions) * 100) : 0;
+        
+        Log::debug('Score calculation:', [
+            'total_questions' => $totalQuestions,
+            'correct_answers' => $correctAnswers,
+            'final_score' => $score
+        ]);
+        
         return $score;
     }
 

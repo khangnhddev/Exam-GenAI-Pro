@@ -52,6 +52,70 @@ class ExamSeeder extends Seeder
                 'status' => 'draft',
                 'attempts_allowed' => 2,
             ],
+            [
+                'title' => 'Foundations of Generative AI',
+                'description' => 'Test your knowledge of fundamental concepts in Generative AI, including key architectures, models, and applications.',
+                'duration' => 45,
+                'passing_score' => 70,
+                'attempts_allowed' => 3,
+                'total_questions' => 30,
+                'topics_covered' => json_encode([
+                    'Neural Networks Fundamentals',
+                    'Transformer Architecture',
+                    'Large Language Models',
+                    'Prompt Engineering',
+                    'AI Ethics and Bias',
+                    'Model Training and Fine-tuning'
+                ])
+            ],
+            [
+                'title' => 'Practical AI Applications',
+                'description' => 'Evaluate your understanding of real-world AI applications and implementation strategies.',
+                'duration' => 60,
+                'passing_score' => 75,
+                'attempts_allowed' => 2,
+                'total_questions' => 40,
+                'topics_covered' => json_encode([
+                    'Text Generation and NLP',
+                    'Image Generation (DALL-E, Stable Diffusion)',
+                    'Code Generation and Assistance',
+                    'Conversational AI',
+                    'AI Tools and Platforms',
+                    'API Integration'
+                ])
+            ],
+            [
+                'title' => 'AI Development and Integration',
+                'description' => 'Test your skills in developing and integrating AI solutions into existing applications.',
+                'duration' => 90,
+                'passing_score' => 80,
+                'attempts_allowed' => 2,
+                'total_questions' => 50,
+                'topics_covered' => json_encode([
+                    'AI Model Deployment',
+                    'API Development',
+                    'Performance Optimization',
+                    'Security Considerations',
+                    'Scalability Patterns',
+                    'Error Handling and Monitoring'
+                ])
+            ],
+            [
+                'title' => 'AI Ethics and Governance',
+                'description' => 'Assess your knowledge of ethical considerations and governance frameworks in AI development.',
+                'duration' => 45,
+                'passing_score' => 75,
+                'attempts_allowed' => 3,
+                'total_questions' => 35,
+                'topics_covered' => json_encode([
+                    'Data Privacy and Protection',
+                    'Bias Detection and Mitigation',
+                    'Responsible AI Development',
+                    'Ethical Guidelines',
+                    'Regulatory Compliance',
+                    'Social Impact Assessment'
+                ])
+            ],
         ];
 
         foreach ($exams as $exam) {

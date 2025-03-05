@@ -84,6 +84,11 @@ const frontendRoutes = {
             meta: { requiresAuth: false }
         },
         // {
+        //     path: '/verify/:id',
+        //     name: 'certificates.verify',
+        //     component: () => import('@/views/certificates/Verify.vue')
+        // }
+        // {
         //     path: '/exams',
         //     name: 'exams.index',
         //     component: () => import('@/views/exams/Index.vue'),

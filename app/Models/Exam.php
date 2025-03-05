@@ -10,24 +10,20 @@ class Exam extends Model
 {
     protected $fillable = [
         'title',
-        'image_path',
-        'image_alt',
         'description',
         'duration',
         'passing_score',
-        'max_attempts',
-        'total_questions',
-        'status',
         'attempts_allowed',
+        'total_questions',
         'topics_covered',
     ];
 
     protected $casts = [
+        'topics_covered' => 'array',
         'duration' => 'integer',
         'passing_score' => 'integer',
-        'total_questions' => 'integer',
         'attempts_allowed' => 'integer',
-        'topics_covered' => 'array',
+        'total_questions' => 'integer',
     ];
 
     protected $attributes = [
