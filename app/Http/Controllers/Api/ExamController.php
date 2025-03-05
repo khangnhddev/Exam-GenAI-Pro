@@ -20,7 +20,8 @@ class ExamController extends Controller
     public function index()
     {
         $user = auth()->user();
-        $exams = Exam::withCount('questions')
+        $exams = Exam::where('status', 'published')
+            ->withCount('questions')
             ->with(['attempts' => function ($query) use ($user) {
                 // $query->where('user_id', $user->id);
             }])

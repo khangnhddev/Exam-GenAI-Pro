@@ -173,6 +173,7 @@ async function handleSubmit() {
 }
 
 onMounted(() => {
+  console.log('Question:','Khang dev test create question');
   if (props.question) {
     form.value = {
       question_text: props.question.question_text,

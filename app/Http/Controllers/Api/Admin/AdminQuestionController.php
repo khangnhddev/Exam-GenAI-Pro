@@ -14,6 +14,7 @@ class AdminQuestionController extends Controller
 {
     /**
      * index
+     * 
      */
     public function index()
     {
@@ -23,35 +24,77 @@ class AdminQuestionController extends Controller
 
         return QuestionResource::collection($questions);
     }
-
+    
     /**
      * store
      */
     public function store(Request $request): JsonResponse
     {
-        return response()->json('Khang dev ok ok store exam');
-        // $validated = $request->validate([
-        //     'exam_id' => 'required|exists:exams,id',
-        //     'question_text' => 'required|string',
-        //     'type' => 'required|in:single,multiple',
-        //     'points' => 'required|integer|min:1|max:10',
-        //     'options' => 'required|array|min:2|max:6',
-        //     'options.*.text' => 'required|string',
-        //     'options.*.is_correct' => 'required|boolean',
-        //     'explanation' => 'nullable|string'
-        // ]);
+        try {
+            $validated = $request->validate([
+                'exam_id' => 'required|exists:exams,id',
+                'question_text' => 'required|string|min:10',
+                'type' => 'required|in:single,multiple',
+                'points' => 'required|integer|min:1|max:10',
+                'options' => 'required|array|min:2|max:6',
+                'options.*.option_text' => 'required|string|min:1',
+                'options.*.is_correct' => 'required|boolean',
+                'explanation' => 'nullable|string'
+            ]);
 
-        // $question = Question::create([
-        //     'exam_id' => $validated['exam_id'],
-        //     'question_text' => $validated['question_text'],
-        //     'type' => $validated['type'],
-        //     'points' => $validated['points'],
-        //     'explanation' => $validated['explanation'] ?? null
-        // ]);
+            // Validate that at least one option is marked as correct
+            $hasCorrectOption = collect($validated['options'])->contains('is_correct', true);
+            if (!$hasCorrectOption) {
+                return response()->json([
+                    'message' => 'At least one option must be marked as correct',
+                    'errors' => ['options' => ['No correct option provided']]
+                ], 422);
+            }
 
-        // $question->options()->createMany($validated['options']);
+            // For single choice questions, only one option can be correct
+            if ($validated['type'] === 'single') {
+                $correctOptionsCount = collect($validated['options'])->where('is_correct', true)->count();
+                if ($correctOptionsCount > 1) {
+                    return response()->json([
+                        'message' => 'Single choice questions can only have one correct answer',
+                        'errors' => ['options' => ['Multiple correct options provided for single choice question']]
+                    ], 422);
+                }
+            }
 
-        // return response()->json($question->load('options'), 201);
+            $question = Question::create([
+                'exam_id' => $validated['exam_id'],
+                'question_text' => $validated['question_text'],
+                'type' => $validated['type'],
+                'points' => $validated['points'],
+                'explanation' => $validated['explanation'] ?? null
+            ]);
+
+            $question->options()->createMany(
+                collect($validated['options'])->map(function ($option) {
+                    return [
+                        'option_text' => $option['option_text'],
+                        'is_correct' => $option['is_correct']
+                    ];
+                })->all()
+            );
+
+            return response()->json(
+                new QuestionResource($question->load('options')), 
+                201
+            );
+
+        } catch (\Exception $e) {
+            // \Log::error('Failed to create question:', [
+            //     'error' => $e->getMessage(),
+            //     'exam_id' => $request->input('exam_id')
+            // ]);
+
+            return response()->json([
+                'message' => 'Failed to create question',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function update(Request $request, Question $question): JsonResponse

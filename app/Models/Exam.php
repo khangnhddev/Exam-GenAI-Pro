@@ -12,11 +12,17 @@ class Exam extends Model
         'title',
         'description',
         'duration',
+        'status',
         'passing_score',
         'attempts_allowed',
         'total_questions',
         'topics_covered',
     ];
+
+    // Optional: Add status constants
+    const STATUS_DRAFT = 'draft';
+    const STATUS_PUBLISHED = 'published';
+    const STATUS_ARCHIVED = 'archived';
 
     protected $casts = [
         'topics_covered' => 'array',

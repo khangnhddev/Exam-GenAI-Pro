@@ -95,12 +95,12 @@
               <!-- Show these items when not logged in -->
               <template v-else>
                 <div class="flex items-center space-x-4">
-                  <router-link 
-                    :to="{ name: 'login' }"
+                  <button 
+                    @click="showLoginDialog = true"
                     class="text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors duration-150"
                   >
                     Sign in
-                  </router-link>
+                  </button>
                   <router-link 
                     :to="{ name: 'register' }"
                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -126,6 +126,13 @@
     <!-- Add Footer -->
     <Footer v-if="!isHideNavigation" />
   </div>
+
+  <!-- Login Dialog -->
+  <LoginDialog 
+    :is-open="showLoginDialog" 
+    @close="showLoginDialog = false"
+    @success="handleLoginSuccess"
+  />
 </template>
 
 <script setup>
@@ -144,12 +151,18 @@ import {
   UserCircleIcon,
   Cog6ToothIcon
 } from '@heroicons/vue/24/outline'
+import { useAuthStore } from '@/stores/auth'
+import LoginDialog from '@/Components/LoginDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
 const { user, logout, checkAuth } = useAuth()
 const showProfileMenu = ref(false)
 const isLoading = ref(true)
+const authStore = useAuthStore()
+const showLoginDialog = ref(false)
+
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 // Add computed property for user avatar
 const userAvatar = computed(() => {
@@ -227,6 +240,10 @@ const handleLogout = async () => {
   } catch (error) {
     console.error('Logout failed:', error)
   }
+}
+
+const handleLoginSuccess = () => {
+  showLoginDialog.value = false
 }
 </script>
 

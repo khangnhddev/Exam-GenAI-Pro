@@ -58,12 +58,15 @@
               <tr v-for="exam in filteredExams" :key="exam.id">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
-                    <div class="flex-shrink-0 h-10 w-10">
+                    <div class="flex-shrink-0 h-10 w-10 bg-gray-100 rounded-full overflow-hidden">
                       <img 
-                        :src="exam.image_url || '/default-exam.png'" 
-                        class="h-10 w-10 rounded-full object-cover"
-                        alt=""
-                      >
+                        v-if="exam.image_url"
+                        :src="exam.image_url" 
+                        :alt="exam.title"
+                        class="h-10 w-10 object-cover"
+                        @error="$event.target.style.display='none'"
+                      />
+                      <DefaultExamIcon v-else />
                     </div>
                     <div class="ml-4">
                       <div class="text-sm font-medium text-gray-900">{{ exam.title }}</div>
@@ -118,6 +121,7 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import SearchFilterPanel from '@/Components/admin/SearchFilterPanel.vue'
+import DefaultExamIcon from '@/components/DefaultExamIcon.vue'
 
 const exams = ref([])
 const searchQuery = ref('')

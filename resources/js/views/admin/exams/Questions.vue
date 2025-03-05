@@ -244,6 +244,7 @@ const closeQuestionForm = () => {
 
 // Load data when component mounts
 onMounted(() => {
-  fetchData()
+  console.log('Create question for exams');
+  fetchData();
 })
 </script>

@@ -172,6 +172,20 @@ const adminRoutes = {
             })
         },
         {
+            path: 'exams/:examId/questions/create',
+            name: 'admin.questions.create',
+            component: () => import('../views/admin/questions/QuestionForm.vue'),
+            props: true,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: 'exams/:examId/questions/:questionId/edit',
+            name: 'admin.questions.edit',
+            component: () => import('../views/admin/questions/QuestionForm.vue'),
+            props: true,
+            meta: { requiresAuth: true }
+        },
+        {
             path: 'certificates',
             name: 'admin.certificates.index',
             component: () => import('../views/admin/certificates/Index.vue')

@@ -80,21 +80,33 @@
     <!-- Bottom Navigation -->
     <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
       <div class="max-w-3xl mx-auto flex justify-between items-center">
-        <button @click="previousQuestion" :disabled="currentQuestionIndex === 0"
-          class="px-6 py-2.5 text-sm font-medium rounded-md border border-gray-300 shadow-sm" :class="[
+        <button 
+          @click="previousQuestion" 
+          :disabled="currentQuestionIndex === 0"
+          class="inline-flex items-center px-6 py-2.5 text-sm font-medium rounded-md border border-gray-300 shadow-sm" 
+          :class="[
             currentQuestionIndex === 0
               ? 'bg-gray-50 text-gray-400 cursor-not-allowed'
               : 'bg-white text-gray-700 hover:bg-gray-50'
-          ]">
+          ]"
+        >
+          <ArrowLeftIcon class="h-5 w-5 mr-2" />
           Previous
         </button>
 
-        <button v-if="currentQuestionIndex < questions.length - 1" @click="nextQuestion"
-          class="px-6 py-2.5 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700 shadow-sm">
+        <button 
+          v-if="currentQuestionIndex < questions.length - 1" 
+          @click="nextQuestion"
+          class="inline-flex items-center px-6 py-2.5 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700 shadow-sm"
+        >
           Next
+          <ArrowRightIcon class="h-5 w-5 ml-2" />
         </button>
-        <button v-else @click="submitExam"
-          class="px-6 py-2.5 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700 shadow-sm">
+        <button 
+          v-else 
+          @click="submitExam"
+          class="inline-flex items-center px-6 py-2.5 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700 shadow-sm"
+        >
           Submit
         </button>
       </div>
@@ -158,6 +170,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
 import { useToast } from 'vue-toastification'
 import AssessmentResultModal from '@/components/AssessmentResultModal.vue'
