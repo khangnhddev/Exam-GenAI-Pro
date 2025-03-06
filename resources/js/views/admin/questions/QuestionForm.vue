@@ -225,18 +225,10 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-// Get examId from route params
-const examId = computed(() => route.params.examId)
-const questionId = computed(() => route.params.questionId)
+// Make examId optional using optional chaining
+const examId = computed(() => route.params?.examId)
+const questionId = computed(() => route.params?.id)
 const isEditing = computed(() => !!questionId.value)
-
-// Verify examId is present
-onMounted(() => {
-  if (!examId.value) {
-    toast.error('Exam ID is required')
-    router.push({ name: 'admin.exams.index' })
-  }
-})
 
 const loading = ref(false)
 
@@ -244,6 +236,7 @@ const form = ref({
   question_text: '',
   type: 'single',
   points: 1,
+  exam_id: examId.value || null, // Make exam_id optional
   options: [
     { option_text: '', is_correct: false },
     { option_text: '', is_correct: false }
@@ -282,35 +275,52 @@ function handleCorrectOptionChange(index) {
   }
 }
 
+// Update save function to handle both cases
 async function handleSubmit() {
-  console.log('Handle form create question submit');
-  
-  if (!isFormValid.value || !examId.value) return;
+  if (!isFormValid.value) return;
 
   loading.value = true
   try {
-    // Update the API endpoints
-    const url = isEditing.value
-      ? `/admin/questions/${questionId.value}`
-      : '/admin/questions'
+    const endpoint = isEditing.value 
+      ? `/api/v1/admin/questions/${questionId.value}`
+      : '/api/v1/admin/questions'
     
     const method = isEditing.value ? 'put' : 'post'
+    const response = await axios[method](endpoint, form.value)
     
-    // Include exam_id in the form data
-    const formData = {
-      ...form.value,
-      exam_id: examId.value
-    }
-    
-    await axios[method](url, formData)
     toast.success(`Question ${isEditing.value ? 'updated' : 'created'} successfully`)
-    router.push({ 
-      name: 'admin.exams.questions', 
-      params: { examId: examId.value } 
-    })
+    
+    // Redirect based on context
+    if (examId.value) {
+      router.push({ 
+        name: 'admin.exams.questions',
+        params: { examId: examId.value }
+      })
+    } else {
+      router.push({ name: 'admin.questions.index' })
+    }
   } catch (error) {
     console.error('Error saving question:', error)
-    toast.error(error.response?.data?.message || 'Error saving question')
+    toast.error(error.response?.data?.message || 'Failed to save question')
+  } finally {
+    loading.value = false
+  }
+}
+
+// Update loadQuestion function
+async function loadQuestion() {
+  if (!questionId.value) return
+  
+  try {
+    loading.value = true
+    const { data } = await axios.get(`/api/admin/questions/${questionId.value}`)
+    form.value = {
+      ...data.data,
+      exam_id: data.data.exam_id || null // Handle null exam_id
+    }
+  } catch (error) {
+    console.error('Error loading question:', error)
+    toast.error('Failed to load question')
   } finally {
     loading.value = false
   }

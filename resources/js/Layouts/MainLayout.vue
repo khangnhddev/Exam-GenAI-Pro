@@ -101,12 +101,12 @@
                   >
                     Sign in
                   </button>
-                  <router-link 
-                    :to="{ name: 'register' }"
+                  <button 
+                    @click="showSignUpDialog = true"
                     class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     Sign up
-                  </router-link>
+                  </button>
                 </div>
               </template>
             </div>
@@ -132,6 +132,13 @@
     :is-open="showLoginDialog" 
     @close="showLoginDialog = false"
     @success="handleLoginSuccess"
+    @switch-to-signup="switchToSignup"
+  />
+  
+  <SignUpDialog
+    :is-open="showSignUpDialog"
+    @close="showSignUpDialog = false"
+    @switch-to-login="switchToLogin"
   />
 </template>
 
@@ -153,6 +160,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import LoginDialog from '@/Components/LoginDialog.vue'
+import SignUpDialog from '@/Components/SignUpDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -161,6 +169,7 @@ const showProfileMenu = ref(false)
 const isLoading = ref(true)
 const authStore = useAuthStore()
 const showLoginDialog = ref(false)
+const showSignUpDialog = ref(false)
 
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 
@@ -194,7 +203,7 @@ const profileMenuItems = [
     icon: UserCircleIcon
   },
   {
-    name: 'Learning Dashboard',
+    name: 'History',
     to: { name: 'my-learning' },
     icon: BookOpenIcon
   },
@@ -244,6 +253,16 @@ const handleLogout = async () => {
 
 const handleLoginSuccess = () => {
   showLoginDialog.value = false
+}
+
+function switchToSignup() {
+  showLoginDialog.value = false
+  showSignUpDialog.value = true
+}
+
+function switchToLogin() {
+  showSignUpDialog.value = false
+  showLoginDialog.value = true
 }
 </script>
 

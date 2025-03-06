@@ -15,7 +15,7 @@
 
       <!-- Dialog positioning -->
       <div class="fixed inset-0 overflow-y-auto">
-        <div class="flex min-h-full items-center justify-center p-4">
+        <div class="flex min-h-full items-center justify-center p-4 sm:p-0">
           <TransitionChild
             enter="ease-out duration-300"
             enter-from="opacity-0 scale-95"
@@ -23,9 +23,12 @@
             leave="ease-in duration-200"
             leave-from="opacity-100 scale-100"
             leave-to="opacity-0 scale-95"
+            class="w-full"
           >
-            <!-- Increased max-width and updated padding -->
-            <DialogPanel class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-purple-900 to-violet-800 p-8 text-left align-middle shadow-xl transition-all">
+            <!-- Update DialogPanel width classes to match SignUpDialog -->
+            <DialogPanel 
+              class="mx-auto w-full max-w-md transform overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-purple-900 to-violet-800 p-8 text-left align-middle shadow-xl transition-all"
+            >
               <!-- Close button -->
               <button
                 @click="onClose"
@@ -35,7 +38,7 @@
               </button>
 
               <!-- Content container with increased width -->
-              <div class="mx-auto max-w-md w-full space-y-8">
+              <div class="mx-auto max-w-xs w-full space-y-8">
                 <!-- Logo/Brand -->
                 <div class="flex flex-col items-center justify-center">
                   <div class="flex items-center justify-center gap-2 mb-6">

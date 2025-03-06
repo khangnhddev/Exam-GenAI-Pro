@@ -295,6 +295,152 @@
           </div>
         </Dialog>
       </TransitionRoot>
+
+      <!-- Preview Modal -->
+      <TransitionRoot appear :show="showPreviewModal" as="template">
+        <Dialog as="div" @close="showPreviewModal = false" class="relative z-10">
+          <TransitionChild
+            enter="ease-out duration-300"
+            enter-from="opacity-0"
+            enter-to="opacity-100"
+            leave="ease-in duration-200"
+            leave-from="opacity-100"
+            leave-to="opacity-0"
+          >
+            <div class="fixed inset-0 bg-black bg-opacity-25" />
+          </TransitionChild>
+
+          <div class="fixed inset-0 overflow-y-auto">
+            <div class="flex min-h-full items-center justify-center p-4 text-center">
+              <TransitionChild
+                enter="ease-out duration-300"
+                enter-from="opacity-0 scale-95"
+                enter-to="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leave-from="opacity-100 scale-100"
+                leave-to="opacity-0 scale-95"
+              >
+                <DialogPanel class="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <!-- Header -->
+                  <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+                    <DialogTitle as="h3" class="text-lg font-semibold text-gray-900">
+                      Review Generated Questions
+                    </DialogTitle>
+                    <button 
+                      @click="showPreviewModal = false"
+                      class="text-gray-400 hover:text-gray-500"
+                    >
+                      <XMarkIcon class="h-6 w-6" />
+                    </button>
+                  </div>
+
+                  <!-- Question Preview List -->
+                  <div class="mt-4 space-y-6 max-h-[60vh] overflow-y-auto">
+                    <div v-for="(question, index) in generatedQuestions" :key="index" 
+                         class="p-4 border border-gray-200 rounded-lg">
+                      <div class="flex items-start justify-between">
+                        <h4 class="text-base font-medium text-gray-900">
+                          Question {{ index + 1 }}
+                        </h4>
+                        <button 
+                          @click="generatedQuestions.splice(index, 1)"
+                          class="text-red-500 hover:text-red-700"
+                        >
+                          <TrashIcon class="h-5 w-5" />
+                        </button>
+                      </div>
+                      
+                      <!-- Question Text -->
+                      <p class="mt-2 text-gray-700">{{ question.question }}</p>
+                      
+                      <!-- Question Type and Points -->
+                      <div class="mt-2 flex items-center space-x-4 text-sm text-gray-500">
+                        <span class="flex items-center">
+                          <span class="font-medium mr-1">Type:</span>
+                          <span class="px-2 py-1 rounded-full text-xs"
+                            :class="{
+                              'bg-blue-100 text-blue-800': question.type === 'multiple',
+                              'bg-green-100 text-green-800': question.type === 'single'
+                            }"
+                          >
+                            {{ question.type === 'multiple' ? 'Multiple Choice' : 'Single Choice' }}
+                          </span>
+                        </span>
+                        <span class="flex items-center">
+                          <span class="font-medium mr-1">Points:</span>
+                          {{ question.points }}
+                        </span>
+                      </div>
+                      
+                      <!-- Options -->
+                      <div class="mt-3 space-y-2">
+                        <div v-for="(option, optIndex) in question.options" :key="optIndex"
+                             class="flex items-center space-x-2">
+                          <span :class="[
+                            'flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs',
+                            option.is_correct ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                          ]">
+                            {{ String.fromCharCode(65 + optIndex) }}
+                          </span>
+                          <span :class="[
+                            'text-sm',
+                            option.is_correct ? 'text-green-800 font-medium' : 'text-gray-600'
+                          ]">
+                            {{ option.text }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- Explanation -->
+                      <div class="mt-3 text-sm text-gray-500">
+                        <span class="font-medium">Explanation:</span>
+                        {{ question.explanation }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Footer -->
+                  <div class="mt-6 border-t border-gray-200 pt-4 flex justify-between items-center">
+                    <p class="text-sm text-gray-500">
+                      {{ generatedQuestions.length }} questions ready to be saved
+                    </p>
+                    <div class="flex space-x-3">
+                      <button
+                        type="button"
+                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                        @click="showPreviewModal = false"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        :disabled="savingQuestions || !generatedQuestions.length"
+                        @click="saveGeneratedQuestions"
+                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <svg
+                          v-if="savingQuestions"
+                          class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        {{ savingQuestions ? 'Saving...' : 'Save Questions' }}
+                      </button>
+                    </div>
+                  </div>
+                </DialogPanel>
+              </TransitionChild>
+            </div>
+          </div>
+        </Dialog>
+      </TransitionRoot>
     </div>
   </div>
 </template>
@@ -302,8 +448,79 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } from '@headlessui/vue'
+import { XMarkIcon, TrashIcon } from '@heroicons/vue/24/outline'
+import { useToast } from 'vue-toastification'
 import axios from 'axios'
 import SearchFilterPanel from '@/Components/admin/SearchFilterPanel.vue'
+
+const toast = useToast()
+const showAIModal = ref(false)
+const showPreviewModal = ref(false)
+const generating = ref(false)
+const savingQuestions = ref(false)
+const generatedQuestions = ref([])
+
+const aiForm = ref({
+  source: 'openai',
+  topic: '',
+  difficulty: 'medium',
+  count: 5
+})
+
+// Function to generate questions
+async function generateQuestions() {
+  generating.value = true
+  try {
+    const { data } = await axios.post('/admin/questions/generate', aiForm.value)
+    
+    // Map the response to match the expected structure
+    generatedQuestions.value = data.questions.map(q => ({
+      ...q,
+      question_text: q.question, // For backend compatibility
+      options: q.options.map(opt => ({
+        ...opt,
+        option_text: opt.text // For backend compatibility
+      }))
+    }))
+    
+    showAIModal.value = false
+    showPreviewModal.value = true
+    toast.success('Questions generated successfully!')
+  } catch (error) {
+    console.error('Error generating questions:', error)
+    toast.error(error.response?.data?.message || 'Failed to generate questions')
+  } finally {
+    generating.value = false
+  }
+}
+
+// Function to save approved questions
+async function saveGeneratedQuestions() {
+  savingQuestions.value = true
+  try {
+    await axios.post('/admin/questions/save-generated', {
+      questions: generatedQuestions.value
+    })
+    
+    await loadQuestions() // Refresh question list
+    showPreviewModal.value = false
+    toast.success('Questions saved successfully!')
+    
+    // Reset states
+    generatedQuestions.value = []
+    aiForm.value = {
+      source: 'openai',
+      topic: '',
+      difficulty: 'medium',
+      count: 5
+    }
+  } catch (error) {
+    console.error('Error saving questions:', error)
+    toast.error('Failed to save questions')
+  } finally {
+    savingQuestions.value = false
+  }
+}
 
 const questions = ref([])
 const searchQuery = ref('')
@@ -364,44 +581,6 @@ async function deleteQuestion(question) {
   }
 }
 
-const showAIModal = ref(false)
-const generating = ref(false)
-const aiForm = ref({
-  topic: '',
-  difficulty: 'medium',
-  count: 5,
-  source: 'openai'
-})
-
-async function generateQuestions() {
-  generating.value = true
-  try {
-    const { data } = await axios.post('/admin/questions/generate', {
-      source: aiForm.value.source,
-      topic: aiForm.value.topic,
-      difficulty: aiForm.value.difficulty,
-      count: aiForm.value.count
-    })
-    
-    // Refresh questions list
-    await loadQuestions()
-    
-    // Reset and close modal
-    aiForm.value = {
-      topic: '',
-      difficulty: 'medium',
-      count: 5,
-      source: 'openai'
-    }
-    showAIModal.value = false
-  } catch (error) {
-    console.error('Error generating questions:', error)
-  } finally {
-    generating.value = false
-  }
-}
-
-// Add loadQuestions function
 async function loadQuestions() {
   try {
     const { data } = await axios.get('/admin/questions')

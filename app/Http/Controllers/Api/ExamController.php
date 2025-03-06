@@ -126,9 +126,10 @@ class ExamController extends Controller
         $passed = $score >= $attempt->exam->passing_score;
 
 
-        // if ($passed) {
-        //     $this->generateCertificate($attempt);
-        // }
+        if ($passed) {
+            $this->generateCertificate($attempt);
+            // Send verify email
+        }
 
         return response()->json([
             'score' => $score,
@@ -290,7 +291,8 @@ class ExamController extends Controller
     }
 
     /**
-     * generateCertificate
+     * Generate certificate
+     * 
      */
     private function generateCertificate(ExamAttempt $attempt): void
     {
@@ -299,9 +301,39 @@ class ExamController extends Controller
             'exam_id' => $attempt->exam_id,
             'exam_attempt_id' => $attempt->id,
             'score' => $attempt->score,
-            'issued_at' => now(),
-            'certificate_number' => 'AIPRO-' . strtoupper(uniqid())
+            'issued_date' => $attempt->completed_at,
+            'certificate_number' => $this->generateCertificateNumber($attempt),
+            'metadata' => [
+                'exam_title' => $attempt->exam->title,
+                'completion_date' => $attempt->completed_at->format('F d, Y'),
+                'user_name' => $attempt->user->name,
+                'skill_level' => $this->getSkillLevel($attempt->score)
+            ]
         ]);
+    }
+    
+    /**
+     * Generate certificate number
+     */
+    private function generateCertificateNumber(ExamAttempt $attempt): string
+    {
+        $prefix = 'AIPRO';
+        $year = $attempt->completed_at->format('Y');
+        $month = $attempt->completed_at->format('m');
+        $sequence = str_pad($attempt->id, 6, '0', STR_PAD_LEFT);
+        
+        return "{$prefix}-{$year}{$month}-{$sequence}";
+    }
+
+    /**
+     * Get skill level
+     */
+    private function getSkillLevel(int $score): string
+    {
+        if ($score >= 90) return 'Expert';
+        if ($score >= 75) return 'Advanced';
+        if ($score >= 60) return 'Intermediate';
+        return 'Beginner';
     }
 
     /**

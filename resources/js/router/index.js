@@ -155,7 +155,7 @@ const adminRoutes = {
         {
             path: 'questions',
             name: 'admin.questions.index',
-            component: () => import('../views/admin/questions/Index.vue')
+            component: () => import('@/views/admin/questions/Index.vue')
         },
         {
             path: 'questions/create',
@@ -165,25 +165,26 @@ const adminRoutes = {
         {
             path: 'questions/:id/edit',
             name: 'admin.questions.edit',
-            component: () => import('../views/admin/questions/QuestionForm.vue'),
-            props: route => ({
-                id: parseInt(route.params.id),
-                isEditing: true
-            })
+            component: () => import('@/views/admin/questions/QuestionForm.vue'),
+            props: true
+        },
+        {
+            path: 'exams/:examId/questions',
+            name: 'admin.exams.questions',
+            component: () => import('../views/admin/exams/Questions.vue'),
+            props: true
         },
         {
             path: 'exams/:examId/questions/create',
-            name: 'admin.questions.create',
+            name: 'admin.exams.questions.create',
             component: () => import('../views/admin/questions/QuestionForm.vue'),
-            props: true,
-            meta: { requiresAuth: true }
+            props: true
         },
         {
-            path: 'exams/:examId/questions/:questionId/edit',
-            name: 'admin.questions.edit',
+            path: 'exams/:examId/questions/:id/edit',
+            name: 'admin.exams.questions.edit',
             component: () => import('../views/admin/questions/QuestionForm.vue'),
-            props: true,
-            meta: { requiresAuth: true }
+            props: true
         },
         {
             path: 'certificates',
@@ -194,12 +195,6 @@ const adminRoutes = {
             path: 'settings',
             name: 'admin.settings',
             component: () => import('../views/admin/Settings.vue')
-        },
-        {
-            path: 'exams/:examId/questions',
-            name: 'admin.exams.questions',
-            component: () => import('../views/admin/exams/Questions.vue'),
-            props: true
         },
         {
             path: 'activity-logs',

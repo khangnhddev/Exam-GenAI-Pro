@@ -405,4 +405,32 @@ class AdminExamController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Delete the specified exam.
+     * 
+     * @param \App\Models\Exam $exam
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(Exam $exam)
+    {
+        try {
+            foreach ($exam->questions as $question) {
+                $question->options()->delete();
+            }
+            
+            $exam->questions()->delete();
+            
+            $exam->delete();
+
+            return response()->json(null, 204);
+        } catch (\Exception $e) {
+            // \Log::error('Failed to delete exam: ' . $e->getMessage());
+            
+            return response()->json([
+                'message' => 'Failed to delete exam',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

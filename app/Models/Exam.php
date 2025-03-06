@@ -39,6 +39,8 @@ class Exam extends Model
 
     protected $appends = ['image_url'];
 
+    protected $cascadeDeletes = ['questions'];
+
     public function getImageUrlAttribute()
     {
         if (!$this->image_path) {

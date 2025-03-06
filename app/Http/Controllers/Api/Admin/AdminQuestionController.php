@@ -193,14 +193,13 @@ class AdminQuestionController extends Controller
         Provide a detailed analysis.
         EOT;
     }
-
+    
     /**
-     * Generate questions using AI
+     * Generate questions using OpenAI
      */
     public function generate(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'exam_id' => 'nullable|exists:exams,id',
             'source' => 'required|in:openai,knowledge',
             'topic' => 'required_if:source,openai|string|nullable',
             'difficulty' => 'required|in:easy,medium,hard',
@@ -260,30 +259,10 @@ class AdminQuestionController extends Controller
             }
 
             $generatedQuestions = $this->parseAIResponse($content);
-            $createdQuestions = [];
-
-            foreach ($generatedQuestions as $questionData) {
-                $question = Question::create([
-                    'exam_id' => $validated['exam_id'] ?? null,
-                    'question_text' => $questionData['question'],
-                    'type' => $questionData['type'],
-                    'points' => $questionData['points'],
-                    'explanation' => $questionData['explanation'] ?? null
-                ]);
-
-                foreach ($questionData['options'] as $option) {
-                    $question->options()->create([
-                        'option_text' => $option['text'],
-                        'is_correct' => $option['is_correct']
-                    ]);
-                }
-
-                $createdQuestions[] = $question;
-            }
 
             return response()->json([
                 'message' => 'Questions generated successfully',
-                'questions' => QuestionResource::collection(collect($createdQuestions))
+                'questions' => $generatedQuestions
             ]);
         } catch (\Exception $e) {
             // \Log::error('Question generation failed:', [
@@ -338,5 +317,58 @@ class AdminQuestionController extends Controller
         }
 
         return $questions;
+    }
+
+    // Add new method to save approved questions
+    public function saveGeneratedQuestions(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'questions' => 'required|array|min:1',
+            'questions.*.question' => 'required|string',
+            'questions.*.type' => 'required|in:single,multiple',
+            'questions.*.options' => 'required|array|min:2',
+            'questions.*.options.*.text' => 'required|string',
+            'questions.*.options.*.is_correct' => 'required|boolean',
+            'questions.*.points' => 'required|integer|min:1|max:5',
+            'questions.*.explanation' => 'nullable|string',
+            'exam_id' => 'nullable|exists:exams,id'
+        ]);
+
+        try {
+            $createdQuestions = [];
+
+            foreach ($validated['questions'] as $questionData) {
+                $question = Question::create([
+                    'exam_id' => $validated['exam_id'] ?? null,
+                    'question_text' => $questionData['question'],
+                    'type' => $questionData['type'],
+                    'points' => $questionData['points'],
+                    'explanation' => $questionData['explanation'] ?? null
+                ]);
+
+                foreach ($questionData['options'] as $option) {
+                    $question->options()->create([
+                        'option_text' => $option['text'],
+                        'is_correct' => $option['is_correct']
+                    ]);
+                }
+
+                $createdQuestions[] = $question;
+            }
+
+            return response()->json([
+                'message' => 'Questions saved successfully',
+                'questions' => QuestionResource::collection(collect($createdQuestions))
+            ], 201);
+        } catch (\Exception $e) {
+            // \Log::error('Failed to save generated questions:', [
+            //     'error' => $e->getMessage()
+            // ]);
+
+            return response()->json([
+                'message' => 'Failed to save questions',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

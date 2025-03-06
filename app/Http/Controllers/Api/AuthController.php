@@ -57,8 +57,7 @@ class AuthController extends Controller
             'name' => ['nullable', 'string', 'max:255', 'unique:users'],
             'fullname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'confirmed', Password::defaults()],
-            'department_id' => ['nullable', 'exists:departments,id']
+            'password' => ['required', Password::defaults()], // Removed 'confirmed' rule
         ]);
 
         if ($validator->fails()) {
@@ -70,11 +69,11 @@ class AuthController extends Controller
 
         try {
             $user = User::create([
-                'name' => $request->name,
+                // 'name' => $request->name,
                 'fullname' => $request->fullname,
                 'email' => $request->email,
                 'password' => Hash::make($request->password),
-                'department_id' => $request->department_id,
+                // 'department_id' => $request->department_id,
                 'role' => 'student',
                 'active' => true
             ]);

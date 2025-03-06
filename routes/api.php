@@ -85,14 +85,6 @@ Route::prefix('v1')->group(function () {
         // Route::put('exams/{exam}/questions/{question}', [AdminExamController::class, 'updateQuestion']);
         // Route::delete('exams/{exam}/questions/{question}', [AdminExamController::class, 'deleteQuestion']);
 
-        // // Question Management
-        // Route::apiResource('questions', AdminQuestionController::class);
-        // Route::post('questions/validate', [AdminQuestionController::class, 'validateWithAI']);
-
-        // // Certificate Management
-        // Route::apiResource('certificates', AdminCertificateController::class);
-        // Route::post('certificates/{certificate}/revoke', [AdminCertificateController::class, 'revoke']);
-
         // // Analytics
         // Route::get('analytics/exams', [AdminAnalyticsController::class, 'examStats']);
         // Route::get('analytics/certificates', [AdminAnalyticsController::class, 'certificateStats']);
@@ -116,6 +108,8 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('questions', AdminQuestionController::class);
         Route::post('questions/generate', [AdminQuestionController::class, 'generate']);
+        Route::post('questions/save-generated', [AdminQuestionController::class, 'saveGeneratedQuestions'])
+            ->name('admin.questions.save-generated');
 
         // Knowledge Base Routes
         Route::get('knowledge-base', [KnowledgeBaseController::class, 'index']);
