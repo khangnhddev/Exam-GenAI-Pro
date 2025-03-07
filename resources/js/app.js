@@ -8,6 +8,7 @@ import App from './App.vue';
 import axios from 'axios';
 import Toast, { POSITION } from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
+import setFavicon from './favicon';
 
 // Configure axios
 axios.defaults.baseURL = '/api/v1';
@@ -54,3 +55,5 @@ app.use(createPinia());
 app.use(router);
 app.use(Toast, toastOptions);
 app.mount('#app');
+
+setFavicon();

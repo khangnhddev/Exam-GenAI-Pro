@@ -58,11 +58,6 @@ Route::prefix('v1')->group(function () {
         Route::post('assistant/chat', [AIAssistantController::class, 'chat']);
         Route::get('user/learning-profile', [AIAssistantController::class, 'getLearningProfile']);
         Route::post('/ai-assistant/query', [AIAssistantController::class, 'query']);
-
-        // Profile
-        Route::get('profile', [ProfileController::class, 'show']);
-        // Route::post('profile', [ProfileController::class, 'update']);
-        // Route::post('profile/password', [ProfileController::class, 'updatePassword']);
     });
 
     // Public certificate verification

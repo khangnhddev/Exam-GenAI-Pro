@@ -1,11 +1,16 @@
 <template>
   <div class="min-h-screen bg-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Header -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Profile Settings</h1>
-        <p class="mt-2 text-sm text-gray-600">Manage your account settings and preferences.</p>
-      </div>
+      <!-- Back button above the card -->
+      <button 
+        @click="$router.back()" 
+        class="mb-6 inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L4.414 9H17a1 1 0 110 2H4.414l5.293 5.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+        </svg>
+        Back
+      </button>
 
       <!-- Profile Card -->
       <div class="bg-white shadow-lg rounded-3xl overflow-hidden">
@@ -62,11 +67,6 @@
               <div class="flex-1 text-white">
                 <h2 class="text-2xl font-bold mb-1 drop-shadow-sm">{{ form.fullname }}</h2>
                 <p class="text-white mb-3 opacity-90 drop-shadow-sm">{{ form.email }}</p>
-                <div class="flex items-center">
-                  <span class="bg-white/20 backdrop-blur-md text-white px-4 py-1.5 rounded-full text-sm font-medium border border-white/30 shadow-sm">
-                    {{ departments.find(d => d.id === form.department_id)?.name || 'No Department' }}
-                  </span>
-                </div>
               </div>
             </div>
           </div>
@@ -79,16 +79,7 @@
             <div class="space-y-6">
               <h3 class="text-lg font-medium text-gray-900 border-b pb-2">Basic Information</h3>
               
-              <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Username</label>
-                  <input 
-                    type="text" 
-                    v-model="form.name"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  >
-                </div>
-
+              <div class="grid grid-cols-1 gap-6">
                 <div>
                   <label class="block text-sm font-medium text-gray-700">Full Name</label>
                   <input 
@@ -99,26 +90,15 @@
                 </div>
 
                 <div>
-                  <label class="block text-sm font-medium text-gray-700">Email</label>
+                  <label class="block text-sm font-medium text-gray-500">Email</label>
                   <input 
                     type="email" 
                     v-model="form.email"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                    class="mt-1 block w-full rounded-md border-gray-200 bg-gray-50 text-gray-500 shadow-sm cursor-not-allowed sm:text-sm"
                     disabled
+                    readonly
                   >
-                </div>
-
-                <div>
-                  <label class="block text-sm font-medium text-gray-700">Department</label>
-                  <select 
-                    v-model="form.department_id"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  >
-                    <option value="">Select Department</option>
-                    <option v-for="dept in departments" :key="dept.id" :value="dept.id">
-                      {{ dept.name }}
-                    </option>
-                  </select>
+                  <p class="mt-1 text-xs text-gray-500">Contact support to change your email address</p>
                 </div>
               </div>
             </div>
@@ -185,37 +165,26 @@ import axios from 'axios'
 
 const toast = useToast()
 const loading = ref(false)
-const departments = ref([])
 const user = ref({})
 
+// Update form ref
 const form = ref({
-  name: '',
   fullname: '',
   email: '',
-  department_id: '',
   current_password: '',
   new_password: '',
   new_password_confirmation: ''
 })
 
-const avatarInput = ref(null)
-
+// Update onMounted
 onMounted(async () => {
   try {
-    // Fetch departments
-    const deptResponse = await axios.get('/api/departments')
-    departments.value = deptResponse.data.data
-
-    // Fetch user profile
-    const userResponse = await axios.get('/api/profile')
-    user.value = userResponse.data.data
+    const userResponse = await axios.get('/profile');
+    user.value = userResponse.data.data;
     
-    // Set initial form values
     form.value = {
-      name: user.value.name,
       fullname: user.value.fullname,
       email: user.value.email,
-      department_id: user.value.department_id,
       current_password: '',
       new_password: '',
       new_password_confirmation: ''
@@ -228,7 +197,7 @@ onMounted(async () => {
 const updateProfile = async () => {
   loading.value = true
   try {
-    const response = await axios.put('/api/profile', form.value)
+    const response = await axios.put('/profile', form.value)
     user.value = response.data.data
     toast.success('Profile updated successfully')
     
@@ -270,3 +239,14 @@ const handleAvatarChange = async (event) => {
   }
 }
 </script>
+
+<style scoped>
+.disabled-field {
+  @apply bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200;
+}
+
+input:disabled {
+  -webkit-text-fill-color: #6B7280;
+  opacity: 1;
+}
+</style>

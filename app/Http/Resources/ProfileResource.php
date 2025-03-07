@@ -19,14 +19,13 @@ class ProfileResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'fullname' => $this->fullname,
             'email' => $this->email,
             'avatar' => $this->avatar,
             'avatar_url' => $this->avatar ? url(Storage::url($this->avatar)) : null,
             'is_admin' => (bool) $this->is_admin,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            // Add other fields you want to expose
-            // You can also include relationships
             'certificates_count' => $this->whenLoaded('certificates', function () {
                 return $this->certificates->count();
             }),

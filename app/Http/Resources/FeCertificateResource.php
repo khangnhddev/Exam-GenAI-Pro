@@ -23,6 +23,12 @@ class FeCertificateResource extends JsonResource
             'score' => $this->score,
             'status' => $this->status,
             'is_valid' => $this->isValid(),
+            'user' => [
+                'id' => $this->user->id,
+                'fullname' => $this->user->fullname,
+                'email' => $this->user->email,
+                'avatar_url' => $this->user->avatar_url
+            ],
             'exam' => [
                 'id' => $this->exam->id,
                 'title' => $this->exam->title,

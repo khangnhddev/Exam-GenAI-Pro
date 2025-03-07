@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
+import NotFound from '../views/NotFound.vue'
 
 // Import the admin layout
 import AdminLayout from '../Layouts/AdminLayout.vue'
@@ -296,7 +297,12 @@ const authRoutes = [
 const routes = [
     frontendRoutes,
     adminRoutes,
-    ...authRoutes
+    ...authRoutes,
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'not-found',
+        component: NotFound
+    }
 ]
 
 const router = createRouter({
