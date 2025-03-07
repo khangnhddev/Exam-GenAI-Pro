@@ -216,8 +216,13 @@ const fetchData = async () => {
 
 // Edit question
 const editQuestion = (question) => {
-  editingQuestion.value = question
-  showQuestionForm.value = true
+  router.push({ 
+    name: 'admin.exams.questions.edit',
+    params: { 
+      examId: examId,
+      id: question.id 
+    }
+  })
 }
 
 // Delete question

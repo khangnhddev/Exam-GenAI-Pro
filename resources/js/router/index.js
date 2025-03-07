@@ -183,8 +183,21 @@ const adminRoutes = {
         {
             path: 'exams/:examId/questions/:id/edit',
             name: 'admin.exams.questions.edit',
-            component: () => import('../views/admin/questions/QuestionForm.vue'),
-            props: true
+            component: () => import('@/views/admin/questions/QuestionForm.vue'),
+            props: route => ({
+                id: parseInt(route.params.id),
+                examId: parseInt(route.params.examId),
+                isEditing: true
+            }),
+            beforeEnter: (to, from, next) => {
+                const id = parseInt(to.params.id)
+                const examId = parseInt(to.params.examId)
+                if (isNaN(id) || isNaN(examId)) {
+                    next({ name: 'admin.exams.questions' })
+                } else {
+                    next()
+                }
+            }
         },
         {
             path: 'certificates',

@@ -18,6 +18,7 @@ class AdminUserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'fullname' => $this->fullname,
             'email' => $this->email,
             'avatar' => $this->avatar,
             'avatar_url' => $this->avatar ? url(Storage::url($this->avatar)) : null,

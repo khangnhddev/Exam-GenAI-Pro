@@ -207,16 +207,22 @@ function switchToLogin() {
 }
 
 async function handleSubmit() {
+  loading.value = true
   try {
-    loading.value = true
-    error.value = null
-
-    await authStore.register(form);
+    await useAuthStore().register(form)
+    toast.success('Registration successful!')
+    // Clear form
+    form.fullname = ''
+    form.email = ''
+    form.password = ''
+    // Close signup dialog
     emit('close')
-    router.push({ name: 'home' })
-  } catch (err) {
-    error.value = err.response?.data?.message || 'Something went wrong. Please try again.'
-    console.error('Registration error:', err)
+    // Switch to login dialog with message
+    emit('switch-to-login')
+    toast.info('Please login with your new account')
+  } catch (error) {
+    console.error('Registration error:', error)
+    toast.error(error.response?.data?.message || 'Registration failed')
   } finally {
     loading.value = false
   }

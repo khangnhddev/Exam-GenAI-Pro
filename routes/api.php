@@ -106,6 +106,10 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/exams/generate-from-file', [AdminExamController::class, 'generateFromFile']);
 
+         // AI Exam Generation routes
+         Route::post('exams/generate', [AdminExamController::class, 'generate']);
+         Route::post('exams/save-generated', [AdminExamController::class, 'saveGeneratedExam']);
+         
         Route::apiResource('questions', AdminQuestionController::class);
         Route::post('questions/generate', [AdminQuestionController::class, 'generate']);
         Route::post('questions/save-generated', [AdminQuestionController::class, 'saveGeneratedQuestions'])
@@ -122,6 +126,7 @@ Route::prefix('v1')->group(function () {
         Route::get('departments/{department}/users', [AdminDepartmentController::class, 'getUsers']);
         Route::post('departments/{department}/users', [AdminDepartmentController::class, 'assignUsers']);
         Route::delete('departments/{department}/users/{user}', [AdminDepartmentController::class, 'removeUser']);
+
     });
 
 });

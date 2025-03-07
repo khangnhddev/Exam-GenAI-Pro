@@ -13,6 +13,7 @@ use App\Services\FileProcessingService;
 use App\Services\RAGService;
 use App\Models\FileKnowledgeBase;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class AdminExamController extends Controller
 {
@@ -429,6 +430,163 @@ class AdminExamController extends Controller
             
             return response()->json([
                 'message' => 'Failed to delete exam',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Save AI generated exam to database
+     */
+    public function saveGeneratedExam(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'topic' => 'required|string',
+            'difficulty' => 'required|in:easy,medium,hard',
+            'questions' => 'required|array|min:1',
+            'questions.*.question' => 'required|string',
+            'questions.*.type' => 'required|in:single,multiple',
+            'questions.*.options' => 'required|array|min:2|max:6',
+            'questions.*.options.*.text' => 'required|string',
+            'questions.*.options.*.is_correct' => 'required|boolean',
+            'questions.*.explanation' => 'nullable|string'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Create exam
+            $exam = Exam::create([
+                'title' => $validated['title'],
+                'topic' => $validated['topic'],
+                'difficulty' => $validated['difficulty'],
+                'status' => 'draft',
+                'user_id' => auth()->id(),
+                'description' => "AI Generated exam about {$validated['topic']}",
+                'duration' => 60, // Default 60 minutes
+                'passing_score' => 70, // Default 70%
+                'max_attempts' => 3 // Default 3 attempts
+            ]);
+
+            // Create questions with options
+            foreach ($validated['questions'] as $questionData) {
+                $question = $exam->questions()->create([
+                    'question_text' => $questionData['question'],
+                    'type' => $questionData['type'],
+                    'explanation' => $questionData['explanation'] ?? null,
+                    'points' => 1 // Default value
+                ]);
+
+                // Create options for the question
+                foreach ($questionData['options'] as $option) {
+                    $question->options()->create([
+                        'option_text' => $option['text'],
+                        'is_correct' => $option['is_correct']
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'AI Generated exam saved successfully',
+                'exam' => new ExamResource($exam->load(['questions.options']))
+            ], 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to save AI generated exam:', [
+                'error' => $e->getMessage(),
+                'title' => $validated['title']
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to save exam',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Generate exam questions using AI
+     */
+    public function generate(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'topic' => 'required|string',
+            'difficulty' => 'required|in:easy,medium,hard',
+            'questionCount' => 'required|integer|min:5|max:20'
+        ]);
+
+        try {
+            $response = OpenAI::chat()->create([
+                'model' => 'gpt-3.5-turbo',
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'You are an expert exam creator. Generate questions in valid JSON format.'
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => "Generate {$validated['questionCount']} {$validated['difficulty']} level multiple-choice questions about {$validated['topic']}. 
+                            Return ONLY valid JSON in this exact format:
+                            {
+                              \"questions\": [
+                                {
+                                  \"question\": \"Question text goes here?\",
+                                  \"type\": \"single\",
+                                  \"options\": [
+                                    {\"text\": \"Option 1\", \"is_correct\": false},
+                                    {\"text\": \"Option 2\", \"is_correct\": true},
+                                    {\"text\": \"Option 3\", \"is_correct\": false},
+                                    {\"text\": \"Option 4\", \"is_correct\": false}
+                                  ],
+                                  \"explanation\": \"Explanation for the correct answer\"
+                                }
+                              ]
+                            }"
+                    ]
+                ],
+                'temperature' => 0.7,
+                'max_tokens' => 2000
+            ]);
+
+            $content = $response->choices[0]->message->content;
+            
+            // Parse and validate JSON response
+            $data = json_decode($content, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !isset($data['questions'])) {
+                throw new \Exception('Invalid JSON response from AI');
+            }
+
+            // Validate each question has required structure
+            foreach ($data['questions'] as $question) {
+                if (!isset($question['question'], $question['type'], $question['options'])) {
+                    throw new \Exception('Invalid question structure in AI response');
+                }
+
+                // Validate options
+                $correctCount = collect($question['options'])->where('is_correct', true)->count();
+                if ($correctCount !== 1) {
+                    throw new \Exception('Each question must have exactly one correct answer');
+                }
+            }
+
+            return response()->json([
+                'message' => 'Questions generated successfully',
+                'questions' => $data['questions']
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to generate exam questions:', [
+                'error' => $e->getMessage(),
+                'topic' => $validated['topic']
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to generate questions',
                 'error' => $e->getMessage()
             ], 500);
         }

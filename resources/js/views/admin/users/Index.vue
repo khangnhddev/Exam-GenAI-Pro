@@ -61,10 +61,7 @@
             <thead class="bg-gray-50">
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  User Info
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Department
+                  User
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Role
@@ -85,19 +82,24 @@
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="h-10 w-10 flex-shrink-0">
-                      <img :src="user.avatar_url || '/default-avatar.png'" class="h-10 w-10 rounded-full object-cover" alt="">
+                      <img 
+                        v-if="user.avatar_url" 
+                        :src="user.avatar_url" 
+                        :alt="user.fullname"
+                        class="h-10 w-10 rounded-full object-cover" 
+                      />
+                      <div 
+                        v-else
+                        class="h-10 w-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-medium text-lg"
+                      >
+                        {{ getInitials(user.fullname) }}
+                      </div>
                     </div>
                     <div class="ml-4">
                       <div class="text-sm font-medium text-gray-900">{{ user.fullname }}</div>
                       <div class="text-sm text-gray-500">{{ user.email }}</div>
-                      <div class="text-xs text-gray-400">@{{ user.name }}</div>
                     </div>
                   </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                    {{ getDepartmentName(user.department_id) }}
-                  </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
@@ -381,7 +383,8 @@ onMounted(async () => {
     // Then fetch users
     loading.value = true
     error.value = null
-    const response = await axios.get('/admin/users')
+    const response = await axios.get('/admin/users');
+    console.log(response);
     users.value = response.data.data;
     console.log(users.value);
   } catch (err) {
@@ -419,7 +422,7 @@ async function deleteUser(user) {
 async function handleSubmit() {
   loading.value = true
   try {
-    const { data } = await axios.post('/api/admin/users', form.value)
+    const { data } = await axios.post('/admin/users', form.value)
     
     // Refresh users list to get updated data including department
     const response = await axios.get('/admin/users')
@@ -444,5 +447,17 @@ async function handleSubmit() {
   } finally {
     loading.value = false
   }
+}
+
+function getInitials(fullname) {
+  if (!fullname) return '?' // Return a fallback character if fullname is null or undefined
+  
+  return fullname
+    .split(' ')
+    .filter(word => word.length > 0) // Filter out empty strings
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) // Limit to 2 characters
 }
 </script>
