@@ -160,7 +160,7 @@ import {
 } from '@heroicons/vue/24/outline'
 import { useAuthStore } from '@/stores/auth'
 import LoginDialog from '@/Components/LoginDialog.vue'
-import SignUpDialog from '@/Components/SignUpDialog.vue'
+import SignUpDialog from '@/Components/SignupDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
