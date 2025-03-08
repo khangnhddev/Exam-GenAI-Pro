@@ -9,6 +9,8 @@ import axios from 'axios';
 import Toast, { POSITION } from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 import setFavicon from './favicon';
+import axiosInstance from './utils/axios'
+import { setupAxiosInterceptors } from './services/errorHandler'
 
 // Configure axios
 axios.defaults.baseURL = '/api/v1';
@@ -21,17 +23,8 @@ if (token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }
 
-// Add axios interceptor for authentication
-axios.interceptors.response.use(
-    response => response,
-    error => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('token');
-            router.push('/login');
-        }
-        return Promise.reject(error);
-    }
-);
+// Setup axios interceptors
+setupAxiosInterceptors(axios)
 
 const app = createApp(App);
 
@@ -54,6 +47,9 @@ const toastOptions = {
 app.use(createPinia());
 app.use(router);
 app.use(Toast, toastOptions);
+
+app.config.globalProperties.$axios = axiosInstance
+
 app.mount('#app');
 
 setFavicon();

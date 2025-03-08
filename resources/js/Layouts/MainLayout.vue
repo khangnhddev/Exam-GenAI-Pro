@@ -116,7 +116,7 @@
     </nav>
 
     <!-- Add padding-top to main content to prevent overlap -->
-    <main class="flex-1 py-10 mt-16">
+    <main class="flex-1 py-10 mt-9">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <router-view></router-view>
         <!-- <AILearningAssistant /> -->

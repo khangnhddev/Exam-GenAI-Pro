@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Back Button -->
-      <button 
+      <!-- <button 
         @click="$router.back()" 
         class="mb-6 inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100"
       >
@@ -19,7 +19,7 @@
           />
         </svg>
         Back
-      </button>
+      </button> -->
 
       <!-- Certificate Header -->
       <div class="mb-8">
@@ -55,49 +55,49 @@
           <!-- Left Column - Certificate -->
           <div class="bg-white shadow-lg rounded-xl overflow-hidden">
             <!-- Certificate Content -->
-            <div class="p-6">
-              <div class="border-2 border-indigo-100 rounded-lg p-6 bg-gradient-to-br from-white to-indigo-50/50">
+            <div class="p-6" ref="certificateRef">
+              <div class="border rounded-xl p-10 bg-white">
                 <div class="text-center">
                   <!-- Logo -->
-                  <div class="mb-6">
-                    <div class="inline-flex items-center gap-2">
-                      <div class="p-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg">
-                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div class="mb-10">
+                    <div class="inline-flex items-center">
+                      <div class="w-14 h-14 bg-[#6C2BD9]/90 rounded-2xl flex items-center justify-center">
+                        <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
                       </div>
-                      <span class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                        AI Pro Certificate
-                      </span>
+                      <div class="ml-3 flex items-center">
+                        <span class="text-2xl font-bold text-[#6C2BD9]/90">AI Pro</span>
+                      </div>
                     </div>
                   </div>
 
                   <!-- Recipient Info -->
-                  <p class="text-xl font-semibold text-gray-900 mb-2">
+                  <p class="text-2xl font-bold text-gray-900 mb-2">
                     {{ certificate.user?.fullname }}
                   </p>
-                  <p class="text-sm text-gray-600 mb-4">has successfully completed</p>
-                  <h3 class="text-2xl font-bold text-gray-900 mb-6">
+                  <p class="text-[#6C2BD9]/80 mb-4">has successfully completed</p>
+                  <h3 class="text-2xl font-bold text-gray-900 mb-10">
                     {{ certificate.exam?.title }}
                   </h3>
 
                   <!-- Certificate Details Grid -->
-                  <div class="grid grid-cols-3 gap-4 mb-6">
-                    <div class="bg-white p-3 rounded-lg shadow-sm">
-                      <p class="text-xs text-gray-500 mb-1">Issue Date</p>
-                      <p class="text-sm font-medium text-gray-900">
+                  <div class="grid grid-cols-3 gap-6 mb-10">
+                    <div>
+                      <p class="text-[#6C2BD9]/80 mb-1">Issue Date</p>
+                      <p class="text-base font-semibold text-gray-900">
                         {{ formatDate(certificate.issued_at) }}
                       </p>
                     </div>
-                    <div class="bg-white p-3 rounded-lg shadow-sm">
-                      <p class="text-xs text-gray-500 mb-1">Certificate ID</p>
-                      <p class="text-sm font-medium text-gray-900">
+                    <div>
+                      <p class="text-[#6C2BD9]/80 mb-1">Certificate ID</p>
+                      <p class="text-base font-semibold text-gray-900">
                         {{ certificate.certificate_number }}
                       </p>
                     </div>
-                    <div class="bg-white p-3 rounded-lg shadow-sm">
-                      <p class="text-xs text-gray-500 mb-1">Score</p>
-                      <p class="text-sm font-medium" :class="getScoreClass()">
+                    <div>
+                      <p class="text-[#6C2BD9]/80 mb-1">Score</p>
+                      <p class="text-base font-semibold text-[#6C2BD9]/90">
                         {{ certificate.score }}%
                       </p>
                     </div>
@@ -107,12 +107,14 @@
                   <div class="inline-flex flex-col items-center">
                     <QRCode 
                       :value="verificationUrl" 
-                      :size="100" 
-                      level="H" 
-                      :options="{ color: { dark: '#4F46E5', light: '#ffffff' } }" 
-                      class="p-2 bg-white rounded-lg shadow-sm"
+                      :size="128"
+                      :margin="0"
+                      :level="'H'"
+                      render-as="svg"
+                      :foreground="'#6C2BD9'"
+                      class="qr-code opacity-90"
                     />
-                    <p class="mt-2 text-xs text-gray-500">Scan to verify</p>
+                    <p class="mt-3 text-[#6C2BD9]/80">Scan to verify</p>
                   </div>
                 </div>
               </div>
@@ -131,7 +133,6 @@
               </div> -->
               <div class="px-6 py-4 border-b border-gray-100">
                 <h3 class="text-sm font-medium text-gray-900 flex items-center">
-                  <ClipboardDocumentListIcon class="h-5 w-5 mr-2 text-indigo-600" />
                   Certificate Information
                 </h3>
               </div>
@@ -163,7 +164,6 @@
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
               <div class="px-6 py-4 border-b border-gray-100">
                 <h3 class="text-sm font-medium text-gray-900 flex items-center">
-                  <ClipboardDocumentListIcon class="h-5 w-5 mr-2 text-indigo-600" />
                   Exam Information
                 </h3>
               </div>
@@ -183,7 +183,7 @@
                   </div>
                   <div class="flex justify-between items-center">
                     <dt class="text-sm text-gray-500">Score Achieved</dt>
-                    <dd class="text-sm font-medium" :class="getScoreClass()">{{ certificate.score }}%</dd>
+                    <dd class="text-sm font-medium text-indigo-600">{{ certificate.score }}%</dd>
                   </div>
                 </dl>
               </div>
@@ -195,14 +195,14 @@
                 <div class="grid grid-cols-2 gap-4">
                   <button
                     @click="downloadCertificate"
-                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#6C2BD9]/90 hover:bg-[#6C2BD9] transition-colors"
                   >
                     <DocumentArrowDownIcon class="h-4 w-4 mr-2" />
                     Download PDF
                   </button>
                   <button
                     @click="shareCertificate"
-                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-[#6C2BD9]/90 bg-[#6C2BD9]/10 hover:bg-[#6C2BD9]/20 transition-colors"
                   >
                     <ShareIcon class="h-4 w-4 mr-2" />
                     Share
@@ -251,10 +251,7 @@ function formatDate(date) {
 }
 
 function getScoreClass() {
-  const score = certificate.value?.score || 0
-  if (score >= 90) return 'text-green-600'
-  if (score >= 75) return 'text-blue-600'
-  return 'text-yellow-600'
+  return 'text-indigo-600' // Always return indigo color for consistency
 }
 
 /**
@@ -262,23 +259,125 @@ function getScoreClass() {
  */
 const downloadCertificate = async () => {
   try {
-    const response = await axios.get(`/certificates/${certificate.value.id}/download`, {
-      responseType: 'blob'
-    })
+    loading.value = true;
     
-    const url = window.URL.createObjectURL(new Blob([response.data]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `certificate-${certificate.value.certificate_number}.pdf`)
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.URL.revokeObjectURL(url)
+    const certificateElement = certificateRef.value.querySelector('.border');
+    
+    if (!certificateElement) {
+      throw new Error('Certificate element not found');
+    }
+
+    const html2canvas = (await import('html2canvas')).default;
+
+    // Calculate dimensions for a more compact portrait layout
+    const width = 800;
+    const height = 1000; // Shorter height
+
+    // Create a temporary container
+    const tempContainer = document.createElement('div');
+    tempContainer.style.position = 'absolute';
+    tempContainer.style.left = '-9999px';
+    tempContainer.style.width = `${width}px`;
+    tempContainer.style.height = `${height}px`;
+    tempContainer.style.backgroundColor = '#ffffff';
+    document.body.appendChild(tempContainer);
+
+    // Create main container with border
+    const mainContainer = document.createElement('div');
+    mainContainer.style.width = '100%';
+    mainContainer.style.height = '100%';
+    mainContainer.style.padding = '32px';
+    mainContainer.style.boxSizing = 'border-box';
+    tempContainer.appendChild(mainContainer);
+
+    // Create border container
+    const borderContainer = document.createElement('div');
+    borderContainer.style.width = '100%';
+    borderContainer.style.height = '100%';
+    borderContainer.style.border = '1px solid rgba(108, 43, 217, 0.9)';
+    borderContainer.style.borderRadius = '12px';
+    borderContainer.style.padding = '40px';
+    borderContainer.style.boxSizing = 'border-box';
+    borderContainer.style.backgroundColor = '#ffffff';
+    mainContainer.appendChild(borderContainer);
+
+    // Clone the certificate element
+    const clone = certificateElement.cloneNode(true);
+    clone.style.border = 'none';
+    clone.style.width = '100%';
+    clone.style.height = '100%';
+    clone.style.padding = '0';
+
+    // Fix logo alignment in the cloned element
+    const logoContainer = clone.querySelector('.inline-flex.items-center');
+    if (logoContainer) {
+      logoContainer.style.display = 'flex';
+      logoContainer.style.alignItems = 'center';
+      logoContainer.style.justifyContent = 'center';
+      logoContainer.style.width = '100%';
+      logoContainer.style.gap = '12px';
+    }
+
+    const logoWrapper = clone.querySelector('.w-14.h-14');
+    if (logoWrapper) {
+      logoWrapper.style.flexShrink = '0';
+      logoWrapper.style.display = 'flex';
+      logoWrapper.style.alignItems = 'center';
+      logoWrapper.style.justifyContent = 'center';
+    }
+
+    const textWrapper = logoContainer.querySelector('.ml-3');
+    if (textWrapper) {
+      textWrapper.style.marginLeft = '0';  // Remove ml-3 since we're using gap
+      textWrapper.style.display = 'flex';
+      textWrapper.style.alignItems = 'center';
+      textWrapper.style.height = '56px'; // Match logo height
+    }
+
+    const logoText = clone.querySelector('.text-2xl.font-bold');
+    if (logoText) {
+      logoText.style.lineHeight = '1';
+      logoText.style.paddingTop = '4px'; // Small adjustment to visually center
+    }
+
+    borderContainer.appendChild(clone);
+
+    // Wait for fonts and images
+    await document.fonts.ready;
+    
+    // Create canvas
+    const canvas = await html2canvas(tempContainer, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff',
+      imageTimeout: 15000,
+      logging: false,
+      onclone: (clonedDoc) => {
+        const clonedElement = clonedDoc.querySelector('.border');
+        if (clonedElement) {
+          clonedElement.style.transform = 'none';
+        }
+      }
+    });
+
+    // Clean up
+    document.body.removeChild(tempContainer);
+
+    // Convert to PNG and download
+    const dataUrl = canvas.toDataURL('image/png', 1.0);
+    const link = document.createElement('a');
+    link.download = `certificate-${certificate.value.certificate_number || 'download'}.png`;
+    link.href = dataUrl;
+    link.click();
+
   } catch (error) {
-    console.error('Error downloading certificate:', error)
-    toast.error('Failed to download certificate')
+    console.error('Error generating certificate:', error);
+    alert('Failed to generate certificate. Please try again.');
+  } finally {
+    loading.value = false;
   }
-}
+};
 
 const shareCertificate = () => {
   const verifyUrl = `${window.location.origin}/verify/${certificate.value.certificate_number}`
@@ -296,6 +395,9 @@ const shareCertificate = () => {
   }
 }
 
+// Add ref for certificate element
+const certificateRef = ref(null)
+
 onMounted(async () => {
   try {
     const { data } = await axios.get(`/certificates/${route.params.id}`);
@@ -309,3 +411,11 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+.qr-code {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+</style>

@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
-import NotFound from '../views/NotFound.vue'
+import NotFound from '../views/errors/404.vue'
+import ServerError from '../views/errors/500.vue'
+import { ERROR_TYPES } from '@/utils/errorHandler'
+import ErrorPage from '@/views/errors/ErrorPage.vue'
 
 // Import the admin layout
 import AdminLayout from '../Layouts/AdminLayout.vue'
@@ -299,15 +302,46 @@ const routes = [
     adminRoutes,
     ...authRoutes,
     {
-        path: '/:pathMatch(.*)*',
+        path: '/error',
+        name: 'error',
+        component: ErrorPage,
+        props: true
+    },
+    {
+        path: '/404',
         name: 'not-found',
         component: NotFound
+    },
+    {
+        path: '/500',
+        name: 'server-error',
+        component: ServerError
+    },
+    {
+        path: '/:pathMatch(.*)*',
+        redirect: '/404'
     }
 ]
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior(to, from, savedPosition) {
+        if (savedPosition) {
+            return savedPosition
+        }
+        if (to.hash) {
+            return {
+                el: to.hash,
+                behavior: 'smooth'
+            }
+        }
+        return { 
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        }
+    }
 })
 
 router.beforeEach((to, from, next) => {
@@ -320,6 +354,13 @@ router.beforeEach((to, from, next) => {
     } else if (to.meta.requiresAdmin && !authStore.user?.is_admin) {
         next({ name: 'home' })
     } else {
+        // Reset scroll position
+        if (document.documentElement) {
+            document.documentElement.scrollTop = 0
+        }
+        if (document.body) {
+            document.body.scrollTop = 0
+        }
         next()
     }
 })
