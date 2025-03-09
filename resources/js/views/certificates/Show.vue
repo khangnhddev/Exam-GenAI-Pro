@@ -58,18 +58,16 @@
             <div class="p-6" ref="certificateRef">
               <div class="border rounded-xl p-10 bg-white">
                 <div class="text-center">
-                  <!-- Logo Section -->
-                  <div class="mb-10 flex justify-center">
-                    <div class="inline-flex items-center gap-4">
-                      <!-- Logo Icon -->
-                      <div class="w-14 h-14 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center">
+                  <!-- Logo -->
+                  <div class="mb-10">
+                    <div class="inline-flex items-center">
+                      <div class="w-14 h-14 bg-[#6C2BD9]/90 rounded-2xl flex items-center justify-center">
                         <svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                         </svg>
                       </div>
-                      <!-- Brand Text -->
-                      <div class="flex items-center">
-                        <span class="text-indigo-600 font-bold text-2xl leading-none">AI Pro</span>
+                      <div class="ml-3 flex items-center">
+                        <span class="text-2xl font-bold text-[#6C2BD9]/90">AI Pro</span>
                       </div>
                     </div>
                   </div>
@@ -78,7 +76,7 @@
                   <p class="text-2xl font-bold text-gray-900 mb-2">
                     {{ certificate.user?.fullname }}
                   </p>
-                  <p class="text-indigo-600/80 mb-4">has successfully completed</p>
+                  <p class="text-[#6C2BD9]/80 mb-4">has successfully completed</p>
                   <h3 class="text-2xl font-bold text-gray-900 mb-10">
                     {{ certificate.exam?.title }}
                   </h3>
@@ -86,20 +84,20 @@
                   <!-- Certificate Details Grid -->
                   <div class="grid grid-cols-3 gap-6 mb-10">
                     <div>
-                      <p class="text-indigo-600/80 mb-1">Issue Date</p>
+                      <p class="text-[#6C2BD9]/80 mb-1">Issue Date</p>
                       <p class="text-base font-semibold text-gray-900">
                         {{ formatDate(certificate.issued_at) }}
                       </p>
                     </div>
                     <div>
-                      <p class="text-indigo-600/80 mb-1">Certificate ID</p>
+                      <p class="text-[#6C2BD9]/80 mb-1">Certificate ID</p>
                       <p class="text-base font-semibold text-gray-900">
                         {{ certificate.certificate_number }}
                       </p>
                     </div>
                     <div>
-                      <p class="text-indigo-600/80 mb-1">Score</p>
-                      <p class="text-base font-semibold text-indigo-600">
+                      <p class="text-[#6C2BD9]/80 mb-1">Score</p>
+                      <p class="text-base font-semibold text-[#6C2BD9]/90">
                         {{ certificate.score }}%
                       </p>
                     </div>
@@ -113,10 +111,10 @@
                       :margin="0"
                       :level="'H'"
                       render-as="svg"
-                      :foreground="'rgb(79, 70, 229)'"
+                      :foreground="'#6C2BD9'"
                       class="qr-code opacity-90"
                     />
-                    <p class="mt-3 text-indigo-600/80">Scan to verify</p>
+                    <p class="mt-3 text-[#6C2BD9]/80">Scan to verify</p>
                   </div>
                 </div>
               </div>
@@ -153,7 +151,7 @@
                     <dt class="text-sm text-gray-500">Status</dt>
                     <dd>
                       <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
-                        :class="certificate.is_valid ? 'bg-indigo-100 text-indigo-600' : 'bg-red-100 text-red-800'">
+                        :class="certificate.is_valid ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
                         {{ certificate.is_valid ? 'Valid' : 'Expired' }}
                       </span>
                     </dd>
@@ -185,7 +183,7 @@
                   </div>
                   <div class="flex justify-between items-center">
                     <dt class="text-sm text-gray-500">Score Achieved</dt>
-                    <dd class="text-sm font-medium text-[#6C2BD9]">{{ certificate.score }}%</dd>
+                    <dd class="text-sm font-medium text-indigo-600">{{ certificate.score }}%</dd>
                   </div>
                 </dl>
               </div>
@@ -197,14 +195,14 @@
                 <div class="grid grid-cols-2 gap-4">
                   <button
                     @click="downloadCertificate"
-                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-colors"
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-[#6C2BD9]/90 hover:bg-[#6C2BD9] transition-colors"
                   >
                     <DocumentArrowDownIcon class="h-4 w-4 mr-2" />
                     Download PDF
                   </button>
                   <button
                     @click="shareCertificate"
-                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors"
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-[#6C2BD9]/90 bg-[#6C2BD9]/10 hover:bg-[#6C2BD9]/20 transition-colors"
                   >
                     <ShareIcon class="h-4 w-4 mr-2" />
                     Share

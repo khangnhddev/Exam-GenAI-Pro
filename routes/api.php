@@ -25,7 +25,9 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
     Route::post('auth/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('auth/reset-password', [AuthController::class, 'resetPassword']);
-
+  
+    Route::get('exams', [ExamController::class, 'index']);
+    
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
@@ -34,8 +36,6 @@ Route::prefix('v1')->group(function () {
         Route::get('/profile', [ProfileController::class, 'show']);
         Route::put('/profile', [ProfileController::class, 'update']);
         Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
-
-        Route::get('exams', [ExamController::class, 'index']);
 
         Route::prefix('exams')->group(function () {
             Route::get('/{exam}', [ExamController::class, 'show']);

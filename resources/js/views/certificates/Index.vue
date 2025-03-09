@@ -54,73 +54,60 @@
         </div>
       </div>
 
-      <!-- Certificates Grid -->
-      <div v-if="!loading" class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        <div 
-          v-for="certificate in certificates" 
-          :key="certificate.id" 
-          class="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden"
-        >
-          <!-- Certificate Background Pattern -->
-          <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          
-          <div class="relative p-6">
-            <!-- Certificate Header -->
-            <div class="flex items-start justify-between mb-6">
-              <div class="flex-1">
-                <div class="inline-flex items-center space-x-2">
-                  <div class="h-12 w-12 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300">
-                    <AcademicCapIcon class="h-6 w-6 text-white" />
-                  </div>
+      <!-- Replace the Certificates Grid section with this List view -->
+      <div v-if="!loading" class="max-w-4xl mx-auto">
+        <!-- List of Certificates -->
+        <div class="space-y-4">
+          <div 
+            v-for="certificate in certificates" 
+            :key="certificate.id" 
+            class="group relative bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100"
+          >
+            <div class="relative p-6">
+              <div class="flex items-center justify-between">
+                <!-- Left side - Certificate Info -->
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                    {{ certificate.exam_title }}
+                  </h3>
+                  <p class="text-sm text-gray-500 mt-0.5">
+                    Completed {{ formatDate(certificate.issued_at) }}
+                  </p>
+                </div>
+
+                <!-- Right side - Score & Action -->
+                <div class="flex items-center space-x-6">
                   <span 
-                    class="ml-2 px-3 py-1 rounded-full text-sm font-medium"
+                    class="px-3 py-1 rounded-full text-sm font-medium"
                     :class="getScoreClass(certificate.score)"
                   >
                     {{ certificate.score }}%
                   </span>
+
+                  <button
+                    @click="viewCertificate(certificate)"
+                    class="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
+                  >
+                    <EyeIcon class="mr-2 h-5 w-5" />
+                    View Certificate
+                  </button>
                 </div>
-                <h3 class="mt-4 text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                  {{ certificate.exam_title }}
-                </h3>
-                <p class="mt-1 text-sm text-gray-500">
-                  Completed {{ formatDate(certificate.issued_at) }}
-                </p>
               </div>
             </div>
-
-            <!-- Actions -->
-            <div class="flex space-x-3 mt-6">
-              <button
-                @click="downloadCertificate(certificate)"
-                class="flex-1 inline-flex items-center justify-center px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-indigo-200 hover:text-indigo-600 transition-all duration-200"
-              >
-                <DocumentArrowDownIcon class="mr-2 h-5 w-5" />
-                Download
-              </button>
-              <button
-                @click="viewCertificate(certificate)"
-                class="flex-1 inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
-              >
-                <EyeIcon class="mr-2 h-5 w-5" />
-                View
-              </button>
-            </div>
           </div>
-        </div>
 
-        <!-- Empty State (Updated) -->
-        <div v-if="certificates.length === 0" class="sm:col-span-2 lg:col-span-3">
-          <div class="text-center py-16 px-8 bg-white rounded-2xl border border-gray-200 shadow-lg">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 mb-6">
-              <TrophyIcon class="h-10 w-10 text-indigo-600" />
+          <!-- Empty State (Updated) -->
+          <div v-if="certificates.length === 0" class="text-center py-16 px-8 bg-white rounded-xl border border-gray-200">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 mb-4">
+              <TrophyIcon class="h-8 w-8 text-indigo-600" />
             </div>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">No Certificates Yet</h3>
-            <p class="text-gray-500 max-w-sm mx-auto mb-8">
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">No Certificates Yet</h3>
+            <p class="text-gray-500 max-w-sm mx-auto mb-6">
               Start your learning journey today and earn your first certificate!
             </p>
             <router-link
               :to="{ name: 'exams.index' }"
-              class="inline-flex items-center px-8 py-3 rounded-xl text-base font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+              class="inline-flex items-center px-6 py-2.5 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
             >
               <AcademicCapIcon class="mr-2 h-5 w-5" />
               Browse Assessments

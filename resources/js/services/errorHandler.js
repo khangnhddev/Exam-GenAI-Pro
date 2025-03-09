@@ -32,7 +32,7 @@ export const handleApiError = (error) => {
 
     case 422:
       // Validation errors - redirect home
-      router.push('/')
+      //router.push('/')
       break
 
     case 500:

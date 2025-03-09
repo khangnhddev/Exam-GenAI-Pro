@@ -140,6 +140,7 @@ class ExamController extends Controller
 
         $passed = $score >= $attempt->exam->passing_score;
         $certificateId = null;
+        $timeTaken = Carbon::parse($attempt->started_at)->diffInMinutes($attempt->completed_at);
 
         if ($passed) {
             $certificate = $this->generateCertificate($attempt);
@@ -153,7 +154,15 @@ class ExamController extends Controller
             'passed' => $passed,
             'attempt_id' => $attempt->id,
             'review_url' => route('exams.review', $attempt->id),
-            'certificate_id' => $certificateId
+            'certificate_id' => $certificateId,
+            'details' => [
+                'time_taken' => $timeTaken,
+                'total_questions' => $attempt->exam->total_questions,
+                'completed_at' => $attempt->completed_at->format('Y-m-d H:i:s'),
+                'skill_level' => $this->getSkillLevel($score),
+                'exam_title' => $attempt->exam->title
+            ]
+
         ]);
     }
 

@@ -233,7 +233,7 @@
 
           <!-- Assessment Overview with Success Banner -->
           <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4">Assessment Overview</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Overview</h2>
             <p class="text-gray-600">This skill assessment covers the concepts of {{ exam.title }} and will help you
               identify gaps in your understanding of major concepts. It will further help you gauge your current level
               of understanding for leveling up your skills.</p>
@@ -241,7 +241,7 @@
 
           <!-- Topics Covered -->
           <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Topics Covered</h2>
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Topics</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div v-for="(topic, index) in exam.topics" :key="index" class="flex items-center gap-3">
                 <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

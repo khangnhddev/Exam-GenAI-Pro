@@ -77,6 +77,9 @@ class ProfileController extends Controller
         return new ProfileResource($user);
     }
 
+    /**
+     * Update the user password.
+     */
     public function updatePassword(Request $request)
     {
         try {

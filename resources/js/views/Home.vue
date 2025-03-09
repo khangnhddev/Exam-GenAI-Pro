@@ -117,84 +117,57 @@
     <div class="bg-gray-50 py-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="lg:text-center mb-12">
-          <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Certifications</h2>
+          <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Available Exams</h2>
           <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
-            Popular Certification Tracks
+            Start Your Certification Journey
           </p>
         </div>
 
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <!-- JavaScript Track -->
-          <div class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300">
-            <div class="p-6">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <div class="h-12 w-12 bg-yellow-100 rounded-md flex items-center justify-center">
-                    <svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                  </div>
-                </div>
-                <div class="ml-4">
-                  <h3 class="text-lg font-medium text-gray-900">JavaScript Fundamentals</h3>
-                  <p class="mt-1 text-sm text-gray-500">Master core JavaScript concepts and modern ES6+ features</p>
-                </div>
-              </div>
-              <div class="mt-4">
-                <router-link :to="{ name: 'exams.index' }" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800">
-                  Start Learning
-                </router-link>
-              </div>
+          <div v-if="loading" class="col-span-3 text-center py-12">
+            <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-indigo-600">
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Loading available exams...
             </div>
           </div>
 
-          <!-- Vue.js Track -->
-          <div class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300">
-            <div class="p-6">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <div class="h-12 w-12 bg-green-100 rounded-md flex items-center justify-center">
-                    <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
+          <template v-else>
+            <div v-for="exam in popularExams" :key="exam.id" 
+                 class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300">
+              <div class="p-6">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0">
+                    <div class="h-12 w-12 bg-[#6C2BD9]/10 rounded-md flex items-center justify-center">
+                      <svg class="h-6 w-6 text-[#6C2BD9]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">{{ exam.title }}</h3>
+                    <p class="mt-1 text-sm text-gray-500 line-clamp-2">{{ exam.description }}</p>
                   </div>
                 </div>
-                <div class="ml-4">
-                  <h3 class="text-lg font-medium text-gray-900">Vue.js Essentials</h3>
-                  <p class="mt-1 text-sm text-gray-500">Build modern web applications with Vue.js 3</p>
-                </div>
-              </div>
-              <div class="mt-4">
-                <router-link :to="{ name: 'exams.index' }" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800">
-                  Start Learning
-                </router-link>
-              </div>
-            </div>
-          </div>
-
-          <!-- Laravel Track -->
-          <div class="bg-white overflow-hidden shadow-lg rounded-lg hover:shadow-xl transition-shadow duration-300">
-            <div class="p-6">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <div class="h-12 w-12 bg-red-100 rounded-md flex items-center justify-center">
-                    <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
+                <div class="mt-4 flex justify-between items-center">
+                  <div class="flex space-x-4 text-sm text-gray-500">
+                    <span>{{ exam.duration }}m</span>
+                    <span>•</span>
+                    <span>{{ exam.total_questions }} questions</span>
                   </div>
+                  <router-link 
+                    :to="{ name: 'exams.show', params: { id: exam.id }}" 
+                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-[#6C2BD9] to-[#8B5CF6] hover:from-[#5B21B6] hover:to-[#7C3ED9]"
+                  >
+                    Start Exam
+                  </router-link>
                 </div>
-                <div class="ml-4">
-                  <h3 class="text-lg font-medium text-gray-900">Laravel Backend</h3>
-                  <p class="mt-1 text-sm text-gray-500">Learn professional backend development with Laravel</p>
-                </div>
-              </div>
-              <div class="mt-4">
-                <router-link :to="{ name: 'exams.index' }" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800">
-                  Start Learning
-                </router-link>
               </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
     </div>
@@ -221,5 +194,24 @@
 </template>
 
 <script setup>
-// Add any required component logic here
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+
+const popularExams = ref([])
+const loading = ref(true)
+
+const fetchPopularExams = async () => {
+  try {
+    const response = await axios.get('/exams')
+    popularExams.value = response.data.data.slice(0, 3)
+    loading.value = false
+  } catch (error) {
+    console.error('Error fetching exams:', error)
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchPopularExams()
+})
 </script>
