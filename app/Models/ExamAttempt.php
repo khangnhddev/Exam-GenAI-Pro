@@ -14,6 +14,7 @@ class ExamAttempt extends Model
         'completed_at',
         'score',
         'status',
+        'attempt_number',
         'answers'
     ];
 

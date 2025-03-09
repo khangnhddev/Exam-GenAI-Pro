@@ -41,50 +41,65 @@ class ExamController extends Controller
                 $query->where('user_id', auth()->id());
             }
         ]);
-        
+
         return new FeExamResource($exam);
     }
 
     /**
      * start exam
      */
-    public function start(Exam $exam): JsonResponse
+    public function start(Request $request, Exam $exam)
     {
-        $user = auth()->user();
+        try {
+            $user = auth()->user();
 
-        // Check attempts limit
-        $attemptCount = ExamAttempt::where('user_id', $user->id)
-            ->where('exam_id', $exam->id)
-            ->count();
+            // Check attempts limit
+            $attemptCount = ExamAttempt::where('user_id', $user->id)
+                ->where('exam_id', $exam->id)
+                ->count();
 
-        // if ($attemptCount >= $exam->attempts_allowed) {
-        //     return response()->json([
-        //         'message' => 'Maximum attempts reached'
-        //     ], 403);
-        // }
+            // if ($attemptCount >= $exam->attempts_allowed) {
+            //     return response()->json([
+            //         'message' => 'Maximum attempts reached'
+            //     ], 403);
+            // }
 
-        // Create new attempt
-        $attempt = ExamAttempt::create([
-            'exam_id' => $exam->id,
-            'user_id' => $user->id,
-            'started_at' => now(),
-            'status' => 'in_progress'
-        ]);
+            $latestAttempt = $exam->attempts()
+                ->where('user_id', auth()->id())
+                ->orderBy('attempt_number', 'desc')
+                ->first();
 
-        // Get randomized questions
-        $questions = $exam->questions()
-            ->with(['options' => function ($query) {
-                $query->select('id', 'question_id', 'option_text');
-            }])
-            ->inRandomOrder()
-            ->take($exam->total_questions)
-            ->get(['id', 'question_text', 'type', 'points']);
+            $attemptNumber = $latestAttempt ? $latestAttempt->attempt_number + 1 : 1;
 
-        return response()->json([
-            'attempt_id' => $attempt->id,
-            'duration' => $exam->duration,
-            'questions' => $questions
-        ]);
+            // Create new attempt
+            $attempt = ExamAttempt::create([
+                'exam_id' => $exam->id,
+                'user_id' => $user->id,
+                'started_at' => now(),
+                'attempt_number' => $attemptNumber,
+                'status' => 'in_progress'
+            ]);
+
+            // Get randomized questions
+            $questions = $exam->questions()
+                ->with(['options' => function ($query) {
+                    $query->select('id', 'question_id', 'option_text');
+                }])
+                ->inRandomOrder()
+                ->take($exam->total_questions)
+                ->get(['id', 'question_text', 'type', 'points']);
+
+            return response()->json([
+                'attempt_id' => $attempt->id,
+                'duration' => $exam->duration,
+                'questions' => $questions
+            ]);
+        } catch (\Exception $e) {
+            // \Log::error('Error starting exam: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to start exam'
+            ], 500);
+        }
     }
 
 
@@ -114,8 +129,8 @@ class ExamController extends Controller
 
         $score = $this->calculateScore($attempt->exam, $validated['answers']);
 
-        Log::debug('score: '.print_r($score,true));
-        
+        Log::debug('score: ' . print_r($score, true));
+
         $attempt->update([
             'completed_at' => now(),
             'score' => $score,
@@ -124,10 +139,11 @@ class ExamController extends Controller
         ]);
 
         $passed = $score >= $attempt->exam->passing_score;
-
+        $certificateId = null;
 
         if ($passed) {
-            $this->generateCertificate($attempt);
+            $certificate = $this->generateCertificate($attempt);
+            $certificateId = $certificate->id;
             // Send verify email
         }
 
@@ -136,7 +152,8 @@ class ExamController extends Controller
             'passing_score' => $attempt->exam->passing_score,
             'passed' => $passed,
             'attempt_id' => $attempt->id,
-            'review_url' => route('exams.review', $attempt->id)
+            'review_url' => route('exams.review', $attempt->id),
+            'certificate_id' => $certificateId
         ]);
     }
 
@@ -185,20 +202,32 @@ class ExamController extends Controller
     {
         $attempts = $exam->attempts()
             ->where('user_id', auth()->id())
-            ->with(['user'])
-            ->orderBy('created_at', 'desc')
+            ->with(['user', 'certificate'])
+            ->orderBy('attempt_number', 'asc')
             ->get();
 
         return response()->json([
-            'data' => $attempts->map(function ($attempt) {
-                return [
+            'data' => $attempts->map(function ($attempt) use ($exam) {
+                $data = [
                     'id' => $attempt->id,
                     'attempt_number' => $attempt->attempt_number,
-                    'score' => $attempt->score,
+                    'score' => $attempt->score ?? 0,
                     'created_at' => $attempt->created_at,
                     'completed_at' => $attempt->completed_at,
-                    'status' => $attempt->status
+                    'status' => $attempt->status,
+                    'skill_level' => $this->getSkillLevel($attempt->score ?? 0)
                 ];
+
+                // Add certificate info if attempt passed
+                if ($attempt->score >= $exam->passing_score && $attempt->certificate) {
+                    $data['certificate'] = [
+                        'id' => $attempt->certificate->id,
+                        'url' => $attempt->certificate->url,
+                        'issued_at' => $attempt->certificate->created_at
+                    ];
+                }
+
+                return $data;
             })
         ]);
     }
@@ -210,9 +239,9 @@ class ExamController extends Controller
     {
         $totalQuestions = $exam->questions->count();
         $correctAnswers = 0;
-        
+
         Log::debug('Incoming answers:', $answers);
-        
+
         if ($totalQuestions === 0 || empty($answers)) {
             Log::debug('No questions or answers');
             return 0;
@@ -220,12 +249,12 @@ class ExamController extends Controller
 
         foreach ($exam->questions as $question) {
             $questionId = $question->id;
-            
+
             Log::debug('Processing question:', [
                 'question_id' => $questionId,
                 'type' => $question->type
             ]);
-            
+
             // Kiểm tra xem có answer cho question này không
             if (!array_key_exists($questionId, $answers)) {
                 Log::debug("No answer for question {$questionId}");
@@ -233,7 +262,7 @@ class ExamController extends Controller
             }
 
             $userAnswer = $answers[$questionId];
-            
+
             // Convert user answer to array of integers
             $selectedOptions = [];
             if (is_array($userAnswer)) {
@@ -241,7 +270,7 @@ class ExamController extends Controller
             } else {
                 $selectedOptions = [intval($userAnswer)];
             }
-            
+
             // Remove any zero or empty values
             $selectedOptions = array_filter($selectedOptions);
 
@@ -263,8 +292,10 @@ class ExamController extends Controller
 
             // Check if answer is correct based on question type
             if ($question->type === 'single') {
-                if (!empty($selectedOptions) && 
-                    in_array($selectedOptions[0], $correctOptions)) {
+                if (
+                    !empty($selectedOptions) &&
+                    in_array($selectedOptions[0], $correctOptions)
+                ) {
                     $correctAnswers++;
                     Log::debug("Question {$questionId} is correct");
                 }
@@ -278,15 +309,15 @@ class ExamController extends Controller
                 }
             }
         }
-        
+
         $score = $totalQuestions > 0 ? (int)round(($correctAnswers / $totalQuestions) * 100) : 0;
-        
+
         Log::debug('Score calculation:', [
             'total_questions' => $totalQuestions,
             'correct_answers' => $correctAnswers,
             'final_score' => $score
         ]);
-        
+
         return $score;
     }
 
@@ -294,9 +325,9 @@ class ExamController extends Controller
      * Generate certificate
      * 
      */
-    private function generateCertificate(ExamAttempt $attempt): void
+    private function generateCertificate(ExamAttempt $attempt): Certificate
     {
-        Certificate::create([
+        return Certificate::create([
             'user_id' => $attempt->user_id,
             'exam_id' => $attempt->exam_id,
             'exam_attempt_id' => $attempt->id,
@@ -311,7 +342,7 @@ class ExamController extends Controller
             ]
         ]);
     }
-    
+
     /**
      * Generate certificate number
      */
@@ -321,7 +352,7 @@ class ExamController extends Controller
         $year = $attempt->completed_at->format('Y');
         $month = $attempt->completed_at->format('m');
         $sequence = str_pad($attempt->id, 6, '0', STR_PAD_LEFT);
-        
+
         return "{$prefix}-{$year}{$month}-{$sequence}";
     }
 

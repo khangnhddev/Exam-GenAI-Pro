@@ -48,17 +48,15 @@ export function handleApiError(error) {
   const toast = useToast()
   const status = error?.response?.status
 
+  // Clear current history state and replace with home for 500 errors
+  if (status === 500) {
+    window.history.replaceState(null, '', '/')
+    router.replace({ name: 'home' })
+    return
+  }
+
+  // Handle other errors
   switch (status) {
-    case 500:
-      // Clear current history state and replace with home
-      window.history.replaceState(null, '', '/')
-      router.replace({ name: 'home' }).then(() => {
-        // Add listener for back button
-        window.addEventListener('popstate', () => {
-          router.push({ name: 'home' })
-        }, { once: true })
-      })
-      break
     case 400:
     case 401:
     case 403:

@@ -1,99 +1,105 @@
 <template>
-  <!-- Hero Section - Full Width -->
-  <div class="bg-gradient-to-br from-indigo-600 to-purple-600 w-full rounded-xl">
-    <div class="max-w-[2000px] mx-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-2">
+  <!-- Hero Section - Full Width Background -->
+  <div class="bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl shadow-lg"> <!-- Changed rounded-b-[40px] to rounded-[40px] -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="flex flex-col md:flex-row justify-between items-start gap-8">
         <!-- Left Content -->
-        <div class="text-white p-12 lg:pl-24">
-
-          <h1 class="text-4xl font-bold mb-4">{{ exam.title }}</h1>
-          <p class="text-lg text-indigo-100 mb-8">{{ exam.description }}</p>
-
-          <!-- Stats Grid -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
-              <div class="text-2xl font-bold">{{ exam.total_questions }}</div>
-              <div class="text-sm text-indigo-200">Questions</div>
-            </div>
-            <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
-              <div class="text-2xl font-bold">{{ exam.duration }}m</div>
-              <div class="text-sm text-indigo-200">Duration</div>
-            </div>
-            <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
-              <div class="text-2xl font-bold">{{ exam.passing_score }}%</div>
-              <div class="text-sm text-indigo-200">Pass Score</div>
-            </div>
-            <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-lg p-4">
-              <div class="text-2xl font-bold">{{ userAttempts?.length || 0 }}/{{ exam.attempts_allowed }}</div>
-              <div class="text-sm text-indigo-200">Attempts</div>
-            </div>
+        <div class="space-y-6 text-white max-w-2xl">
+          <!-- Badge -->
+          <div class="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full">
+            <svg 
+              width="20" 
+              height="20" 
+              viewBox="0 0 25 25" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg" 
+              class="text-white"
+            >
+              <g clip-path="url(#assessmentsSkillIcon)" fill="currentColor">
+                <circle cx="10.604" cy="14.857" r="2.384"></circle>
+                <path d="m19.76 10.158 4.254-5.07a.2.2 0 0 0-.167-.329l-4.036.274a.2.2 0 0 1-.212-.178L19.168.832a.2.2 0 0 0-.352-.107L14.56 5.796a.2.2 0 0 0-.038.188l1.13 3.621a.2.2 0 0 0 .165.139l3.763.484a.2.2 0 0 0 .178-.07Z"></path>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="m9.904 15.286 5.982-7.13.766.644-5.982 7.129-.766-.643Z"></path>
+                <path d="M11.448 5.896a9 9 0 1 0 7.88 6.745l-2.215.562a6.716 6.716 0 1 1-5.88-5.033l.215-2.274Z"></path>
+              </g>
+              <defs>
+                <clipPath id="assessmentsSkillIcon">
+                  <path fill="currentColor" transform="translate(.604 .365)" d="M0 0h24v24H0z"></path>
+                </clipPath>
+              </defs>
+            </svg>
+            <span class="text-sm font-medium tracking-wider">SKILL ASSESSMENT</span>
           </div>
 
-          <!-- Action Button -->
-          <button v-if="canAttempt" @click="startExam"
-            class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-white hover:bg-indigo-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-600 focus:ring-white shadow-sm transition-all duration-200">
-            Start Assessment
-            <svg class="ml-2 -mr-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-            </svg>
-          </button>
+          <!-- Title & Description -->
+          <div ref="examTitleRef" class="space-y-4">
+            <h1 class="text-4xl font-bold">{{ exam.title }}</h1>
+            <p class="text-white/80 text-lg leading-relaxed">{{ exam.description }}</p>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4">
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <div class="text-white/60 text-sm mb-1">Duration</div>
+              <div class="text-xl font-semibold">{{ exam.duration }}m</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <div class="text-white/60 text-sm mb-1">Questions</div>
+              <div class="text-xl font-semibold">{{ exam.total_questions }}</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <div class="text-white/60 text-sm mb-1">Pass Score</div>
+              <div class="text-xl font-semibold">{{ exam.passing_score }}%</div>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <div class="text-white/60 text-sm mb-1">Attempts</div>
+              <div class="text-xl font-semibold">
+                {{ userAttempts?.length }}
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Right Content - Certificate Preview -->
-        <div class="hidden lg:flex items-center justify-end p-12 lg:pr-16">
-          <div class="relative w-80">
-            <div class="w-80">
-              <svg class="w-full h-full" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g filter="url(#filter0_d)">
-                  <!-- Cloud -->
-                  <path d="M80 100 C80 80, 100 70, 120 80 C120 60, 150 50, 170 70 C190 50, 220 60, 220 90 C240 80, 260 90, 260 110 C260 130, 240 140, 220 130 C220 140, 190 150, 170 140 C150 150, 120 140, 110 130 C90 140, 70 130, 70 110 C70 100, 80 100, 80 100" 
-                    fill="white" fill-opacity="0.1" stroke="white" stroke-opacity="0.6" stroke-width="1"/>
-                  
-                  <!-- Server Stack -->
-                  <rect x="160" y="140" width="80" height="20" rx="2" fill="white" fill-opacity="0.2" stroke="white" stroke-opacity="0.6"/>
-                  <rect x="160" y="165" width="80" height="20" rx="2" fill="white" fill-opacity="0.2" stroke="white" stroke-opacity="0.6"/>
-                  <rect x="160" y="190" width="80" height="20" rx="2" fill="white" fill-opacity="0.2" stroke="white" stroke-opacity="0.6"/>
-                  
-                  <!-- Server Details -->
-                  <circle cx="170" cy="150" r="2" fill="white" fill-opacity="0.8"/>
-                  <circle cx="170" cy="175" r="2" fill="white" fill-opacity="0.8"/>
-                  <circle cx="170" cy="200" r="2" fill="white" fill-opacity="0.8"/>
-                  
-                  <!-- Connection Lines -->
-                  <path d="M140 110 L160 140" stroke="white" stroke-opacity="0.4" stroke-width="1" stroke-dasharray="2 2"/>
-                  <path d="M200 110 L200 140" stroke="white" stroke-opacity="0.4" stroke-width="1" stroke-dasharray="2 2"/>
-                  <path d="M260 110 L240 140" stroke="white" stroke-opacity="0.4" stroke-width="1" stroke-dasharray="2 2"/>
-                  
-                  <!-- Monitor -->
-                  <path d="M280 160 L320 140 L320 180 L280 200 Z" fill="white" fill-opacity="0.2" stroke="white" stroke-opacity="0.6"/>
-                  <path d="M320 140 L360 160 L360 200 L320 180 Z" fill="white" fill-opacity="0.15" stroke="white" stroke-opacity="0.6"/>
-                  
-                  <!-- Monitor Stand -->
-                  <path d="M310 200 L330 190 L330 210 L310 220 Z" fill="white" fill-opacity="0.3" stroke="white" stroke-opacity="0.6"/>
-                  
-                  <!-- Connection to Server -->
-                  <path d="M240 180 L280 180" stroke="white" stroke-opacity="0.4" stroke-width="1" stroke-dasharray="2 2"/>
-                </g>
-                <defs>
-                  <filter id="filter0_d" x="0" y="0" width="400" height="300" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-                    <feFlood flood-opacity="0" result="BackgroundImageFix"/>
-                    <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
-                    <feOffset dy="4"/>
-                    <feGaussianBlur stdDeviation="8"/>
-                    <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.15 0"/>
-                    <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
-                    <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
-                  </filter>
-                </defs>
+        <!-- Right Content - Progress Circle (if attempted) -->
+        <div v-if="hasAttempted" class="w-80 md:w-96">
+          <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8"> <!-- Changed rounded-xl to rounded-2xl -->
+            <div class="relative w-48 h-48 mx-auto overflow-hidden"> <!-- Added overflow-hidden -->
+              <!-- Background Circle -->
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <!-- Added rounded corners with stroke-linecap -->
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="45" 
+                  fill="none" 
+                  stroke="rgba(255,255,255,0.2)" 
+                  stroke-width="8"
+                  stroke-linecap="round"
+                />
+                <!-- Progress Circle -->
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="45" 
+                  fill="none" 
+                  stroke="white"
+                  stroke-width="8" 
+                  :stroke-dasharray="`${bestScore * 2.83}, 283`" 
+                  stroke-linecap="round"
+                />
               </svg>
-            </div>
-
-            <!-- Decorative Elements -->
-            <div
-              class="absolute -top-4 -right-4 w-32 h-32 bg-gradient-to-br from-purple-400 to-indigo-400 rounded-full opacity-50 blur-xl">
-            </div>
-            <div
-              class="absolute -bottom-4 -left-4 w-32 h-32 bg-gradient-to-br from-indigo-400 to-purple-400 rounded-full opacity-50 blur-xl">
+              <!-- Center Text -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-white">
+                <span class="text-4xl font-bold">{{ bestScore }}%</span>
+                <span class="text-sm opacity-80">Best Score</span>
+                <span :class="[
+                  'mt-2 px-3 py-1 text-sm font-medium rounded-full',
+                  bestScore >= exam.passing_score 
+                    ? 'bg-green-400/20 text-green-100' 
+                    : 'bg-red-400/20 text-red-100'
+                ]">
+                  {{ bestScore >= exam.passing_score ? 'PASSED' : 'FAILED' }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -109,22 +115,9 @@
       </div>
 
       <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Main Content -->
+        <!-- Main Content Section -->
         <div class="lg:col-span-2">
-          <!-- Assessment Type Badge -->
-          <div class="flex items-center gap-2 mb-6">
-            <svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-            </svg>
-            <span class="text-sm font-medium text-indigo-600 uppercase tracking-wider">EXAM</span>
-          </div>
-
-          <!-- Exam Title and Description -->
-          <h1 class="text-4xl font-bold text-gray-900 mb-4">{{ exam.title }}</h1>
-          <p class="text-lg text-gray-600 mb-8">{{ exam.description }}</p>
-
-          <!-- Add this section right after the title and description, before Assessment Overview -->
+          <!-- Status Cards -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <!-- Assessment Card -->
             <div class="bg-white rounded-lg shadow-sm p-6">
@@ -173,7 +166,7 @@
                 </div>
                 <div class="flex justify-between text-sm">
                   <span class="text-gray-500">Attempts:</span>
-                  <span class="font-medium">{{ userAttempts?.length || 0 }}/{{ exam.attempts_allowed }}</span>
+                  <span class="font-medium">{{ userAttempts?.length }}</span>
                 </div>
               </div>
             </div>
@@ -209,7 +202,36 @@
             </div>
           </div>
 
-          <!-- Assessment Overview -->
+          <!-- Take/Retake Exam Section - Moved Here -->
+          <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <div class="flex flex-col items-center text-center max-w-xl mx-auto">
+              <div class="mb-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-2">
+                  {{ !hasAttempted ? 'Ready to Start?' : hasPassed ? 'Congratulations!' : 'Try Again?' }}
+                </h3>
+                <p class="text-gray-600">
+                  {{ !hasAttempted 
+                    ? 'Begin your assessment to test your knowledge and earn a certificate.' 
+                    : hasPassed
+                      ? 'You\'ve successfully passed this assessment. View your certificate in the sidebar.'
+                      : 'Keep trying to achieve a passing score and earn your certificate.'
+                  }}
+                </p>
+              </div>
+
+              <!-- Only show button if not passed -->
+              <div v-if="!hasPassed" class="flex flex-col items-center gap-3">
+                <button 
+                  @click="startExam"
+                  class="px-8 py-3 text-base font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700"
+                >
+                  {{ !hasAttempted ? 'Take Exam' : 'Retake Exam' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assessment Overview with Success Banner -->
           <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-900 mb-4">Assessment Overview</h2>
             <p class="text-gray-600">This skill assessment covers the concepts of {{ exam.title }} and will help you
@@ -229,9 +251,9 @@
               </div>
             </div>
           </div>
-
+         
           <!-- Exam Details -->
-          <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+          <!-- <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div class="space-y-4">
                 <div class="flex items-center text-gray-700">
@@ -248,13 +270,13 @@
                   </svg>
                   <span class="ml-2">Passing Score: {{ exam.passing_score }}%</span>
                 </div>
-                <!-- <div class="flex items-center text-gray-700">
+                <div class="flex items-center text-gray-700">
                   <svg class="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
                   </svg>
                   <span class="ml-2">Attempts Allowed: {{ exam.attempts_allowed }}</span>
-                </div> -->
+                </div>
               </div>
 
               <div class="space-y-4">
@@ -274,7 +296,7 @@
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
 
           <!-- Previous Attempts -->
           <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
@@ -330,10 +352,10 @@
                         class="text-indigo-600 hover:text-indigo-900">
                         Review
                       </button>
-                      <button v-if="attempt.score >= exam.passing_score" @click="downloadCertificate(attempt.id)"
+                      <!-- <button v-if="attempt.score >= exam.passing_score" @click="downloadCertificate(attempt.id)"
                         class="ml-4 text-indigo-600 hover:text-indigo-900">
                         Certificate
-                      </button>
+                      </button> -->
                     </td>
                   </tr>
                 </tbody>
@@ -343,72 +365,65 @@
         </div>
 
         <!-- Sidebar -->
-        <div class="lg:col-span-1">
+        <div class="lg:col-span-1 ml-10">
           <div class="sticky top-8 space-y-6">
-            <!-- Take Assessment Card -->
-            <div v-if="!examResults" class="bg-white rounded-xl shadow-sm p-8">
-              <div class="flex flex-col items-center text-center">
-                <div class="relative flex flex-col items-center justify-center p-8 bg-gradient-to-br from-white/40 to-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-xl">
-                  <!-- Certificate Design -->
-                  <div class="relative w-48 h-48 mb-6">
-                    <!-- Certificate Background -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-lg border border-white/20 backdrop-blur-sm">
-                      <!-- Certificate Content -->
+            <!-- Certificate Card -->
+            <div class="flex flex-col items-center text-center p-8">
+              <!-- Certificate Status -->
+              <div class="relative w-full mb-8">
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+                  <!-- Certificate Icon & Status -->
+                  <div class="flex flex-col items-center">
+                    <div class="relative mb-4">
                       <div :class="[
-                        'absolute inset-0 flex flex-col items-center justify-center p-4 transition-all duration-500',
-                        !hasPassed ? 'opacity-30 filter blur-[2px]' : ''
+                        'w-16 h-16 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 flex items-center justify-center transform transition-all duration-500',
+                        hasPassed ? 'scale-100' : 'scale-95 opacity-50'
                       ]">
-                        <div class="w-16 h-16 mb-2">
-                          <svg class="w-full h-full text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
-                              d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
-                          </svg>
-                        </div>
-                        <div class="text-xs font-medium text-indigo-600 uppercase tracking-wider">Certificate of</div>
-                        <div class="text-base font-bold bg-gradient-to-br from-indigo-600 to-purple-600 bg-clip-text text-transparent mt-1">Achievement</div>
-                      </div>
-
-                      <!-- Lock Overlay -->
-                      <div v-if="!hasPassed" 
-                        class="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900/70 to-black/70 rounded-xl backdrop-blur-[2px] transition-all duration-500">
-                        <svg class="w-12 h-12 text-white/90 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z">
-                          </path>
+                        <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 
+                            d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                         </svg>
-                        <span class="text-sm font-medium text-white/90">Complete to Unlock</span>
                       </div>
+                      <!-- Glow Effect -->
+                      <div class="absolute inset-0 bg-indigo-500 opacity-20 blur-xl rounded-full transform scale-150 -z-10"></div>
                     </div>
+
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">
+                      {{ hasPassed ? 'Professional Certificate Unlocked! 🎉' : 'Professional Certificate Locked' }}
+                    </h3>
+                    <p class="text-sm text-gray-600 mb-4">
+                      {{ hasPassed
+                        ? 'Congratulations! You\'ve demonstrated professional proficiency in this skill assessment. Your dedication has earned you our verified certificate, validating your expertise in this domain.'
+                        : 'Complete this assessment with a passing score to earn your professional certificate. This credential validates your expertise and can be shared with your professional network.'
+                      }}
+                    </p>
+                    <p class="text-sm text-gray-500 mb-6">
+                      {{ hasPassed
+                        ? 'Your certificate includes a unique verification ID and can be shared on LinkedIn or added to your professional portfolio.'
+                        : 'Our certificates are recognized by industry professionals and demonstrate your commitment to continuous learning and skill development.'
+                      }}
+                    </p>
+
+                    <!-- View Certificate Button - Only show if passed -->
+                    <button 
+                      v-if="hasPassed"
+                      @click="router.push(`/certificates/${certificateId}`)"
+                      class="w-full max-w-[240px] py-2.5 px-4 rounded-lg font-medium bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700 transition-all duration-200"
+                    >
+                      View Your Certificate
+                    </button>
                   </div>
+                </div>
 
-                  <!-- Status Title -->
-                  <h3 class="text-lg font-bold bg-gradient-to-br from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                    {{ hasPassed ? 'Certificate Unlocked!' : 'Certificate Locked' }}
-                  </h3>
-
-                  <!-- Status Description -->
-                  <p class="text-sm text-gray-600 text-center mb-6">
-                    {{ hasPassed
-                      ? 'Congratulations! You can now claim your professional certificate.'
-                      : 'Pass this assessment to unlock your professional certificate.'
-                    }}
-                  </p>
-
-                  <!-- Progress Bar -->
-                  <div class="w-full h-2 bg-gray-100 rounded-full mb-4 overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-500 rounded-full"
-                      :style="`width: ${(userAttempts.value?.length || 0) / exam.attempts_allowed * 100}%`">
-                    </div>
-                  </div>
-
-                  <!-- Action Button -->
-                  <button v-if="canAttempt" @click="hasPassed ? downloadCertificate() : startExam()"
-                    class="w-full px-6 py-3 text-base font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    {{ hasPassed ? 'Download Certificate' : (hasAttempted ? 'Retake Assessment' : 'Start Assessment') }}
-                  </button>
-                  <div v-else
-                    class="w-full px-6 py-3 text-base font-medium text-center text-gray-500 bg-gray-100 rounded-lg cursor-not-allowed">
-                    No Attempts Remaining
+                <!-- Lock Overlay -->
+                <div v-if="!hasPassed" 
+                  class="absolute inset-0 flex items-center justify-center backdrop-blur-[1px] rounded-2xl transition-all duration-500"
+                >
+                  <div class="p-3 rounded-full bg-black/40">
+                    <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <rect x="3" y="11" width="18" height="11" rx="2" stroke="currentColor" stroke-width="1.5" />
+                      <path d="M7 11V7a5 5 0 0110 0v4" stroke="currentColor" stroke-width="1.5" />
+                    </svg>
                   </div>
                 </div>
               </div>
@@ -454,11 +469,11 @@ const userAttempts = ref([])
 // Initialize attemptHistory with an empty array
 const attemptHistory = ref([])
 const examResults = ref(null)
+const examTitleRef = ref(null)
 
 const canAttempt = computed(() => {
-  return true;
   if (!exam.value || !userAttempts.value) return false
-  return userAttempts.value.length < exam.value.attempts_allowed
+  return true // Always allow attempts
 })
 
 const hasAttempted = computed(() => {
@@ -509,11 +524,13 @@ const loadExam = async () => {
     // Add null checks and default values
     exam.value = examResponse.data.data || {}
     attemptHistory.value = historyResponse.data.data || []
-    userAttempts.value = examResponse.data.data?.attempts || []
+    userAttempts.value = examResponse.data.data?.attempts || [];
+
+    console.log('attemptHistory', attemptHistory.value);
 
   } catch (error) {
     console.error('Error loading exam:', error)
-    toast.error('Failed to load exam data')
+    //toast.error('Failed to load exam data')
     // Set default values on error
     attemptHistory.value = []
     userAttempts.value = []
@@ -607,8 +624,31 @@ const closeResults = () => {
   router.replace({ query: {} })
 }
 
+// Add new computed property for certificate ID
+const certificateId = computed(() => {
+  if (!attemptHistory.value?.length) return null
+  const passedAttempt = attemptHistory.value.find(attempt =>
+    attempt.score >= exam.value.passing_score && attempt.certificate
+  )
+  return passedAttempt?.certificate?.id
+})
+
 onMounted(() => {
   loadExam()
   fetchExamResults()
+
+  // Check if user has just passed the exam
+  if (route.query.passed === 'true') {
+    // Remove the query parameter
+    router.replace({ query: {} })
+
+    // Scroll to exam title section
+    setTimeout(() => {
+      examTitleRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      toast.success('Congratulations! You have passed the exam. You can now view your certificate.', {
+        timeout: 5000
+      })
+    }, 500)
+  }
 })
 </script>

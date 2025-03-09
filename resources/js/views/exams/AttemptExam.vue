@@ -427,7 +427,7 @@ const loadExam = async () => {
     }
   } catch (error) {
     console.error('Error loading exam:', error)
-    toast.error('Failed to load exam')
+   // toast.error('Failed to load exam')
   }
 }
 
@@ -476,7 +476,9 @@ const submitExamRequest = async () => {
     const response = await axios.post(`/exams/attempts/${route.params.attemptId}/submit`, {
       answers: formattedAnswers.value,
       attempt_id: route.params.attemptId
-    })
+    });
+    
+    console.log('response:', response.data)
 
     if (timer) {
       clearInterval(timer)

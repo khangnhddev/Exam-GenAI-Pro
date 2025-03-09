@@ -1,156 +1,172 @@
 <template>
   <TransitionRoot appear :show="isOpen" as="template">
-    <Dialog as="div" class="relative z-50" @close="onClose">
-      <!-- Backdrop with blur effect -->
-      <TransitionChild
-        enter="ease-out duration-300"
-        enter-from="opacity-0"
-        enter-to="opacity-100"
-        leave="ease-in duration-200"
-        leave-from="opacity-100"
-        leave-to="opacity-0"
-      >
-        <div class="fixed inset-0 bg-gray-900/75 backdrop-blur-sm" />
+    <Dialog as="div" @close="closeModal" class="relative z-50">
+      <!-- Background overlay -->
+      <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0" enter-to="opacity-100"
+        leave="duration-200 ease-in" leave-from="opacity-100" leave-to="opacity-0">
+        <DialogOverlay class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm" />
       </TransitionChild>
 
+      <!-- Modal content -->
       <div class="fixed inset-0 overflow-y-auto">
         <div class="flex min-h-full items-center justify-center p-4">
-          <TransitionChild
-            enter="ease-out duration-300"
-            enter-from="opacity-0 scale-95"
-            enter-to="opacity-100 scale-100"
-            leave="ease-in duration-200"
-            leave-from="opacity-100 scale-100"
-            leave-to="opacity-0 scale-95"
-          >
-            <DialogPanel class="w-full max-w-2xl transform overflow-hidden rounded-3xl bg-white shadow-2xl transition-all">
-              <!-- Header with gradient -->
-              <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-8">
-                <div class="flex items-center justify-between">
-                  <div>
-                    <DialogTitle as="h3" class="text-2xl font-bold text-white mb-2">
-                      Result
-                    </DialogTitle>
-                    <p class="text-indigo-100 text-sm">
-                      {{ results.exam_title }}
-                    </p>
-                  </div>
-                  <button 
-                    @click="onClose"
-                    class="rounded-xl p-2 hover:bg-white/10 transition-colors"
-                  >
-                    <XMarkIcon class="h-6 w-6 text-white" />
-                  </button>
-                </div>
+          <TransitionChild as="template" enter="duration-300 ease-out" enter-from="opacity-0 scale-95"
+            enter-to="opacity-100 scale-100" leave="duration-200 ease-in" leave-from="opacity-100 scale-100"
+            leave-to="opacity-0 scale-95">
+            <DialogPanel
+              class="w-full max-w-2xl transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all">
+              <!-- Header -->
+              <div class="relative bg-[#6C2BD9] px-6 py-4">
+                <DialogTitle class="text-xl font-semibold text-white">Result</DialogTitle>
+                <button @click="closeModal"
+                  class="absolute right-4 top-4 rounded-lg p-1 text-white/80 hover:text-white hover:bg-white/10 transition">
+                  <XMarkIcon class="h-5 w-5" />
+                </button>
               </div>
 
               <!-- Content -->
-              <div class="p-8">
-                <div class="grid grid-cols-2 gap-8">
-                  <!-- Left Column -->
-                  <div class="space-y-6">
-                    <!-- Score Circle with animations -->
-                    <div class="flex justify-center">
-                      <div class="relative w-48 h-48">
-                        <svg class="w-full h-full transform -rotate-90">
-                          <circle
-                            cx="96"
-                            cy="96"
-                            r="88"
-                            stroke="#EEF2FF"
-                            stroke-width="12"
-                            fill="none"
-                          />
-                          <circle
-                            cx="96"
-                            cy="96"
-                            r="88"
-                            :stroke="results.passed ? '#22C55E' : '#EF4444'"
-                            stroke-width="12"
-                            fill="none"
-                            :stroke-dasharray="`${results.score * 5.52}, 552`"
-                            class="transition-all duration-1000 ease-out"
-                          />
-                        </svg>
-                        <div class="absolute inset-0 flex items-center justify-center">
-                          <div class="text-center">
-                            <div class="text-5xl font-bold" :class="results.passed ? 'text-green-500' : 'text-red-500'">
-                              {{ results.score }}%
-                            </div>
-                            <div class="text-sm font-medium text-gray-500 mt-1">Final Score</div>
-                          </div>
-                        </div>
+              <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <!-- Score Circle -->
+                  <div class="flex flex-col items-center justify-center">
+                    <div class="relative">
+                      <svg class="w-48 h-48">
+                        <circle cx="96" cy="96" r="88" fill="none" stroke="#E5E7EB" stroke-width="12" />
+                        <circle cx="96" cy="96" r="88" fill="none"
+                          :stroke="results.passed ? '#22C55E' : '#EF4444'" stroke-width="12"
+                          :stroke-dasharray="circumference" :stroke-dashoffset="dashOffset"
+                          transform="rotate(-90 96 96)" class="transition-all duration-1000 ease-out" />
+                      </svg>
+                      <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span class="text-4xl font-bold">{{ results.score }}%</span>
+                        <span class="text-gray-500 text-sm">Final Score</span>
                       </div>
                     </div>
-
-                    <!-- Status Badge -->
-                    <div class="flex justify-center">
-                      <span
-                        class="inline-flex items-center px-6 py-2.5 rounded-full text-sm font-semibold tracking-wide"
-                        :class="results.passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-                      >
-                        {{ results.passed ? 'PASSED' : 'FAILED' }}
-                      </span>
+                    <div :class="[
+                      'mt-4 px-4 py-1.5 rounded-full text-sm font-medium',
+                      results.passed
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    ]">
+                      {{ results.passed ? 'PASSED' : 'FAILED' }}
                     </div>
                   </div>
 
-                  <!-- Right Column -->
-                  <div class="space-y-6">
-                    <div class="bg-gray-50 rounded-2xl p-6">
-                      <h4 class="text-sm font-semibold text-gray-900 mb-4">Detail</h4>
-                      <div class="space-y-4">
-                        <div class="flex items-center justify-between text-sm p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                  <!-- Details -->
+                  <div class="bg-gray-50 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4">Detail</h3>
+                    <div class="space-y-4">
+                      <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                          <ClockIcon class="w-5 h-5 text-gray-500" />
                           <span class="text-gray-600">Time Taken</span>
-                          <span class="font-semibold">{{ results.duration }} mins</span>
                         </div>
-                        <div class="flex items-center justify-between text-sm p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <span class="font-medium">{{ timeTaken }} mins</span>
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                          <QuestionMarkCircleIcon class="w-5 h-5 text-gray-500" />
                           <span class="text-gray-600">Questions</span>
-                          <span class="font-semibold">{{ results.total_questions }}</span>
                         </div>
-                        <div class="flex items-center justify-between text-sm p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <span class="font-medium">{{ totalQuestions }}</span>
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                          <CheckBadgeIcon class="w-5 h-5 text-gray-500" />
                           <span class="text-gray-600">Passing Score</span>
-                          <span class="font-semibold">{{ results.passing_score }}%</span>
                         </div>
-                        <div class="flex items-center justify-between text-sm p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <span class="font-medium">{{ results.passing_score }}%</span>
+                      </div>
+                      <div class="flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                          <CalendarIcon class="w-5 h-5 text-gray-500" />
                           <span class="text-gray-600">Completed</span>
-                          <span class="font-semibold">{{ new Date(results.completed_at).toLocaleString() }}</span>
                         </div>
+                        <span class="font-medium">{{ completedAt }}</span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- AI Assessment Analysis -->
-                <div class="mt-8 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
-                  <div class="flex items-start space-x-4">
-                    <div class="p-2 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl">
-                      <SparklesIcon class="h-6 w-6 text-white" />
+                <!-- Performance Stats -->
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="bg-purple-50 rounded-xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                      <ChartBarIcon class="w-5 h-5 text-[#6C2BD9]" />
+                      <h4 class="font-medium">Performance</h4>
                     </div>
-                    <div class="flex-1">
-                      <h4 class="text-sm font-semibold text-gray-900 mb-2">AI Assessment Analysis</h4>
-                      <p class="text-sm text-gray-600 leading-relaxed">
-                        {{ getAIFeedback }}
+                    <p class="text-sm text-gray-600">
+                      {{ results.score >= 90 ? 'Outstanding' : results.score >= results.passing_score ? 'Good' : 'Needs Improvement' }}
+                    </p>
+                  </div>
+
+                  <div class="bg-purple-50 rounded-xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                      <AcademicCapIcon class="w-5 h-5 text-[#6C2BD9]" />
+                      <h4 class="font-medium">Knowledge Level</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                      {{ results.score >= 90 ? 'Expert' : results.score >= results.passing_score ? 'Proficient' : 'Basic' }}
+                    </p>
+                  </div>
+
+                  <div class="bg-purple-50 rounded-xl p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                      <TrophyIcon class="w-5 h-5 text-[#6C2BD9]" />
+                      <h4 class="font-medium">Achievement</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                      {{ results.passed ? 'Certification Earned' : 'Not Yet Certified' }}
+                    </p>
+                  </div>
+                </div>
+
+                <!-- AI Analysis -->
+                <div class="mt-6 bg-indigo-50 rounded-xl p-6">
+                  <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-[#6C2BD9] rounded-lg flex items-center justify-center">
+                      <SparklesIcon class="w-6 h-6 text-white" />
+                    </div>
+                    <h3 class="text-lg font-semibold">AI Assessment Analysis</h3>
+                  </div>
+                  <div class="space-y-4">
+                    <p class="text-gray-600 leading-relaxed">
+                      {{ getDetailedAnalysis }}
+                    </p>
+                    <div v-if="results.passed" class="mt-4 p-4 bg-green-50 rounded-lg">
+                      <p class="text-green-700 text-sm">
+                        🎉 Congratulations! You've demonstrated strong understanding of the material.
+                        Your score of {{ results.score }}% shows excellent comprehension and application of concepts.
+                      </p>
+                    </div>
+                    <div v-else class="mt-4 p-4 bg-orange-50 rounded-lg">
+                      <p class="text-orange-700 text-sm">
+                        Keep learning! While you haven't passed this time, your effort shows commitment.
+                        Focus on reviewing the material and try again - you're on the right path!
                       </p>
                     </div>
                   </div>
                 </div>
 
                 <!-- Actions -->
-                <div class="flex gap-4 mt-8">
-                  <button
-                    v-if="results.passed"
-                    @click="downloadCertificate"
-                    class="flex-1 px-6 py-3.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all transform hover:scale-[1.02] active:scale-[0.98] duration-200"
-                  >
-                    <DocumentArrowDownIcon class="h-5 w-5 inline mr-2" />
-                    Download Certificate
-                  </button>
-                  <button
-                    @click="onClose"
-                    class="flex-1 px-6 py-3.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all transform hover:scale-[1.02] active:scale-[0.98] duration-200"
-                  >
-                    Close
-                  </button>
+                <div class="mt-8 flex items-center justify-between gap-4">
+                  <template v-if="results.passed">
+                    <button @click="viewCertificate"
+                      class="w-full bg-[#6C2BD9] text-white px-4 py-2.5 rounded-lg font-medium hover:bg-[#5925B5] transition-colors flex items-center justify-center gap-2">
+                      <EyeIcon class="w-5 h-5" />
+                      View Certificate
+                    </button>
+                  </template>
+                  <template v-else>
+                    <button @click="closeModal"
+                      class="flex-1 bg-[#6C2BD9] text-white px-4 py-2.5 rounded-lg font-medium hover:bg-[#5925B5] transition-colors">
+                      Try Again
+                    </button>
+                    <button @click="closeModal"
+                      class="flex-1 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-colors">
+                      Close
+                    </button>
+                  </template>
                 </div>
               </div>
             </DialogPanel>
@@ -162,38 +178,91 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { XMarkIcon, DocumentArrowDownIcon, SparklesIcon } from '@heroicons/vue/24/outline'
-import { SparklesIcon as SolidSparklesIcon } from '@heroicons/vue/24/solid'
+import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+
+import {
+  Dialog,
+  DialogOverlay,
+  DialogPanel,
+  DialogTitle,
+  TransitionChild,
+  TransitionRoot,
+} from '@headlessui/vue'
+import {
+  XMarkIcon,
+  DocumentArrowDownIcon,
+  SparklesIcon,
+  ClockIcon,
+  QuestionMarkCircleIcon,
+  CheckBadgeIcon,
+  CalendarIcon,
+  ChartBarIcon,
+  AcademicCapIcon,
+  TrophyIcon,
+  EyeIcon
+} from '@heroicons/vue/24/outline'
 
 const props = defineProps({
   isOpen: Boolean,
-  results: Object
+  score: Number,
+  timeTaken: Number,
+  totalQuestions: Number,
+  results: Object,
+  passingScore: {
+    type: Number,
+    default: 75
+  },
+  completedAt: String,
+  aiAnalysis: String
 })
 
-const emit = defineEmits(['close', 'download-certificate'])
+const router = useRouter();
 
-const onClose = () => {
+const emit = defineEmits(['close', 'view-certificate'])
+
+const closeModal = () => {
   emit('close')
 }
 
-const downloadCertificate = () => {
-  emit('download-certificate')
+const viewCertificate = async () => {
+  if (props.results?.certificate_id) {
+    try {
+      // Wait for navigation to complete before closing modal
+      await router.push(`/certificates/${props.results.certificate_id}`);
+      // Only close modal after successful navigation
+      closeModal();
+    } catch (error) {
+      console.error('Navigation error:', error);
+      toast.error('Failed to view certificate');
+    }
+  } else {
+    console.warn('No certificate ID found in results');
+    toast.warning('Certificate not available');
+  }
 }
 
-const getAIFeedback = computed(() => {
-  const { score, passing_score, total_questions, duration } = props.results
-  
-  // Performance categories
-  if (score >= 90) {
-    return `Outstanding performance! You've demonstrated exceptional understanding by scoring ${score}%. Your quick completion time of ${duration} minutes shows strong confidence in the subject matter. Consider exploring more advanced topics or helping others learn this material.`
-  } else if (score >= passing_score) {
-    return `Good job passing with ${score}%! You've shown solid understanding of the material. There's still room for improvement - consider reviewing the questions you missed to strengthen your knowledge further.`
-  } else if (score >= passing_score - 10) {
-    return `You were close to passing with ${score}%! Focus on reviewing the core concepts and try again. Pay special attention to questions that took you longer to answer, as they might indicate areas needing more study.`
+const getDetailedAnalysis = computed(() => {
+  if (props.results.score >= 90) {
+    return `Outstanding performance! You've demonstrated exceptional understanding of the material, completing the assessment in ${props.timeTaken} minutes. Your quick and accurate responses show mastery of the subject matter. Consider exploring advanced topics or sharing your knowledge with others.`
+  } else if (props.results.score >= props.results.passing_score) {
+    return `Good job! You've shown solid comprehension of the material, finishing in ${props.timeTaken} minutes. Your performance meets certification standards, though there's room for deeper understanding in some areas. Review any missed questions to strengthen your knowledge.`
   } else {
-    return `Keep practicing! Your score of ${score}% suggests you might benefit from additional study time. Consider breaking down the material into smaller sections and testing yourself regularly before attempting the full exam again.`
+    return `Thank you for completing the assessment in ${props.timeTaken} minutes. While you haven't reached the passing threshold yet, this is a great learning opportunity. Focus on reviewing the core concepts and try again - many successful learners needed multiple attempts to master this material.`
   }
 })
+
+// Circle progress calculation
+const circumference = computed(() => 2 * Math.PI * 88)
+const dashOffset = computed(() => circumference.value * (1 - props.results.score / 100))
+
+// Animation on mount
+onMounted(() => {
+  // Add any mount animations if needed
+  console.log('Result assessment modal mounted results', props.results);
+})
 </script>
+
+<style scoped>
+/* Add any additional styles here */
+</style>
