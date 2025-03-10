@@ -105,12 +105,27 @@
                   >
                     Questions
                   </router-link>
+
+                  <!-- Add Publish/Unpublish Button -->
+                  <button
+                    v-if="exam.status !== 'archived'"
+                    @click="togglePublishStatus(exam)"
+                    :class="{
+                      'text-green-600 hover:text-green-900': exam.status === 'draft',
+                      'text-yellow-600 hover:text-yellow-900': exam.status === 'published'
+                    }"
+                    class="mr-4"
+                  >
+                    {{ exam.status === 'draft' ? 'Publish' : 'Unpublish' }}
+                  </button>
+
                   <router-link
                     :to="{ name: 'admin.exams.edit', params: { id: exam.id } }"
                     class="text-indigo-600 hover:text-indigo-900 mr-4"
                   >
                     Edit
                   </router-link>
+                  
                   <button
                     @click="deleteExam(exam)"
                     class="text-red-600 hover:text-red-900"
@@ -491,6 +506,37 @@ function removeQuestion(index) {
   
   if (generatedExam.value.questions.length === 0) {
     toast.warning('All questions removed. Generate new questions or cancel.')
+  }
+}
+
+/**
+ * togglePublishStatus
+ * @param exam 
+ */
+async function togglePublishStatus(exam) {
+  try {
+    const newStatus = exam.status === 'draft' ? 'published' : 'draft'
+    const { data } = await axios.put(`/admin/exams/${exam.id}/publish`, {
+      status: newStatus
+    })
+    
+    // Update exam status in the list
+    const index = exams.value.findIndex(e => e.id === exam.id)
+    if (index !== -1) {
+      exams.value[index].status = newStatus
+    }
+    
+    toast.success(
+      newStatus === 'published' 
+        ? 'Exam published successfully!' 
+        : 'Exam unpublished successfully!'
+    )
+  } catch (error) {
+    console.error('Error updating exam status:', error)
+    toast.error(
+      error.response?.data?.message || 
+      'Failed to update exam status'
+    )
   }
 }
 </script>

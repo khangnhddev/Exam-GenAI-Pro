@@ -72,6 +72,7 @@ Route::prefix('v1')->group(function () {
         //Exam Management
         Route::apiResource('exams', AdminExamController::class);
         Route::post('exams/{exam}/questions/generate', [AdminExamController::class, 'generateQuestions']);
+        Route::put('exams/{exam}/publish', [AdminExamController::class, 'togglePublish']);
         // Route::post('exams/{exam}/publish', [AdminExamController::class, 'publish']);
 
         // Question Management

@@ -591,4 +591,38 @@ class AdminExamController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * togglePublish
+     */
+    public function togglePublish(Request $request, Exam $exam)
+    {
+        try {
+            $request->validate([
+                'status' => 'required|in:draft,published'
+            ]);
+
+            // Check if exam has questions before publishing
+            if ($request->status === 'published' && $exam->questions()->count() === 0) {
+                return response()->json([
+                    'message' => 'Cannot publish exam without questions'
+                ], 422);
+            }
+
+            $exam->update([
+                'status' => $request->status,
+                'published_at' => $request->status === 'published' ? now() : null
+            ]);
+
+            return response()->json([
+                'message' => 'Exam status updated successfully',
+                'data' => $exam
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update exam status',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
