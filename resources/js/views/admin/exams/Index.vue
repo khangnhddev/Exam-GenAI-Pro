@@ -110,13 +110,28 @@
                   <button
                     v-if="exam.status !== 'archived'"
                     @click="togglePublishStatus(exam)"
-                    :class="{
-                      'text-green-600 hover:text-green-900': exam.status === 'draft',
-                      'text-yellow-600 hover:text-yellow-900': exam.status === 'published'
-                    }"
+                    :class="[
+                      'inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                      exam.status === 'draft' 
+                        ? 'text-white bg-green-600 hover:bg-green-700' 
+                        : 'text-white bg-yellow-600 hover:bg-yellow-700'
+                    ]"
                     class="mr-4"
                   >
-                    {{ exam.status === 'draft' ? 'Publish' : 'Unpublish' }}
+                    <template v-if="exam.status === 'draft'">
+                      <!-- <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M5 15l7-7 7 7" />
+                      </svg> -->
+                      Publish
+                    </template>
+                    <template v-else>
+                      <!-- <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M19 9l-7 7-7-7" />
+                      </svg> -->
+                      Unpublish
+                    </template>
                   </button>
 
                   <router-link
