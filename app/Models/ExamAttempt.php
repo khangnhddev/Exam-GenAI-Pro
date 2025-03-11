@@ -38,10 +38,9 @@ class ExamAttempt extends Model
                 $attempt->status === 'completed' &&
                 $attempt->score >= $attempt->exam->passing_score
             ) {
-
-                // Send congratulatory email
+                // Send congratulatory email immediately without queue
                 Mail::to($attempt->user->email)
-                    ->queue(new CertificatePassedMail($attempt));
+                    ->send(new CertificatePassedMail($attempt));
             }
         });
     }
