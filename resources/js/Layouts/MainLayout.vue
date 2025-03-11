@@ -71,7 +71,7 @@
               <div class="relative">
                 <button 
                   @click="showProfileMenu = !showProfileMenu"
-                  class="profile-menu flex items-center gap-2 p-1.5 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 hover:bg-gray-100"
+                  class="profile-menu flex items-center gap-2 p-1.5 rounded-full hover:bg-gray-100 focus:outline-none"
                 >
                   <img 
                     class="h-9 w-9 rounded-full border-2 border-gray-200"

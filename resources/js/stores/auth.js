@@ -8,6 +8,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => !!token.value)
 
+  // Update setToken to ensure headers are set
   const setToken = (newToken) => {
     token.value = newToken
     if (newToken) {
@@ -25,15 +26,30 @@ export const useAuthStore = defineStore('auth', () => {
 
   const fetchUser = async () => {
     try {
-      const response = await axios.get('/api/auth/user')
-      setUser(response.data)
-      return response.data
+      const response = await axios.get('/auth/user');
+      setUser(response.data.data);
+      return response.data.data;
     } catch (error) {
       setToken(null)
       setUser(null)
       throw error
     }
   }
+
+  // Add initialization on auth store creation
+  const initializeAuth = async () => {
+    if (token.value) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+      try {
+        await fetchUser()
+      } catch (error) {
+        console.error('Failed to initialize auth:', error)
+      }
+    }
+  }
+
+  // Call initialize immediately
+  initializeAuth()
 
   /**
    * login
@@ -47,6 +63,7 @@ export const useAuthStore = defineStore('auth', () => {
       
       setToken(token);
       setUser(userData);
+      console.log('User:', userData);
 
       return response.data.data;
     } catch (error) {
@@ -75,7 +92,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const logout = async () => {
     try {
-      await axios.post('/api/auth/logout')
+      await axios.post('/auth/logout')
     } catch (error) {
       console.error('Logout error:', error)
     } finally {
@@ -84,23 +101,21 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  // Update checkAuth to be more robust
   const checkAuth = async () => {
     try {
-      if (!token.value) return false
+      if (!token.value) {
+        return false
+      }
       
       if (!user.value) {
         await fetchUser()
       }
-      return true
+      return !!user.value
     } catch (error) {
       console.error('Error checking auth:', error)
       return false
     }
-  }
-
-  // Initialize axios header if token exists
-  if (token.value) {
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
   }
 
   return {

@@ -22,10 +22,10 @@ class FeExamResource extends JsonResource
             'passing_score' => $this->passing_score,
             'attempts_allowed' => $this->attempts_allowed,
             'total_questions' => $this->questions_count,
-            'topics' => json_decode($this->topics_covered) ?? [],
+            'topics' => $this->topics_covered ?? [],
             'image_url' => $this->image_url,
-            'attempts' => $this->when($this->attempts, function() {
-                return $this->attempts->map(function($attempt) {
+            'attempts' => $this->when($this->attempts, function () {
+                return $this->attempts->map(function ($attempt) {
                     return [
                         'id' => $attempt->id,
                         'score' => $attempt->score,
@@ -37,7 +37,7 @@ class FeExamResource extends JsonResource
                 });
             }),
             'has_attempts' => $this->attempts->isNotEmpty(),
-            'last_attempt' => $this->when($this->attempts->isNotEmpty(), function() {
+            'last_attempt' => $this->when($this->attempts->isNotEmpty(), function () {
                 $lastAttempt = $this->attempts->sortByDesc('created_at')->first();
                 return [
                     'score' => $lastAttempt->score,

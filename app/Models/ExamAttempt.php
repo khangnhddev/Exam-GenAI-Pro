@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CertificatePassedMail;
 
 class ExamAttempt extends Model
 {
@@ -24,6 +26,25 @@ class ExamAttempt extends Model
         'score' => 'integer',
         'answers' => 'array'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function ($attempt) {
+            // Check if attempt was just completed and passed
+            if (
+                $attempt->isDirty('status') &&
+                $attempt->status === 'completed' &&
+                $attempt->score >= $attempt->exam->passing_score
+            ) {
+
+                // Send congratulatory email
+                Mail::to($attempt->user->email)
+                    ->queue(new CertificatePassedMail($attempt));
+            }
+        });
+    }
 
     public function exam(): BelongsTo
     {

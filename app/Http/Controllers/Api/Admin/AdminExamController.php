@@ -244,7 +244,9 @@ class AdminExamController extends Controller
             'description' => 'required|string',
             'duration' => 'required|integer|min:1',
             'passing_score' => 'required|integer|min:0|max:100',
-            'max_attempts' => 'required|integer|min:1'
+            'max_attempts' => 'required|integer|min:1',
+            'topics_covered' => 'required|array',
+            'topics_covered.*' => 'string|max:255'
         ]);
 
         $exam = Exam::create([
@@ -270,7 +272,9 @@ class AdminExamController extends Controller
             'duration' => 'sometimes|integer|min:1',
             'passing_score' => 'sometimes|integer|min:0|max:100',
             'status' => 'sometimes|in:draft,published',
-            'max_attempts' => 'sometimes|integer|min:1'
+            'max_attempts' => 'sometimes|integer|min:1',
+            'topics_covered' => 'required|array',
+            'topics_covered.*' => 'string|max:255'
         ]);
 
         $exam->update($validated);
@@ -358,22 +362,22 @@ class AdminExamController extends Controller
                     [
                         'role' => 'user',
                         'content' => "Based on this content:\n\n{$relevantContent}\n\n" .
-                                   "Generate {$request->count} {$request->difficulty} level multiple-choice questions. " .
-                                   "Return ONLY valid JSON in this exact format:\n" .
-                                   "{\n" .
-                                   "  \"questions\": [\n" .
-                                   "    {\n" .
-                                   "      \"question_text\": \"Question goes here?\",\n" .
-                                   "      \"options\": [\n" .
-                                   "        {\"text\": \"Option 1\", \"is_correct\": false},\n" .
-                                   "        {\"text\": \"Option 2\", \"is_correct\": true},\n" .
-                                   "        {\"text\": \"Option 3\", \"is_correct\": false},\n" .
-                                   "        {\"text\": \"Option 4\", \"is_correct\": false}\n" .
-                                   "      ],\n" .
-                                   "      \"explanation\": \"Explanation goes here\"\n" .
-                                   "    }\n" .
-                                   "  ]\n" .
-                                   "}"
+                            "Generate {$request->count} {$request->difficulty} level multiple-choice questions. " .
+                            "Return ONLY valid JSON in this exact format:\n" .
+                            "{\n" .
+                            "  \"questions\": [\n" .
+                            "    {\n" .
+                            "      \"question_text\": \"Question goes here?\",\n" .
+                            "      \"options\": [\n" .
+                            "        {\"text\": \"Option 1\", \"is_correct\": false},\n" .
+                            "        {\"text\": \"Option 2\", \"is_correct\": true},\n" .
+                            "        {\"text\": \"Option 3\", \"is_correct\": false},\n" .
+                            "        {\"text\": \"Option 4\", \"is_correct\": false}\n" .
+                            "      ],\n" .
+                            "      \"explanation\": \"Explanation goes here\"\n" .
+                            "    }\n" .
+                            "  ]\n" .
+                            "}"
                     ]
                 ],
                 'temperature' => 0.7,
@@ -391,11 +395,10 @@ class AdminExamController extends Controller
                 'questions' => $questions['questions'],
                 'success' => true
             ]);
-
         } catch (\Exception $e) {
             // \Log::error('Question generation failed: ' . $e->getMessage());
             // \Log::error('AI Response: ' . ($content ?? 'No content'));
-            
+
             return response()->json([
                 'error' => 'Failed to process file and generate questions',
                 'message' => $e->getMessage(),
@@ -419,15 +422,15 @@ class AdminExamController extends Controller
             foreach ($exam->questions as $question) {
                 $question->options()->delete();
             }
-            
+
             $exam->questions()->delete();
-            
+
             $exam->delete();
 
             return response()->json(null, 204);
         } catch (\Exception $e) {
             // \Log::error('Failed to delete exam: ' . $e->getMessage());
-            
+
             return response()->json([
                 'message' => 'Failed to delete exam',
                 'error' => $e->getMessage()
@@ -493,7 +496,6 @@ class AdminExamController extends Controller
                 'message' => 'AI Generated exam saved successfully',
                 'exam' => new ExamResource($exam->load(['questions.options']))
             ], 201);
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to save AI generated exam:', [
@@ -554,7 +556,7 @@ class AdminExamController extends Controller
             ]);
 
             $content = $response->choices[0]->message->content;
-            
+
             // Parse and validate JSON response
             $data = json_decode($content, true);
             if (json_last_error() !== JSON_ERROR_NONE || !isset($data['questions'])) {
@@ -578,7 +580,6 @@ class AdminExamController extends Controller
                 'message' => 'Questions generated successfully',
                 'questions' => $data['questions']
             ]);
-
         } catch (\Exception $e) {
             Log::error('Failed to generate exam questions:', [
                 'error' => $e->getMessage(),

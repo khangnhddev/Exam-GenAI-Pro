@@ -105,14 +105,20 @@
             <div class="mt-1">
               <textarea
                 id="topics"
-                v-model="form.topics_covered"
+                v-model="topicsInput"
                 rows="3"
                 class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                placeholder="Enter topics covered in this exam"
+                placeholder="Enter topics covered, one per line"
               ></textarea>
             </div>
             <p class="mt-2 text-sm text-gray-500">
-              List the main topics that will be covered in this exam
+              Enter each topic on a new line. For example:
+              <br>
+              Variables and Data Types
+              <br>
+              Control Structures
+              <br>
+              Functions and Methods
             </p>
           </div>
 
@@ -179,13 +185,13 @@ const form = ref({
   image_alt: '',
   topics_covered: ''
 })
+const topicsInput = ref('')
 
 async function loadExam() {
   try {
-    console.log('Load exam');
     loading.value = true
     const { data } = await axios.get(`/admin/exams/${props.id}`);
-
+    
     form.value = {
       ...form.value,
       title: data.data.title,
@@ -197,10 +203,12 @@ async function loadExam() {
       status: data.data.status,
       image_path: data.data.image_path,
       image_alt: data.data.image_alt,
-      topics_covered: data.data.topics_covered
+      topics_covered: data.data.topics_covered || '', // Handle null/undefined case
     }
+    topicsInput.value = data.data.topics_covered?.join('\n') || ''
   } catch (error) {
     console.error('Failed to load exam:', error)
+    toast.error('Failed to load exam')
   } finally {
     loading.value = false
   }
@@ -222,7 +230,7 @@ async function handleSubmit() {
       passing_score: form.value.passing_score,
       max_attempts: form.value.max_attempts,
       status: form.value.status,
-      topics_covered: form.value.topics_covered
+      topics_covered: topicsInput.value.split('\n').map(topic => topic.trim()).filter(topic => topic)
     }
 
     // Handle image separately if needed

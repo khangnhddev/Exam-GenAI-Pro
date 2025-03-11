@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\KnowledgeBaseController;
 use App\Http\Controllers\Api\Admin\AdminDepartmentController;
+// use App\Http\Controllers\Api\CodeEvaluationController;
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/register', [AuthController::class, 'register']);
@@ -31,7 +32,8 @@ Route::prefix('v1')->group(function () {
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
-        Route::get('auth/me', [AuthController::class, 'me']);
+        // Route::get('auth/me', [AuthController::class, 'me']);
+        Route::get('auth/user', [AuthController::class, 'user']);
 
         Route::get('/profile', [ProfileController::class, 'show']);
         Route::put('/profile', [ProfileController::class, 'update']);
@@ -58,6 +60,9 @@ Route::prefix('v1')->group(function () {
         Route::post('assistant/chat', [AIAssistantController::class, 'chat']);
         Route::get('user/learning-profile', [AIAssistantController::class, 'getLearningProfile']);
         Route::post('/ai-assistant/query', [AIAssistantController::class, 'query']);
+
+        // Route::post('code/execute', [CodeSubmissionController::class, 'execute']);
+        // Route::post('code/evaluate', [CodeEvaluationController::class, 'evaluate']);
     });
 
     // Public certificate verification
@@ -126,3 +131,13 @@ Route::prefix('v1')->group(function () {
     });
 
 });
+
+// Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])
+//     ->name('password.email');
+
+// Route::post('/reset-password', [AuthController::class, 'resetPassword'])
+//     ->name('password.reset');
+
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+->middleware(['signed'])
+->name('verification.verify');

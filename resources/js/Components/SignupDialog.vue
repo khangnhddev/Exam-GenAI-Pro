@@ -43,105 +43,136 @@
                 </div>
 
                 <!-- Sign Up Form -->
-                <form @submit.prevent="handleSubmit" class="space-y-6">
-                  <!-- Name -->
+                <form @submit.prevent="handleSignUp" class="space-y-6">
+                  <!-- Full Name Input -->
                   <div>
-                    <label class="block text-sm font-medium text-gray-300">Name</label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
+                    <label for="fullname" class="block text-sm font-medium text-gray-200">
+                      Full Name
+                    </label>
+                    <div class="mt-1 relative">
                       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <UserIcon class="h-5 w-5 text-gray-400" />
                       </div>
-                      <input v-model="form.fullname" type="text" required
-                        class="block w-full pl-10 py-3 rounded-lg bg-white/10 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        :class="{ 'border-red-500': errors.name }" placeholder="Enter your name" />
-                      <div v-if="errors.name" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                        <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                      </div>
+                      <input
+                        id="fullname"
+                        v-model="form.fullname"
+                        type="text"
+                        required
+                        class="block w-full pl-10 py-2 sm:text-sm rounded-lg bg-white/10 border border-gray-400/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Your name"
+                      />
                     </div>
-                    <p v-if="errors.name" class="mt-2 text-sm text-red-500">{{ errors.name }}</p>
+                    <div v-if="errors.fullname" class="mt-1 text-sm text-red-400">
+                      {{ errors.fullname[0] }}
+                    </div>
                   </div>
 
-                  <!-- Email -->
+                  <!-- Email Input -->
                   <div>
-                    <label class="block text-sm font-medium text-gray-300">Email</label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
+                    <label for="email" class="block text-sm font-medium text-gray-200">
+                      Email address
+                    </label>
+                    <div class="mt-1 relative">
                       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <EnvelopeIcon class="h-5 w-5 text-gray-400" />
                       </div>
-                      <input v-model="form.email" type="email" required
-                        class="block w-full pl-10 py-3 rounded-lg bg-white/10 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        :class="{ 'border-red-500': errors.email }" placeholder="Enter your email" />
-                      <div v-if="errors.email" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                        <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                      </div>
+                      <input
+                        id="email"
+                        v-model="form.email"
+                        type="email"
+                        required
+                        class="block w-full pl-10 py-2 sm:text-sm rounded-lg bg-white/10 border border-gray-400/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="you@example.com"
+                      />
                     </div>
-                    <p v-if="errors.email" class="mt-2 text-sm text-red-500">{{ errors.email }}</p>
+                    <div v-if="errors.email" class="mt-1 text-sm text-red-400">
+                      {{ errors.email[0] }}
+                    </div>
                   </div>
 
-                  <!-- Password -->
+                  <!-- Password Input -->
                   <div>
-                    <label class="block text-sm font-medium text-gray-300">Password</label>
-                    <div class="mt-1 relative rounded-md shadow-sm">
+                    <label for="password" class="block text-sm font-medium text-gray-200">
+                      Password
+                    </label>
+                    <div class="mt-1 relative">
                       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <LockClosedIcon class="h-5 w-5 text-gray-400" />
                       </div>
-                      <input v-model="form.password" type="password" required
-                        class="block w-full pl-10 py-3 rounded-lg bg-white/10 border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        :class="{ 'border-red-500': errors.password }" placeholder="••••••••" />
-                      <div v-if="errors.password" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                        <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
-                      </div>
+                      <input
+                        id="password"
+                        v-model="form.password"
+                        type="password"
+                        required
+                        class="block w-full pl-10 py-2 sm:text-sm rounded-lg bg-white/10 border border-gray-400/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="••••••••"
+                      />
                     </div>
-                    <p v-if="errors.password" class="mt-2 text-sm text-red-500">{{ errors.password }}</p>
+                    <div v-if="errors.password" class="mt-1 text-sm text-red-400">
+                      {{ errors.password[0] }}
+                    </div>
                   </div>
 
-                  <!-- Error message -->
-                  <!-- <div v-if="error" class="rounded-md bg-red-50 p-4 mt-6">
-                    <div class="flex">
-                      <div class="flex-shrink-0">
-                        <ExclamationCircleIcon class="h-5 w-5 text-red-400" aria-hidden="true" />
+                  <!-- Password Confirmation Input -->
+                  <!-- <div>
+                    <label for="password_confirmation" class="block text-sm font-medium text-gray-200">
+                      Confirm Password
+                    </label>
+                    <div class="mt-1 relative">
+                      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <KeyIcon class="h-5 w-5 text-gray-400" />
                       </div>
-                      <div class="ml-3">
-                        <h3 class="text-sm font-medium text-red-800">
-                          {{ error }}
-                        </h3>
-                      </div>
+                      <input
+                        id="password_confirmation"
+                        v-model="form.password_confirmation"
+                        type="password"
+                        required
+                        class="block w-full pl-10 py-2 sm:text-sm rounded-lg bg-white/10 border border-gray-400/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="••••••••"
+                      />
                     </div>
                   </div> -->
 
                   <!-- Submit Button -->
-                  <div>
-                    <button type="submit" :disabled="loading"
-                      class="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transform transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed">
-                      <svg
-                        v-if="loading"
-                        class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                        <path
-                          class="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        />
-                      </svg>
-                      {{ loading ? 'Creating Account...' : 'Create Account' }}
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    :disabled="loading"
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                  >
+                    <svg
+                      v-if="loading"
+                      class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    {{ loading ? 'Creating account...' : 'Create account' }}
+                  </button>
                 </form>
                 <!-- Error Message -->
-                <div v-if="error" class="mt-4">
+                <!-- <div v-if="Object.keys(errors).length > 0" class="mt-4">
                   <div class="rounded-lg bg-red-500/10 backdrop-blur-sm border border-red-500/20 p-4">
                     <div class="flex">
                       <ExclamationCircleIcon class="h-5 w-5 text-red-400" />
                       <div class="ml-3">
-                        <p class="text-sm font-medium text-red-300">{{ error }}</p>
+                        <ul class="list-disc list-inside">
+                          <template v-for="(errorMessages, field) in errors" :key="field">
+                            <li v-for="message in errorMessages" :key="message" class="text-sm font-medium text-red-300">
+                              {{ message }}
+                            </li>
+                          </template>
+                        </ul>
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> -->
 
                 <!-- Footer -->
                 <div class="text-center">
@@ -169,7 +200,10 @@ import {
   ExclamationCircleIcon,
   UserIcon,
   EnvelopeIcon, 
-  LockClosedIcon 
+  LockClosedIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  KeyIcon
 } from '@heroicons/vue/24/outline'
 import { useToast } from 'vue-toastification'
 import { useAuthStore } from '@/stores/auth'
@@ -187,27 +221,34 @@ const emit = defineEmits(['close', 'switch-to-login'])
 const toast = useToast()
 const loading = ref(false)
 const errors = ref({})
-const error = ref(null)
+const showPassword = ref(false)
 
 const form = reactive({
   name: '',
   fullname: '',
   email: '',
   password: '',
+  password_confirmation: ''
 })
 
 function onClose() {
-  error.value = null
+  errors.value = {}
   loading.value = false
   emit('close')
+  // Reset form
+  form.fullname = ''
+  form.email = ''
+  form.password = ''
+  form.password_confirmation = ''
 }
 
 function switchToLogin() {
   emit('switch-to-login')
 }
 
-async function handleSubmit() {
+async function handleSignUp() {
   loading.value = true
+  errors.value = {}
   try {
     await useAuthStore().register(form)
     toast.success('Registration successful!')
@@ -215,14 +256,22 @@ async function handleSubmit() {
     form.fullname = ''
     form.email = ''
     form.password = ''
+    form.password_confirmation = ''
     // Close signup dialog
     emit('close')
-    // Switch to login dialog with message
+    // Switch to login dialog
     emit('switch-to-login')
-    toast.info('Please login with your new account')
-  } catch (error) {
-    console.error('Registration error:', error)
-    toast.error(error.response?.data?.message || 'Registration failed')
+  } catch (err) {
+    console.error('Registration error:', err)
+    if (err.response?.status === 422) {
+      // Server validation errors
+      errors.value = err.response.data.errors
+    } else {
+      // Other errors
+      errors.value = {
+        general: [err.response?.data?.message || 'Registration failed. Please try again.']
+      }
+    }
   } finally {
     loading.value = false
   }

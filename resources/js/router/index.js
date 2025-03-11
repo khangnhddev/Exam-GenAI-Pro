@@ -5,6 +5,10 @@ import NotFound from '../views/errors/404.vue'
 import ServerError from '../views/errors/500.vue'
 import { ERROR_TYPES } from '@/utils/errorHandler'
 import ErrorPage from '@/views/errors/ErrorPage.vue'
+// import TestCode from '@/views/TestCode.vue'
+// import TestPrompt from '@/views/TestPrompt.vue'
+// import EmailVerification from '@/views/auth/EmailVerification.vue'
+// import verifiedEmail from './middleware/verifiedEmail'
 
 // Import the admin layout
 import AdminLayout from '../Layouts/AdminLayout.vue'
@@ -317,6 +321,51 @@ const routes = [
         name: 'server-error',
         component: ServerError
     },
+    // {
+    //     path: '/test-code',
+    //     name: 'test-code',
+    //     component: TestCode,
+    //     meta: {
+    //         requiresAuth: false
+    //     }
+    // },
+    // {
+    //     path: '/test-prompt',
+    //     name: 'test-prompt',
+    //     component: TestPrompt,
+    //     meta: {
+    //         requiresAuth: false
+    //     }
+    // },
+    {
+        path: '/email/verify/:id/:hash',
+        name: 'verification.verify',
+        component: () => import('@/views/auth/EmailVerification.vue'),
+        props: true,
+        meta: {
+            title: 'Email Verification',
+            requiresAuth: false
+        }
+    },
+    // {
+    //     path: '/email/verify',
+    //     name: 'verification.notice',
+    //     component: () => import('@/views/auth/EmailVerification.vue'),
+    //     meta: {
+    //         requiresAuth: true,
+    //         title: 'Verify Email'
+    //     }
+    // },
+    // {
+    //     path: '/dashboard',
+    //     name: 'dashboard',
+    //     component: () => import('@/views/Dashboard.vue'),
+    //     meta: {
+    //         requiresAuth: true,
+    //         requiresVerification: true,
+    //         title: 'Dashboard'
+    //     }
+    // },
     {
         path: '/:pathMatch(.*)*',
         redirect: '/404'
@@ -343,6 +392,9 @@ const router = createRouter({
         }
     }
 })
+
+// Add middleware to router
+// router.beforeEach(verifiedEmail)
 
 router.beforeEach((to, from, next) => {
     const authStore = useAuthStore()

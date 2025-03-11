@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Exam extends Model
 {
@@ -17,12 +18,18 @@ class Exam extends Model
         'attempts_allowed',
         'total_questions',
         'topics_covered',
+        'source',
+        'slug',
     ];
 
     // Optional: Add status constants
     const STATUS_DRAFT = 'draft';
     const STATUS_PUBLISHED = 'published';
     const STATUS_ARCHIVED = 'archived';
+
+    // Add source constants
+    const SOURCE_MANUAL = 'manual';
+    const SOURCE_AI = 'ai_generated';
 
     protected $casts = [
         'topics_covered' => 'array',
@@ -41,6 +48,46 @@ class Exam extends Model
 
     protected $cascadeDeletes = ['questions'];
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($exam) {
+            if (empty($exam->slug)) {
+                $baseSlug = Str::slug($exam->title);
+                $slug = $baseSlug;
+                $counter = 1;
+
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+
+                $exam->slug = $slug;
+            }
+        });
+
+        static::updating(function ($exam) {
+            if ($exam->isDirty('title')) {
+                $baseSlug = Str::slug($exam->title);
+                $slug = $baseSlug;
+                $counter = 1;
+
+                while (static::where('slug', $slug)
+                           ->where('id', '!=', $exam->id)
+                           ->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+
+                $exam->slug = $slug;
+            }
+        });
+    }
+
+    /**
+     * getImageUrlAttribute
+     */
     public function getImageUrlAttribute()
     {
         if (!$this->image_path) {
@@ -49,6 +96,9 @@ class Exam extends Model
         return Storage::url($this->image_path);
     }
 
+    /**
+     * getDefaultImage
+     */
     private function getDefaultImage()
     {
         return 'data:image/svg+xml;base64,' . base64_encode('
@@ -59,6 +109,9 @@ class Exam extends Model
         ');
     }
 
+    /**
+     * questions
+     */
     public function questions(): HasMany
     {
         return $this->hasMany(Question::class);
@@ -67,5 +120,15 @@ class Exam extends Model
     public function attempts(): HasMany
     {
         return $this->hasMany(ExamAttempt::class);
+    }
+
+    public function isAiGenerated(): bool
+    {
+        return $this->source === self::SOURCE_AI;
+    }
+
+    public function isManuallyCreated(): bool
+    {
+        return $this->source === self::SOURCE_MANUAL;
     }
 }
