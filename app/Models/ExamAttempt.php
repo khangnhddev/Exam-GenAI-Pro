@@ -91,4 +91,31 @@ class ExamAttempt extends Model
 
         return max(0, $remainingSeconds);
     }
+
+    /**
+     * Get the prompt evaluations for the attempt.
+     */
+    public function promptEvaluations()
+    {
+        return $this->hasMany(PromptEvaluation::class, 'attempt_id')
+                    ->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get all evaluations for this attempt with questions.
+     */
+    public function getEvaluationsWithQuestions()
+    {
+        return $this->promptEvaluations()
+                    ->with('question')
+                    ->get()
+                    ->mapWithKeys(function ($evaluation) {
+                        return [$evaluation->question_id => [
+                            'feedback' => $evaluation->ai_feedback,
+                            'score' => $evaluation->ai_score,
+                            'is_passed' => $evaluation->is_passed,
+                            'criteria' => $evaluation->evaluation_criteria
+                        ]];
+                    });
+    }
 }

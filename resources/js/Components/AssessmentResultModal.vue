@@ -178,18 +178,28 @@
                 <div class="mt-8 flex items-center justify-between gap-6">
                   <template v-if="results.passed">
                     <button @click="viewCertificate"
-                      class="w-full bg-[#6C2BD9] text-white px-4 py-2.5 rounded-lg font-medium hover:bg-[#5925B5] transition-colors flex items-center justify-center gap-2">
+                      class="flex-1 bg-[#6C2BD9] text-white px-4 py-2.5 rounded-lg font-medium hover:bg-[#5925B5] transition-colors flex items-center justify-center gap-2"
+                    >
                       <EyeIcon class="w-5 h-5" />
-                      View Certificate
+                      View Certificate 
+                    </button>
+                    <button @click="goToReview"
+                      class="flex-1 border border-[#6C2BD9] text-[#6C2BD9] px-4 py-2.5 rounded-lg font-medium hover:bg-[#6C2BD9]/5 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <ClipboardDocumentListIcon class="w-5 h-5" />
+                      Review Answers
                     </button>
                   </template>
                   <template v-else>
-                    <button @click="closeModal"
-                      class="flex-1 bg-[#6C2BD9] text-white px-4 py-2.5 rounded-lg font-medium hover:bg-[#5925B5] transition-colors">
-                      Try Again
+                    <button @click="goToReview"
+                      class="flex-1 bg-[#6C2BD9] text-white px-4 py-2.5 rounded-lg font-medium hover:bg-[#5925B5] transition-colors flex items-center justify-center gap-2"
+                    >
+                      <ClipboardDocumentListIcon class="w-5 h-5" />
+                      Review Answers
                     </button>
                     <button @click="closeModal"
-                      class="flex-1 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-colors">
+                      class="flex-1 bg-gray-100 text-gray-700 px-4 py-2.5 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                    >
                       Close
                     </button>
                   </template>
@@ -205,6 +215,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
+import { useToast } from 'vue-toastification';
 import { useRouter } from 'vue-router';
 
 import {
@@ -226,15 +238,22 @@ import {
   ChartBarIcon,
   AcademicCapIcon,
   TrophyIcon,
-  EyeIcon
+  EyeIcon,
+  ClipboardDocumentListIcon,
+  RadioIcon,
+  CheckIcon,
+  ExclamationCircleIcon
 } from '@heroicons/vue/24/outline'
+import { marked } from 'marked'
 
 const props = defineProps({
   isOpen: Boolean,
   results: {
     type: Object,
     required: true,
-    default: () => ({
+  default: () => ({
+      exam_id: null,
+      attempt_id: null,
       score: 0,
       passing_score: 75,
       passed: false,
@@ -311,6 +330,22 @@ onMounted(() => {
   // Add any mount animations if needed
   console.log('Result assessment modal mounted results', props.results);
 })
+
+const goToReview = () => {
+  if (props.results?.exam_id && props.results?.attempt_id) {
+    // Close modal first
+    closeModal()
+    
+    // Then navigate using router
+    router.push({
+      name: 'exams.attempt.review',
+      params: {
+        examId: props.results.exam_id,
+        attemptId: props.results.attempt_id
+      }
+    })
+  }
+}
 </script>
 
 <style scoped>

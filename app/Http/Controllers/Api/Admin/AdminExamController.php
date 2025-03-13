@@ -14,6 +14,8 @@ use App\Services\RAGService;
 use App\Models\FileKnowledgeBase;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class AdminExamController extends Controller
 {
@@ -36,7 +38,7 @@ class AdminExamController extends Controller
      * index
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
         $exams = Exam::withCount('questions')
             ->orderBy('created_at', 'desc')
@@ -45,6 +47,10 @@ class AdminExamController extends Controller
         return ExamResource::collection($exams);
     }
 
+    /**
+     * generateQuestions
+     * @param \Illuminate\Http\Request $request
+     */
     public function generateQuestions(Request $request, Exam $exam)
     {
         $validated = $request->validate([
@@ -244,18 +250,32 @@ class AdminExamController extends Controller
             'description' => 'required|string',
             'duration' => 'required|integer|min:1',
             'passing_score' => 'required|integer|min:0|max:100',
-            'max_attempts' => 'required|integer|min:1',
-            'topics_covered' => 'required|array',
-            'topics_covered.*' => 'string|max:255'
+            // 'attempts_allowed' => 'required|integer|min:1',
+            'topics_covered' => 'nullable|array',
+            'status' => ['required', Rule::in([
+                Exam::STATUS_DRAFT,
+                Exam::STATUS_PUBLISHED,
+                Exam::STATUS_ARCHIVED
+            ])],
+            'source' => ['required', Rule::in([
+                Exam::SOURCE_MANUAL,
+                Exam::SOURCE_AI
+            ])],
+            'category' => ['required', Rule::in(array_keys(Exam::CATEGORIES))],
+            'difficulty' => ['required', Rule::in([
+                Exam::DIFFICULTY_BEGINNER,
+                Exam::DIFFICULTY_INTERMEDIATE,
+                Exam::DIFFICULTY_ADVANCED,
+                Exam::DIFFICULTY_EXPERT
+            ])]
         ]);
 
-        $exam = Exam::create([
-            ...$validated,
-            'total_questions' => 0,
-            'status' => 'draft'
-        ]);
+        $exam = Exam::create($validated);
 
-        return new ExamResource($exam);
+        return response()->json([
+            'message' => 'Exam created successfully',
+            'data' => $exam
+        ], 201);
     }
 
     /**
@@ -267,20 +287,36 @@ class AdminExamController extends Controller
     public function update(Request $request, Exam $exam)
     {
         $validated = $request->validate([
-            'title' => 'sometimes|string|max:255',
-            'description' => 'sometimes|string',
-            'duration' => 'sometimes|integer|min:1',
-            'passing_score' => 'sometimes|integer|min:0|max:100',
-            'status' => 'sometimes|in:draft,published',
-            'max_attempts' => 'sometimes|integer|min:1',
-            'topics_covered' => 'required|array',
-            'topics_covered.*' => 'string|max:255'
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string',
+            'duration' => 'sometimes|required|integer|min:1',
+            'passing_score' => 'sometimes|required|integer|min:0|max:100',
+            // 'attempts_allowed' => 'sometimes|required|integer|min:1',
+            'topics_covered' => 'nullable|array',
+            'status' => ['sometimes', 'required', Rule::in([
+                Exam::STATUS_DRAFT,
+                Exam::STATUS_PUBLISHED,
+                Exam::STATUS_ARCHIVED
+            ])],
+            'source' => ['sometimes', 'required', Rule::in([
+                Exam::SOURCE_MANUAL,
+                Exam::SOURCE_AI
+            ])],
+            'category' => ['sometimes', 'required', Rule::in(array_keys(Exam::CATEGORIES))],
+            'difficulty' => ['sometimes', 'required', Rule::in([
+                Exam::DIFFICULTY_BEGINNER,
+                Exam::DIFFICULTY_INTERMEDIATE,
+                Exam::DIFFICULTY_ADVANCED,
+                Exam::DIFFICULTY_EXPERT
+            ])]
         ]);
 
         $exam->update($validated);
-        Log::debug($request->title);
 
-        return new ExamResource($exam);
+        return response()->json([
+            'message' => 'Exam updated successfully',
+            'data' => $exam
+        ]);
     }
 
     /**

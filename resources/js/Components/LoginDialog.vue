@@ -210,4 +210,9 @@ const handleLogin = async () => {
 const onClose = () => {
   emit('close')
 }
+
+const handleLoginSuccess = async () => {
+  // Handle successful login
+  emit('success')
+}
 </script>

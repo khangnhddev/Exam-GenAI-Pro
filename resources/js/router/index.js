@@ -5,8 +5,9 @@ import NotFound from '../views/errors/404.vue'
 import ServerError from '../views/errors/500.vue'
 import { ERROR_TYPES } from '@/utils/errorHandler'
 import ErrorPage from '@/views/errors/ErrorPage.vue'
-// import TestCode from '@/views/TestCode.vue'
-// import TestPrompt from '@/views/TestPrompt.vue'
+import TestCode from '@/views/TestCode.vue'
+import TestPrompt from '@/views/TestPrompt.vue'
+import AttemptReview from '@/views/exams/AttemptReview.vue'
 // import EmailVerification from '@/views/auth/EmailVerification.vue'
 // import verifiedEmail from './middleware/verifiedEmail'
 
@@ -52,6 +53,12 @@ const frontendRoutes = {
             name: 'exams.result',
             component: () => import('../views/exams/Result.vue'),
             props: true,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: 'exams/:id/attempts/:attemptId/review',
+            name: 'exams.review',
+            component: () => import('@/views/exams/Review.vue'),
             meta: { requiresAuth: true }
         },
         {
@@ -266,12 +273,12 @@ const adminRoutes = {
 
 // Auth routes
 const authRoutes = [
-    {
-        path: '/login',
-        name: 'login',
-        component: () => import('../views/auth/Login.vue'),
-        meta: { guest: true }
-    },
+    // {
+    //     path: '/login',
+    //     name: 'login',
+    //     component: () => import('../views/auth/Login.vue'),
+    //     meta: { guest: true }
+    // },
     {
         path: '/logout',
         name: 'logout',
@@ -281,12 +288,12 @@ const authRoutes = [
             next({ name: 'login' })
         }
     },
-    {
-        path: '/register',
-        name: 'register',
-        component: () => import('../views/auth/Register.vue'),
-        meta: { requiresGuest: true }
-    },
+    // {
+    //     path: '/register',
+    //     name: 'register',
+    //     component: () => import('../views/auth/Register.vue'),
+    //     meta: { requiresGuest: true }
+    // },
     {
         path: '/forgot-password',
         name: 'forgot-password',
@@ -321,22 +328,22 @@ const routes = [
         name: 'server-error',
         component: ServerError
     },
-    // {
-    //     path: '/test-code',
-    //     name: 'test-code',
-    //     component: TestCode,
-    //     meta: {
-    //         requiresAuth: false
-    //     }
-    // },
-    // {
-    //     path: '/test-prompt',
-    //     name: 'test-prompt',
-    //     component: TestPrompt,
-    //     meta: {
-    //         requiresAuth: false
-    //     }
-    // },
+    {
+        path: '/test-code',
+        name: 'test-code',
+        component: TestCode,
+        meta: {
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/test-prompt',
+        name: 'test-prompt',
+        component: TestPrompt,
+        meta: {
+            requiresAuth: false
+        }
+    },
     {
         path: '/email/verify/:id/:hash',
         name: 'verification.verify',
@@ -345,6 +352,24 @@ const routes = [
         meta: {
             title: 'Email Verification',
             requiresAuth: false
+        }
+    },
+    {
+        path: '/exams/:slug',
+        name: 'exam.show',
+        component: () => import('@/views/exam/Show.vue'),
+        props: true,
+        meta: {
+            requiresAuth: true,
+            title: 'Take Exam'
+        }
+    },
+    {
+        path: '/exams/:examId/attempts/:attemptId/review',
+        name: 'exams.attempt.review',
+        component: AttemptReview,
+        meta: {
+            requiresAuth: true
         }
     },
     // {

@@ -36,8 +36,21 @@
 
       <!-- Search and Filter Section -->
       <SearchFilterPanel
-        v-model:search="searchQuery"
-        v-model:filter="selectedStatus"
+        :search-query="searchQuery"
+        @update:search="(value) => { 
+          searchQuery = value
+          fetchExams(1)
+        }"
+        :selected-status="selectedStatus"
+        @update:filter="(value) => {
+          selectedStatus = value
+          fetchExams(1)
+        }"
+        :selected-date-range="selectedDateRange"
+        @update:date-range="(value) => {
+          selectedDateRange = value
+          fetchExams(1)
+        }"
         search-label="Search Exams"
         search-placeholder="Search by title or description..."
         filter-label="Status"
@@ -59,6 +72,12 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Questions
                 </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Source
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Created
+                </th>
                 <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
@@ -66,7 +85,7 @@
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
               <tr v-for="exam in filteredExams" :key="exam.id">
-                <td class="px-6 py-4 whitespace-nowrap">
+                <td class="px-6 py-4">
                   <div class="flex items-center">
                     <div class="flex-shrink-0 h-10 w-10 bg-gray-100 rounded-full overflow-hidden">
                       <img 
@@ -78,9 +97,13 @@
                       />
                       <DefaultExamIcon v-else />
                     </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">{{ exam.title }}</div>
-                      <div class="text-sm text-gray-500">{{ exam.description }}</div>
+                    <div class="ml-4 min-w-0 flex-1">
+                      <div class="text-sm font-medium text-gray-900 break-words">
+                        {{ exam.title }}
+                      </div>
+                      <div class="text-sm text-gray-500 truncate">
+                        {{ exam.description }}
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -97,6 +120,26 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ exam.questions_count || 0 }} questions
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <span :class="[
+                      'px-2 py-1 text-xs font-medium rounded-full',
+                      exam.source === 'ai_generated' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'
+                    ]">
+                      {{ exam.source === 'ai_generated' ? 'AI Generated' : 'Manual' }}
+                    </span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex flex-col">
+                    <span class="text-sm text-gray-900">
+                      {{ new Date(exam.created_at).toLocaleDateString() }}
+                    </span>
+                    <span class="text-xs text-gray-500">
+                      {{ new Date(exam.created_at).toLocaleTimeString() }}
+                    </span>
+                  </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <router-link
@@ -151,6 +194,62 @@
               </tr>
             </tbody>
           </table>
+
+          <!-- Pagination -->
+          <div class="px-6 py-4 bg-white border-t">
+            <div class="flex items-center justify-between">
+              <!-- Items per page info -->
+              <div class="text-sm text-gray-500">
+                Showing {{ exams.meta.from || 0 }} to {{ exams.meta.to || 0 }} of {{ exams.meta.total || 0 }} exams
+              </div>
+
+              <!-- Pagination buttons -->
+              <div class="flex space-x-2">
+                <button 
+                  @click="changePage(exams.meta.current_page - 1)"
+                  :disabled="!exams.links.prev"
+                  class="px-3 py-1 text-sm rounded-md transition-colors"
+                  :class="[
+                    exams.links.prev 
+                      ? 'text-gray-700 hover:bg-gray-100' 
+                      : 'text-gray-400 cursor-not-allowed'
+                  ]"
+                >
+                  Previous
+                </button>
+
+                <!-- Page numbers -->
+                <div class="flex space-x-1">
+                  <button
+                    v-for="page in pageNumbers"
+                    :key="page"
+                    @click="changePage(page)"
+                    class="px-3 py-1 text-sm rounded-md transition-colors"
+                    :class="[
+                      page === exams.meta.current_page
+                        ? 'bg-indigo-600 text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    ]"
+                  >
+                    {{ page }}
+                  </button>
+                </div>
+
+                <button 
+                  @click="changePage(exams.meta.current_page + 1)"
+                  :disabled="!exams.links.next"
+                  class="px-3 py-1 text-sm rounded-md transition-colors"
+                  :class="[
+                    exams.links.next 
+                      ? 'text-gray-700 hover:bg-gray-100' 
+                      : 'text-gray-400 cursor-not-allowed'
+                  ]"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -389,7 +488,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import SearchFilterPanel from '@/Components/admin/SearchFilterPanel.vue'
 import DefaultExamIcon from '@/Components/DefaultExamIcon.vue'
@@ -397,7 +496,24 @@ import { Dialog, DialogPanel, DialogTitle, TransitionRoot, TransitionChild } fro
 import { XMarkIcon, TrashIcon } from '@heroicons/vue/24/outline'
 import { useToast } from 'vue-toastification'
 
-const exams = ref([])
+// Update exams ref to match API response structure
+const exams = ref({
+  data: [],
+  meta: {
+    current_page: 1,
+    from: 1,
+    last_page: 1,
+    per_page: 10,
+    to: 0,
+    total: 0
+  },
+  links: {
+    first: null,
+    last: null,
+    prev: null,
+    next: null
+  }
+})
 const searchQuery = ref('')
 const selectedStatus = ref('')
 const loading = ref(true)
@@ -425,33 +541,76 @@ const statusFilters = [
   { value: 'archived', label: 'Archived' }
 ]
 
+// Add new refs for date filtering
+const selectedDateRange = ref('')
+const customStartDate = ref('')
+const customEndDate = ref('')
+
 // Add filtered exams computed property
 const filteredExams = computed(() => {
-  if (!exams.value) return []
+  if (!exams.value?.data) return []
   
-  return exams.value.filter(exam => {
-    const matchesSearch = !searchQuery.value || 
-      exam.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      exam.description?.toLowerCase().includes(searchQuery.value.toLowerCase())
+  return exams.value.data.filter(exam => {
+    // Search in title and description
+    const searchTerm = searchQuery.value.toLowerCase().trim()
+    const matchesSearch = !searchTerm || 
+      exam.title.toLowerCase().includes(searchTerm) ||
+      (exam.description && exam.description.toLowerCase().includes(searchTerm))
     
+    // Status filter
     const matchesStatus = !selectedStatus.value || exam.status === selectedStatus.value
     
-    return matchesSearch && matchesStatus
+    // Date filter
+    const matchesDate = getDateFilterCondition(exam.created_at)
+    
+    return matchesSearch && matchesStatus && matchesDate
   })
 })
 
-onMounted(async () => {
+// Calculate page numbers to show
+const pageNumbers = computed(() => {
+  const pages = []
+  const total = exams.value.meta.last_page
+  const current = exams.value.meta.current_page
+
+  // Show maximum 5 page numbers
+  for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
+    pages.push(i)
+  }
+  return pages
+})
+
+// Fetch exams with pagination
+const fetchExams = async (page = 1) => {
   try {
     loading.value = true
-    error.value = null
-    const { data } = await axios.get('/admin/exams')
-    exams.value = data.data
-  } catch (err) {
-    error.value = err.response?.data?.message || 'Error loading exams'
-    console.error('Error fetching exams:', err)
+    const params = new URLSearchParams({
+      page,
+      search: searchQuery.value,
+      status: selectedStatus.value,
+      date_range: selectedDateRange.value,
+      start_date: customStartDate.value,
+      end_date: customEndDate.value
+    })
+
+    const response = await axios.get(`/admin/exams?${params}`)
+    exams.value = response.data
+  } catch (error) {
+    console.error('Error fetching exams:', error)
+    toast.error('Failed to fetch exams')
   } finally {
     loading.value = false
   }
+}
+
+// Handle page change
+const changePage = (page) => {
+  if (page < 1 || page > exams.value.meta.last_page) return
+  fetchExams(page)
+}
+
+onMounted(() => {
+  fetchExams()
 })
 
 async function deleteExam(exam) {
@@ -459,7 +618,7 @@ async function deleteExam(exam) {
   
   try {
     await axios.delete(`/admin/exams/${exam.id}`)
-    exams.value = exams.value.filter(e => e.id !== exam.id)
+    exams.value.data = exams.value.data.filter(e => e.id !== exam.id)
   } catch (error) {
     console.error('Error deleting exam:', error)
   }
@@ -500,7 +659,7 @@ async function saveExam() {
       questions: generatedExam.value.questions
     })
     
-    exams.value.unshift(data.exam)
+    exams.value.data.unshift(data.exam)
     showPreviewModal.value = false
     toast.success('Exam saved successfully!')
     
@@ -536,9 +695,9 @@ async function togglePublishStatus(exam) {
     })
     
     // Update exam status in the list
-    const index = exams.value.findIndex(e => e.id === exam.id)
+    const index = exams.value.data.findIndex(e => e.id === exam.id)
     if (index !== -1) {
-      exams.value[index].status = newStatus
+      exams.value.data[index].status = newStatus
     }
     
     toast.success(
@@ -554,4 +713,51 @@ async function togglePublishStatus(exam) {
     )
   }
 }
+
+// Add helper function for date filtering
+function getDateFilterCondition(dateStr) {
+  if (!selectedDateRange.value) return true
+  
+  const date = new Date(dateStr)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  switch (selectedDateRange.value) {
+    case 'today':
+      return date >= today
+    case 'yesterday':
+      const yesterday = new Date(today)
+      yesterday.setDate(yesterday.getDate() - 1)
+      return date >= yesterday && date < today
+    case 'last7days':
+      const last7Days = new Date(today)
+      last7Days.setDate(last7Days.getDate() - 7)
+      return date >= last7Days
+    case 'last30days':
+      const last30Days = new Date(today)
+      last30Days.setDate(last30Days.getDate() - 30)
+      return date >= last30Days
+    case 'thisMonth':
+      return date.getMonth() === today.getMonth() && 
+             date.getFullYear() === today.getFullYear()
+    case 'lastMonth':
+      const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1)
+      return date.getMonth() === lastMonth.getMonth() && 
+             date.getFullYear() === lastMonth.getFullYear()
+    case 'custom':
+      const start = customStartDate.value ? new Date(customStartDate.value) : null
+      const end = customEndDate.value ? new Date(customEndDate.value) : null
+      if (!start && !end) return true
+      if (start && !end) return date >= start
+      if (!start && end) return date <= end
+      return date >= start && date <= end
+    default:
+      return true
+  }
+}
+
+// Add watchers for search inputs
+watch([searchQuery, selectedStatus, selectedDateRange], () => {
+  fetchExams(1) // Reset to first page when filters change
+}, { debounce: 300 }) // Add debounce to prevent too many requests
 </script>

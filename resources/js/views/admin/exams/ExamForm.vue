@@ -122,6 +122,60 @@
             </p>
           </div>
 
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            <!-- Source Field -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Source</label>
+              <select
+                v-model="form.source"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="manual">Manual</option>
+                <option value="ai_generated">AI Generated</option>
+              </select>
+            </div>
+
+            <!-- Category Field -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Category</label>
+              <select
+                v-model="form.category"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                required
+              >
+                <option value="">Select Category</option>
+                <option value="chatgpt">ChatGPT & GPT Models</option>
+                <option value="gen_ai_fundamentals">Generative AI Fundamentals</option>
+                <option value="prompt_engineering">Prompt Engineering</option>
+                <option value="google_gemini">Google Gemini</option>
+                <option value="dalle">DALL-E & Image Generation</option>
+                <option value="stable_diffusion">Stable Diffusion</option>
+                <option value="llm">Large Language Models</option>
+                <option value="ai_ethics">AI Ethics & Safety</option>
+                <option value="ai_tools">AI Tools & Applications</option>
+                <option value="midjourney">Midjourney</option>
+                <option value="ai_agents">AI Agents & Automation</option>
+                <option value="claude">Anthropic Claude</option>
+              </select>
+              <p class="mt-1 text-sm text-gray-500">Select the main focus area of your exam</p>
+            </div>
+
+            <!-- Difficulty Field -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Difficulty</label>
+              <select
+                v-model="form.difficulty"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              >
+                <option value="">Select Difficulty</option>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+                <option value="expert">Expert</option>
+              </select>
+            </div>
+          </div>
+
           <!-- Status -->
           <div>
             <label class="block text-sm font-medium text-gray-700">Status</label>
@@ -183,7 +237,10 @@ const form = ref({
   status: 'draft',
   image_path: '',
   image_alt: '',
-  topics_covered: ''
+  topics_covered: '',
+  source: 'manual',
+  category: '',
+  difficulty: '',
 })
 const topicsInput = ref('')
 
@@ -204,6 +261,9 @@ async function loadExam() {
       image_path: data.data.image_path,
       image_alt: data.data.image_alt,
       topics_covered: data.data.topics_covered || '', // Handle null/undefined case
+      source: data.data.source || 'manual',
+      category: data.data.category || '',
+      difficulty: data.data.difficulty || '',
     }
     topicsInput.value = data.data.topics_covered?.join('\n') || ''
   } catch (error) {
@@ -230,7 +290,10 @@ async function handleSubmit() {
       passing_score: form.value.passing_score,
       max_attempts: form.value.max_attempts,
       status: form.value.status,
-      topics_covered: topicsInput.value.split('\n').map(topic => topic.trim()).filter(topic => topic)
+      topics_covered: topicsInput.value.split('\n').map(topic => topic.trim()).filter(topic => topic),
+      source: form.value.source,
+      category: form.value.category,
+      difficulty: form.value.difficulty,
     }
 
     // Handle image separately if needed

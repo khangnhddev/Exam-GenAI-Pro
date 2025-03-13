@@ -5,29 +5,32 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ExamResource extends JsonResource
+class ExamPublicResource extends JsonResource
 {
-    public function toArray($request): array
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
             'duration' => $this->duration,
-            'topics_covered' => $this->topics_covered,
-            'source' => $this->source,
+            'passing_score' => $this->passing_score,
+            'total_questions' => $this->total_questions,
+            'topics' => $this->topics_covered ?? [],
+            'image_url' => $this->image_url,
+            'status' => $this->status,
             'category' => $this->category,
             'difficulty' => $this->difficulty,
-            'passing_score' => $this->passing_score,
-            'max_attempts' => $this->max_attempts,
-            'total_questions' => $this->total_questions,
-            'status' => $this->status,
-            'questions_count' => $this->whenCounted('questions'),
+            'question_types' => $this->whenLoaded('questions', function() {
+                return $this->questions->pluck('type')->unique()->values();
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'slug' => $this->slug,
-            'source' => $this->source,
-            'is_ai_generated' => $this->isAiGenerated(),
         ];
     }
 }

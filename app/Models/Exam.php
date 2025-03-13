@@ -20,6 +20,8 @@ class Exam extends Model
         'topics_covered',
         'source',
         'slug',
+        'category',  // Add new field
+        'difficulty' // Add new field
     ];
 
     // Optional: Add status constants
@@ -30,6 +32,34 @@ class Exam extends Model
     // Add source constants
     const SOURCE_MANUAL = 'manual';
     const SOURCE_AI = 'ai_generated';
+
+    // Add new constants
+    const DIFFICULTY_BEGINNER = 'beginner';
+    const DIFFICULTY_INTERMEDIATE = 'intermediate';
+    const DIFFICULTY_ADVANCED = 'advanced';
+    const DIFFICULTY_EXPERT = 'expert';
+
+    const CATEGORIES = [
+        'chatgpt' => 'ChatGPT & GPT Models',
+        'gen_ai_fundamentals' => 'Generative AI Fundamentals',
+        'prompt_engineering' => 'Prompt Engineering',
+        'google_gemini' => 'Google Gemini',
+        'dalle' => 'DALL-E & Image Generation',
+        'stable_diffusion' => 'Stable Diffusion',
+        'llm' => 'Large Language Models',
+        'ai_ethics' => 'AI Ethics & Safety',
+        'ai_tools' => 'AI Tools & Applications',
+        'midjourney' => 'Midjourney',
+        'ai_agents' => 'AI Agents & Automation',
+        'claude' => 'Anthropic Claude'
+    ];
+
+    const DIFFICULTIES = [
+        self::DIFFICULTY_BEGINNER => 'Beginner',
+        self::DIFFICULTY_INTERMEDIATE => 'Intermediate',
+        self::DIFFICULTY_ADVANCED => 'Advanced',
+        self::DIFFICULTY_EXPERT => 'Expert'
+    ];
 
     protected $casts = [
         'topics_covered' => 'array',
@@ -130,5 +160,53 @@ class Exam extends Model
     public function isManuallyCreated(): bool
     {
         return $this->source === self::SOURCE_MANUAL;
+    }
+
+    /**
+     * Scope a query to filter by category
+     */
+    public function scopeByCategory($query, ?string $category)
+    {
+        return $category ? $query->where('category', $category) : $query;
+    }
+
+    /**
+     * Scope a query to filter by difficulty level
+     */
+    public function scopeByDifficulty($query, ?string $difficulty) 
+    {
+        return $difficulty ? $query->where('difficulty', $difficulty) : $query;
+    }
+
+    /**
+     * Get all available categories with counts
+     */
+    public static function getCategories()
+    {
+        return collect(self::CATEGORIES)->map(function($label, $value) {
+            return [
+                'value' => $value,
+                'label' => $label,
+                'count' => self::where('category', $value)
+                              ->where('status', 'published')
+                              ->count()
+            ];
+        })->values();
+    }
+
+    /**
+     * Get all difficulties with counts
+     */
+    public static function getDifficulties()
+    {
+        return collect(self::DIFFICULTIES)->map(function($label, $value) {
+            return [
+                'value' => $value,
+                'label' => $label,
+                'count' => self::where('difficulty', $value)
+                              ->where('status', 'published')
+                              ->count()
+            ];
+        })->values();
     }
 }

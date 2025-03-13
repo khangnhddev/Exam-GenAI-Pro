@@ -19,6 +19,9 @@ use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\KnowledgeBaseController;
 use App\Http\Controllers\Api\Admin\AdminDepartmentController;
+use App\Http\Controllers\Api\AIController;
+use App\Http\Controllers\Api\PromptController;
+
 // use App\Http\Controllers\Api\CodeEvaluationController;
 
 Route::prefix('v1')->group(function () {
@@ -29,10 +32,12 @@ Route::prefix('v1')->group(function () {
   
     Route::get('exams', [ExamController::class, 'index']);
     
+    // Public routes
+    Route::get('/exams/{id}/public', [ExamController::class, 'showPublic']);
+
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
-        // Route::get('auth/me', [AuthController::class, 'me']);
         Route::get('auth/user', [AuthController::class, 'user']);
 
         Route::get('/profile', [ProfileController::class, 'show']);
@@ -43,12 +48,15 @@ Route::prefix('v1')->group(function () {
             Route::get('/{exam}', [ExamController::class, 'show']);
             Route::post('/{exam}/start', [ExamController::class, 'start']);
             Route::post('/attempts/{attempt}/submit', [ExamController::class, 'submit']);
-            Route::get('/attempts/{attempt}/review', [ExamController::class, 'review'])
-                ->name('exams.review');
+            // Route::get('/attempts/{attempt}/review', [ExamController::class, 'review'])
+            //     ->name('exams.review');
             Route::get('/{exam}/attempt/{attempt}', [ExamController::class, 'getAttempt']);
             Route::get('/attempts/{attempt}/results', [ExamController::class, 'getAttemptResults']);
             Route::get('/{exam}/attempts', [ExamController::class, 'getAttempts']);
         });
+
+        // Route::get('/exams/{id}/attempts', [ExamController::class, 'getAttempts']);
+        // Route::get('/exams/{id}/history', [ExamController::class, 'getHistory']);
 
         Route::prefix('certificates')->group(function () {
             Route::get('/', [CertificateController::class, 'index']);
@@ -63,6 +71,10 @@ Route::prefix('v1')->group(function () {
 
         // Route::post('code/execute', [CodeSubmissionController::class, 'execute']);
         // Route::post('code/evaluate', [CodeEvaluationController::class, 'evaluate']);
+
+        Route::post('/ai/test-prompt', [AIController::class, 'testPrompt']);
+        Route::post('/exams/test-prompt', [ExamController::class, 'testPrompt']);
+        Route::get('/exams/{exam}/attempts/{attempt}/review', [ExamController::class, 'getAttemptReview']);
     });
 
     // Public certificate verification
@@ -141,3 +153,5 @@ Route::prefix('v1')->group(function () {
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
 ->middleware(['signed'])
 ->name('verification.verify');
+
+Route::post('/evaluate-prompt', [PromptController::class, 'evaluatePrompt']);

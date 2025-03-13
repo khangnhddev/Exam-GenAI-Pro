@@ -182,12 +182,12 @@
         <p class="mt-4 text-lg leading-6 text-indigo-200">
           Join thousands of professionals who have advanced their careers through our certification programs.
         </p>
-        <router-link
+        <!-- <router-link
           :to="{ name: 'register' }"
           class="mt-8 w-full inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 sm:w-auto"
         >
           Sign up for free
-        </router-link>
+        </router-link> -->
       </div>
     </div>
   </div>

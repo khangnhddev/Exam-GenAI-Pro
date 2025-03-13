@@ -21,7 +21,7 @@ class FeExamResource extends JsonResource
             'duration' => $this->duration,
             'passing_score' => $this->passing_score,
             'attempts_allowed' => $this->attempts_allowed,
-            'total_questions' => $this->questions_count,
+            'total_questions' => $this->total_questions,
             'topics' => $this->topics_covered ?? [],
             'image_url' => $this->image_url,
             'attempts' => $this->when($this->attempts, function () {
