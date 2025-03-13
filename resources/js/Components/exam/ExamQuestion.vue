@@ -10,34 +10,34 @@
 
     <!-- Question Content Based on Type -->
     <div v-if="question.type === 'prompt'">
-      <QuestionPrompt
+      <!-- <QuestionPrompt
         :question="question"
         v-model:answer="answer"
         :showValidation="showValidation"
-      />
+      /> -->
     </div>
     <div v-else-if="question.type === 'single_choice'">
-      <QuestionSingleChoice
+      <!-- <QuestionSingleChoice
         :question="question"
         v-model:answer="answer"
         :showValidation="showValidation"
-      />
+      /> -->
     </div>
     <div v-else-if="question.type === 'multiple_choice'">
-      <QuestionMultipleChoice
+      <!-- <QuestionMultipleChoice
         :question="question"
         v-model:answer="answer"
         :showValidation="showValidation"
-      />
+      /> -->
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
-import QuestionSingleChoice from './QuestionSingleChoice.vue'
-import QuestionMultipleChoice from './QuestionMultipleChoice.vue'
-import QuestionPrompt from './QuestionPrompt.vue'
+// import QuestionSingleChoice from './QuestionSingleChoice.vue'
+// import QuestionMultipleChoice from './QuestionMultipleChoice.vue'
+// import QuestionPrompt from './QuestionPrompt.vue'
 
 // ...existing code...
 </script>
