@@ -16,6 +16,7 @@ import AdminLayout from '../Layouts/AdminLayout.vue'
 import ActivityLogManager from '../Components/admin/ActivityLogManager.vue'
 // import KnowledgeBaseManager from '../components/admin/KnowledgeBaseManager.vue'
 import GeneralSettings from '@/views/admin/settings/General.vue'
+import { useRoles } from '@/composables/useRoles'
 
 // Frontend routes
 const frontendRoutes = {
@@ -122,7 +123,7 @@ const frontendRoutes = {
 const adminRoutes = {
     path: '/admin',
     component: AdminLayout,
-    meta: { requiresAuth: true, requiresAdmin: false },
+    meta: { requiresAuth: true, requiresAdmin: true },
     children: [
         {
             path: '',
@@ -134,12 +135,6 @@ const adminRoutes = {
             name: 'admin.users.index',
             component: () => import('../views/admin/users/Index.vue')
         },
-        // {
-        //     path: 'users/:id',
-        //     name: 'admin.users.show',
-        //     component: () => import('../views/admin/users/Show.vue'),
-        //     props: true
-        // },
         {
             path: 'exams',
             name: 'admin.exams.index',
@@ -321,7 +316,8 @@ const routes = [
     {
         path: '/404',
         name: 'not-found',
-        component: NotFound
+        component: () => import('@/views/errors/NotFound.vue'),
+        meta: { guest: true }
     },
     {
         path: '/500',
@@ -372,6 +368,11 @@ const routes = [
             requiresAuth: true
         }
     },
+    {
+        path: '/forbidden',
+        name: 'forbidden',
+        component: () => import('@/views/errors/Forbidden.vue')
+    },
     // {
     //     path: '/email/verify',
     //     name: 'verification.notice',
@@ -393,7 +394,7 @@ const routes = [
     // },
     {
         path: '/:pathMatch(.*)*',
-        redirect: '/404'
+        redirect: { name: 'not-found' }
     }
 ]
 
@@ -418,33 +419,41 @@ const router = createRouter({
     }
 })
 
-// Add middleware to router
-// router.beforeEach(verifiedEmail)
-
-router.beforeEach((to, from, next) => {
-    const authStore = useAuthStore()
-
-    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        next({ name: 'login' })
-    } else if (to.meta.guest && authStore.isAuthenticated) {
-        next({ name: 'home' })
-    } else if (to.meta.requiresAdmin && !authStore.user?.is_admin) {
-        next({ name: 'home' })
-    } else {
-        // Reset scroll position
-        if (document.documentElement) {
-            document.documentElement.scrollTop = 0
+router.beforeEach(async (to, from, next) => {
+    const authStore = useAuthStore();
+    
+    // Check if route requires authentication
+    if (to.meta.requiresAuth) {
+        if (!authStore.isAuthenticated) {
+            return next({ name: 'not-found' }); // Redirect to 404 instead of login
         }
-        if (document.body) {
-            document.body.scrollTop = 0
+
+        if (to.meta.requiresAdmin) {
+            try {
+                await authStore.checkAuth();
+                
+                const hasAdminRole = authStore.hasAnyRole(['admin', 'super-admin']);
+                
+                if (!hasAdminRole) {
+                    return next({ name: 'forbidden' });
+                }
+            } catch (error) {
+                console.error('Error checking auth:', error);
+                return next({ name: 'not-found' });
+            }
         }
-        next()
     }
-})
+    
+    if (to.meta.guest && authStore.isAuthenticated) {
+        return next({ name: 'home' });
+    }
+
+    next();
+});
 
 const fetchUser = async () => {
     try {
-        const response = await axios.get('/api/auth/user')
+        const response = await axios.get('/auth/user')
         authStore.setUser(response.data)
         return response.data
     } catch (error) {

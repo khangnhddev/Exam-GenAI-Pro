@@ -5,6 +5,8 @@ import { defineStore } from 'pinia'
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const token = ref(localStorage.getItem('token'))
+  const roles = ref([])
+  const permissions = ref([])
 
   const isAuthenticated = computed(() => !!token.value)
 
@@ -21,13 +23,18 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const setUser = (userData) => {
-    user.value = userData
+    console.log('setUser khang dev:', userData);
+    user.value = userData;
+    // Add roles and permissions from user data
+    roles.value = userData?.roles || [];
+    permissions.value = userData?.permissions || [];
   }
 
   const fetchUser = async () => {
     try {
       const response = await axios.get('/auth/user');
-      setUser(response.data.data);
+      setUser(response.data.data.user);
+      console.log('fetchUser khang dev:', response.data.data.user);
       return response.data.data;
     } catch (error) {
       setToken(null)
@@ -59,11 +66,12 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (credentials) => {
     try {
       const response = await axios.post('/auth/login', credentials)
-      const { token, user: userData } = response.data.data
-      
+      const { token, user: userData } = response.data.data;
+      console.log('Login success: ', token);
+      console.log('Login success: ', userData);
+
       setToken(token);
       setUser(userData);
-      console.log('User:', userData);
 
       return response.data.data;
     } catch (error) {
@@ -107,7 +115,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!token.value) {
         return false
       }
-      
+
       if (!user.value) {
         await fetchUser()
       }
@@ -117,6 +125,24 @@ export const useAuthStore = defineStore('auth', () => {
       return false
     }
   }
+
+  const hasRole = (role) => {
+    return roles.value.includes(role)
+  }
+
+  const hasAnyRole = (roleList) => {
+    console.log('Current roles:', roles.value); // Debug log
+    console.log('Checking for roles:', roleList); // Debug log
+    return roles.value.some(role => roleList.includes(role));
+  }
+
+  const hasPermission = (permission) => {
+    return permissions.value.includes(permission)
+  }
+
+  const isAdmin = computed(() => {
+    return hasAnyRole(['admin', 'super-admin'])
+  })
 
   return {
     user,
@@ -128,6 +154,12 @@ export const useAuthStore = defineStore('auth', () => {
     checkAuth,
     fetchUser,
     setUser,
-    setToken
+    setToken,
+    roles,
+    permissions,
+    hasRole,
+    hasAnyRole,
+    hasPermission,
+    isAdmin
   }
 })

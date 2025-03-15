@@ -26,26 +26,34 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'))) {
-            $user = Auth::user();
-            if ($user->department_id) {
-                $user->load('department');
-            }
+        // Find user by email
+        $user = User::where('email', $request->email)->first();
 
-            $token = $user->createToken('auth-token')->plainTextToken;
-
-            return response()->json([
-                'message' => 'Login successful',
-                'data' => [
-                    'user' => new UserResource($user),
-                    'token' => $token,
-                    'token_type' => 'Bearer'
-                ]
+        // Check credentials
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            throw ValidationException::withMessages([
+                'email' => ['The provided credentials are incorrect.']
             ]);
         }
 
-        throw ValidationException::withMessages([
-            'email' => ['The provided credentials are incorrect.']
+        // Load department if exists
+        if ($user->department_id) {
+            $user->load('department');
+        }
+
+        // Create new token
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        // Load roles and permissions into UserResource
+        $user->load('roles', 'permissions');
+
+        return response()->json([
+            'message' => 'Login successful',
+            'data' => [
+                'user' => new UserResource($user),
+                'token' => $token,
+                'token_type' => 'Bearer'
+            ]
         ]);
     }
 
@@ -93,7 +101,7 @@ class AuthController extends Controller
                 'role' => 'student',
                 'active' => true
             ]);
-            
+
             event(new Registered($user));
 
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -119,7 +127,14 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
-        return new UserResource($request->user());
+        $user = $request->user();
+        $user->load('roles', 'permissions');
+
+        return response()->json([
+            'data' => [
+                'user' => new UserResource($user)
+            ]
+        ]);
     }
 
     /**

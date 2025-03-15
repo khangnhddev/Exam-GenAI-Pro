@@ -191,7 +191,6 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 // Add computed property for user avatar
 const userAvatar = computed(() => {
-  console.log(user.value.fullname);
   if (!user.value) return 'https://ui-avatars.com/api/?name=User'
   return user.value.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.value.fullname)}`
 })

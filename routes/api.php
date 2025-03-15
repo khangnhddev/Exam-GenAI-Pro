@@ -29,10 +29,16 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/login', [AuthController::class, 'login']);
     Route::post('auth/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('auth/reset-password', [AuthController::class, 'resetPassword']);
-  
+
     Route::get('exams', [ExamController::class, 'index']);
-    
+
     // Public routes
+    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+        Route::get('test-role-permission', function () {
+            return 'Khang Ngan Dev Love Ngan Ngan';
+        });
+    });
+
     Route::get('/exams/{id}/public', [ExamController::class, 'showPublic']);
 
     // Protected routes
@@ -119,10 +125,10 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/exams/generate-from-file', [AdminExamController::class, 'generateFromFile']);
 
-         // AI Exam Generation routes
-         Route::post('exams/generate', [AdminExamController::class, 'generate']);
-         Route::post('exams/save-generated', [AdminExamController::class, 'saveGeneratedExam']);
-         
+        // AI Exam Generation routes
+        Route::post('exams/generate', [AdminExamController::class, 'generate']);
+        Route::post('exams/save-generated', [AdminExamController::class, 'saveGeneratedExam']);
+
         Route::apiResource('questions', AdminQuestionController::class);
         Route::post('questions/generate', [AdminQuestionController::class, 'generate']);
         Route::post('questions/save-generated', [AdminQuestionController::class, 'saveGeneratedQuestions'])
@@ -139,9 +145,7 @@ Route::prefix('v1')->group(function () {
         Route::get('departments/{department}/users', [AdminDepartmentController::class, 'getUsers']);
         Route::post('departments/{department}/users', [AdminDepartmentController::class, 'assignUsers']);
         Route::delete('departments/{department}/users/{user}', [AdminDepartmentController::class, 'removeUser']);
-
     });
-
 });
 
 // Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])
@@ -151,7 +155,7 @@ Route::prefix('v1')->group(function () {
 //     ->name('password.reset');
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
-->middleware(['signed'])
-->name('verification.verify');
+    ->middleware(['signed'])
+    ->name('verification.verify');
 
 Route::post('/evaluate-prompt', [PromptController::class, 'evaluatePrompt']);

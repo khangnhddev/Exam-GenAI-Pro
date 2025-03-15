@@ -202,8 +202,8 @@ const loading = ref(true)
 
 const fetchPopularExams = async () => {
   try {
-    const response = await axios.get('/exams')
-    popularExams.value = response.data.data.slice(0, 3)
+    const response = await axios.get('/exams');
+    popularExams.value = response.data.exams.data.slice(0, 3)
     loading.value = false
   } catch (error) {
     console.error('Error fetching exams:', error)
