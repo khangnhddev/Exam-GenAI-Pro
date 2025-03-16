@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Admin;
 
+use App\Enums\RoleEnum;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -15,6 +16,8 @@ class AdminUserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $role = $this->roles->first();
+        
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -27,14 +30,25 @@ class AdminUserResource extends JsonResource
             'updated_at' => $this->updated_at,
             'department_id' => $this->department_id,
             'last_login_at' => $this->last_login_at,
-            // Add relationships data
+            
+            // Enhanced role information
+            'role' => [
+                'name' => $role?->name ?? 'N/A',
+                'color' => RoleEnum::getBadgeColor($role?->name),
+                'permissions' => $this->when($request->routeIs('admin.users.show'), 
+                    fn() => $this->getAllPermissions()->pluck('name')
+                ),
+            ],
+            
+            // Relationship counts
             'exam_attempts_count' => $this->whenLoaded('examAttempts', function() {
                 return $this->examAttempts->count();
             }),
             'certificates_count' => $this->whenLoaded('certificates', function() {
                 return $this->certificates->count();
             }),
-            // Add optional relationships
+            
+            // Optional relationships
             'certificates' => $this->when($request->routeIs('admin.users.show'), function () {
                 return $this->certificates;
             }),

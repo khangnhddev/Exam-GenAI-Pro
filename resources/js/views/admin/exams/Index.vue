@@ -19,7 +19,17 @@
             <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Generate with AI
+            Generate Single Choice with AI
+          </button>
+          
+          <button
+            @click="showPromptModal = true"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500"
+          >
+            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            Generate Prompt with AI
           </button>
           
           <router-link
@@ -376,6 +386,125 @@
     </Dialog>
   </TransitionRoot>
 
+  <!-- Add Prompt Modal -->
+  <TransitionRoot appear :show="showPromptModal" as="template">
+    <Dialog as="div" @close="showPromptModal = false" class="relative z-10">
+      <TransitionChild
+        enter="ease-out duration-300"
+        enter-from="opacity-0"
+        enter-to="opacity-100"
+        leave="ease-in duration-200"
+        leave-from="opacity-100"
+        leave-to="opacity-0"
+      >
+        <div class="fixed inset-0 bg-black bg-opacity-25" />
+      </TransitionChild>
+
+      <div class="fixed inset-0 overflow-y-auto">
+        <div class="flex min-h-full items-center justify-center p-4">
+          <DialogPanel class="w-full max-w-xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-gray-200">
+              <DialogTitle as="h3" class="text-lg font-semibold text-gray-900">
+                Generate Prompt-Based Exam
+              </DialogTitle>
+              <button @click="showPromptModal = false" class="text-gray-400 hover:text-gray-500">
+                <XMarkIcon class="h-6 w-6" />
+              </button>
+            </div>
+
+            <form @submit.prevent="generatePromptExam" class="mt-4 space-y-6">
+              <div class="grid grid-cols-1 gap-6">
+                <!-- Title Input -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Exam Title</label>
+                  <input
+                    v-model="promptForm.title"
+                    type="text"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    placeholder="e.g., Advanced Prompt Engineering Assessment"
+                    required
+                  />
+                </div>
+
+                <!-- Topic Input -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700">Topic</label>
+                  <input
+                    v-model="promptForm.topic"
+                    type="text"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    placeholder="e.g., AI System Design, Natural Language Processing"
+                    required
+                  />
+                </div>
+
+                <!-- Two columns layout -->
+                <div class="grid grid-cols-2 gap-4">
+                  <!-- Difficulty Selection -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Difficulty</label>
+                    <select
+                      v-model="promptForm.difficulty"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    >
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
+                    </select>
+                  </div>
+
+                  <!-- Question Count -->
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700">Number of Questions</label>
+                    <input
+                      v-model.number="promptForm.questionCount"
+                      type="number"
+                      min="1"
+                      max="5"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  @click="showPromptModal = false"
+                  class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  :disabled="generatingPrompt"
+                  class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                >
+                  <svg
+                    v-if="generatingPrompt"
+                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  {{ generatingPrompt ? 'Generating...' : 'Generate Prompt Exam' }}
+                </button>
+              </div>
+            </form>
+          </DialogPanel>
+        </div>
+      </div>
+    </Dialog>
+  </TransitionRoot>
+
   <!-- Preview Modal -->
   <TransitionRoot appear :show="showPreviewModal" as="template">
     <Dialog as="div" @close="showPreviewModal = false" class="relative z-10">
@@ -417,30 +546,73 @@
                   </button>
                 </div>
                 
-                <p class="mt-2 text-gray-700">{{ question.question }}</p>
-                
-                <div class="mt-3 space-y-2">
-                  <div v-for="(option, optIndex) in question.options" :key="optIndex"
-                       class="flex items-center space-x-2">
-                    <span :class="[
-                      'flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs',
-                      option.is_correct ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                    ]">
-                      {{ String.fromCharCode(65 + optIndex) }}
-                    </span>
-                    <span :class="[
-                      'text-sm',
-                      option.is_correct ? 'text-green-800 font-medium' : 'text-gray-600'
-                    ]">
-                      {{ option.text }}
-                    </span>
-                  </div>
-                </div>
+                <!-- Different display for prompt questions -->
+                <template v-if="question.type === 'prompt'">
+                  <div class="mt-4 space-y-4">
+                    <div>
+                      <h5 class="text-sm font-medium text-gray-700">Task</h5>
+                      <p class="mt-1 text-gray-700">{{ question.question_text }}</p>
+                    </div>
 
-                <div class="mt-3 text-sm text-gray-500">
-                  <span class="font-medium">Explanation:</span>
-                  {{ question.explanation }}
-                </div>
+                    <div>
+                      <h5 class="text-sm font-medium text-gray-700">Description</h5>
+                      <p class="mt-1 text-gray-600">{{ question.challenge_description }}</p>
+                    </div>
+
+                    <div>
+                      <h5 class="text-sm font-medium text-gray-700">Requirements</h5>
+                      <ul class="mt-1 list-disc pl-5 space-y-1">
+                        <li v-for="(req, reqIndex) in question.requirements" 
+                            :key="reqIndex" 
+                            class="text-gray-600"
+                        >
+                          {{ req }}
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h5 class="text-sm font-medium text-gray-700">Evaluation Criteria</h5>
+                      <div class="mt-2 space-y-2">
+                        <div v-for="(criterion, key) in question.evaluation_criteria" 
+                             :key="key" 
+                             class="bg-gray-50 p-3 rounded-md"
+                        >
+                          <span class="font-medium text-gray-700 capitalize">{{ key }}:</span>
+                          <span class="text-gray-600 ml-2">{{ criterion }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+
+                <!-- Existing display for multiple choice questions -->
+                <template v-else>
+                  <p class="mt-2 text-gray-700">{{ question.question }}</p>
+                
+                  <div class="mt-3 space-y-2">
+                    <div v-for="(option, optIndex) in question.options" :key="optIndex"
+                         class="flex items-center space-x-2">
+                      <span :class="[
+                        'flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs',
+                        option.is_correct ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                      ]">
+                        {{ String.fromCharCode(65 + optIndex) }}
+                      </span>
+                      <span :class="[
+                        'text-sm',
+                        option.is_correct ? 'text-green-800 font-medium' : 'text-gray-600'
+                      ]">
+                        {{ option.text }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="mt-3 text-sm text-gray-500">
+                    <span class="font-medium">Explanation:</span>
+                    {{ question.explanation }}
+                  </div>
+                </template>
               </div>
             </div>
 
@@ -650,6 +822,13 @@ async function generateExam() {
 }
 
 async function saveExam() {
+  if (!generatedExam.value.type) {
+    return saveSingleChoiceExam()
+  }
+  return savePromptExam()
+}
+
+async function saveSingleChoiceExam() {
   saving.value = true
   try {
     const { data } = await axios.post('/admin/exams/save-generated', {
@@ -659,19 +838,60 @@ async function saveExam() {
       questions: generatedExam.value.questions
     })
     
-    exams.value.data.unshift(data.exam)
-    showPreviewModal.value = false
-    toast.success('Exam saved successfully!')
-    
-    // Reset forms
-    generatedExam.value = { title: '', topic: '', difficulty: '', questions: [] }
-    aiForm.value = { title: '', topic: '', difficulty: 'medium', questionCount: 10 }
+    handleSaveSuccess(data)
+    resetSingleChoiceForm()
   } catch (error) {
-    console.error('Error saving exam:', error)
-    toast.error(error.response?.data?.message || 'Failed to save exam')
+    handleSaveError(error)
   } finally {
     saving.value = false
   }
+}
+
+async function savePromptExam() {
+  saving.value = true
+  try {
+    const { data } = await axios.post('/admin/exams/save-prompt', {
+      title: generatedExam.value.title,
+      topic: generatedExam.value.topic,
+      difficulty: generatedExam.value.difficulty,
+      questions: generatedExam.value.questions.map(q => ({
+        question_text: q.question_text,
+        challenge_description: q.challenge_description,
+        requirements: q.requirements,
+        evaluation_criteria: q.evaluation_criteria,
+        example_solution: q.example_solution,
+        explanation: q.explanation
+      }))
+    })
+
+    handleSaveSuccess(data)
+    resetPromptForm()
+  } catch (error) {
+    handleSaveError(error)
+  } finally {
+    saving.value = false
+  }
+}
+
+function handleSaveSuccess(data) {
+  exams.value.data.unshift(data.exam)
+  showPreviewModal.value = false
+  toast.success('Exam saved successfully!')
+}
+
+function handleSaveError(error) {
+  console.error('Error saving exam:', error)
+  toast.error(error.response?.data?.message || 'Failed to save exam')
+}
+
+function resetSingleChoiceForm() {
+  generatedExam.value = { title: '', topic: '', difficulty: '', questions: [], type: '' }
+  aiForm.value = { title: '', topic: '', difficulty: 'medium', questionCount: 10 }
+}
+
+function resetPromptForm() {
+  generatedExam.value = { title: '', topic: '', difficulty: '', questions: [], type: '' }
+  promptForm.value = { title: '', topic: '', difficulty: 'intermediate', questionCount: 3 }
 }
 
 // Preview question removal function
@@ -760,4 +980,47 @@ function getDateFilterCondition(dateStr) {
 watch([searchQuery, selectedStatus, selectedDateRange], () => {
   fetchExams(1) // Reset to first page when filters change
 }, { debounce: 300 }) // Add debounce to prevent too many requests
+
+const showPromptModal = ref(false)
+const generatingPrompt = ref(false)
+const promptForm = ref({
+  title: '',
+  topic: '',
+  difficulty: 'intermediate',
+  questionCount: 3
+})
+
+// Update the generatePromptExam function
+async function generatePromptExam() {
+  generatingPrompt.value = true
+  try {
+    const { data } = await axios.post('/admin/exams/generate-prompt', promptForm.value)
+    
+    // Update generated exam with prompt-specific format
+    generatedExam.value = {
+      title: promptForm.value.title,
+      topic: promptForm.value.topic,
+      difficulty: promptForm.value.difficulty,
+      type: 'prompt',
+      questions: data.questions.map(q => ({
+        ...q,
+        type: 'prompt',
+        question: q.question_text, // For consistency in preview
+        options: [], // Empty for prompt questions
+        challenge_description: q.challenge_description,
+        requirements: q.requirements,
+        evaluation_criteria: q.evaluation_criteria
+      }))
+    }
+    
+    showPromptModal.value = false
+    showPreviewModal.value = true
+    toast.success('Prompt-based exam generated successfully!')
+  } catch (error) {
+    console.error('Error generating prompt exam:', error)
+    toast.error(error.response?.data?.message || 'Failed to generate prompt exam')
+  } finally {
+    generatingPrompt.value = false
+  }
+}
 </script>

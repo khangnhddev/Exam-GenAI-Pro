@@ -102,13 +102,16 @@
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
+                  <span 
+                    class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
                     :class="{
-                      'bg-purple-100 text-purple-800': user.role === 'admin',
-                      'bg-blue-100 text-blue-800': user.role === 'teacher',
-                      'bg-green-100 text-green-800': user.role === 'student'
-                    }">
-                    {{ user.role }}
+                      'bg-purple-100 text-purple-800': user.role.color === 'purple',
+                      'bg-blue-100 text-blue-800': user.role.color === 'blue',
+                      'bg-green-100 text-green-800': user.role.color === 'green',
+                      'bg-gray-100 text-gray-800': !user.role.color
+                    }"
+                  >
+                    {{ user.role.name }}
                   </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -253,9 +256,13 @@
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                       >
                         <option value="">Select Role</option>
-                        <option value="admin">Administrator</option>
-                        <option value="teacher">Teacher</option>
-                        <option value="student">Student</option>
+                        <option 
+                          v-for="role in roleFilters.filter(r => r.value)" 
+                          :key="role.value"
+                          :value="role.value"
+                        >
+                          {{ role.label }}
+                        </option>
                       </select>
                     </div>
 
@@ -327,7 +334,7 @@ const form = ref({
   email: '',
   department_id: '',
   password: '',
-  role: ''
+  role: '' // This will store just the role name
 })
 
 const roleFilters = [
@@ -368,7 +375,7 @@ const filteredUsers = computed(() => {
       user.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.value.toLowerCase())
 
-    const matchesRole = !selectedRole.value || user.role === selectedRole.value
+    const matchesRole = !selectedRole.value || user.role.name === selectedRole.value
 
     return matchesSearch && matchesRole
   })

@@ -485,7 +485,7 @@ class AdminExamController extends Controller
             'difficulty' => 'required|in:easy,medium,hard',
             'questions' => 'required|array|min:1',
             'questions.*.question' => 'required|string',
-            'questions.*.type' => 'required|in:single,multiple',
+            'questions.*.type' => 'required|in:single_choice,multiple',
             'questions.*.options' => 'required|array|min:2|max:6',
             'questions.*.options.*.text' => 'required|string',
             'questions.*.options.*.is_correct' => 'required|boolean',
@@ -495,11 +495,14 @@ class AdminExamController extends Controller
         try {
             DB::beginTransaction();
 
-            // Create exam
+            // Map the difficulty level
+            $mappedDifficulty = $this->mapDifficulty($validated['difficulty']);
+
+            // Create exam with mapped difficulty
             $exam = Exam::create([
                 'title' => $validated['title'],
                 'topic' => $validated['topic'],
-                'difficulty' => $validated['difficulty'],
+                'difficulty' => $mappedDifficulty, // Use mapped difficulty here
                 'status' => 'draft',
                 'user_id' => auth()->id(),
                 'description' => "AI Generated exam about {$validated['topic']}",
@@ -574,7 +577,7 @@ class AdminExamController extends Controller
                               \"questions\": [
                                 {
                                   \"question\": \"Question text goes here?\",
-                                  \"type\": \"single\",
+                                  \"type\": \"single_choice\",
                                   \"options\": [
                                     {\"text\": \"Option 1\", \"is_correct\": false},
                                     {\"text\": \"Option 2\", \"is_correct\": true},
@@ -599,9 +602,10 @@ class AdminExamController extends Controller
                 throw new \Exception('Invalid JSON response from AI');
             }
 
-            // Validate each question has required structure
+            // Validate each question has required structure and type is single_choice
             foreach ($data['questions'] as $question) {
-                if (!isset($question['question'], $question['type'], $question['options'])) {
+                if (!isset($question['question'], $question['type'], $question['options']) || 
+                    $question['type'] !== 'single_choice') {
                     throw new \Exception('Invalid question structure in AI response');
                 }
 
@@ -661,5 +665,159 @@ class AdminExamController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * generatePrompt
+     */
+    public function generatePrompt(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'topic' => 'required|string',
+            'difficulty' => 'required|in:beginner,intermediate,advanced',
+            'questionCount' => 'required|integer|min:1|max:5'
+        ]);
+
+        try {
+            $response = OpenAI::chat()->create([
+                'model' => 'gpt-3.5-turbo',
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => "You are an expert AI exam generator specializing in creating prompt engineering assessments."
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => "Generate {$validated['questionCount']} {$validated['difficulty']} level prompt engineering questions about {$validated['topic']}. 
+                    
+                    Each question should test the ability to design effective AI system prompts.
+                    
+                    Return in this exact JSON format only:
+                    {
+                        \"questions\": [
+                            {
+                                \"question_text\": \"Question title here\",
+                                \"challenge_description\": \"Detailed task description\",
+                                \"requirements\": [\"requirement1\", \"requirement2\", \"requirement3\"],
+                                \"evaluation_criteria\": {
+                                    \"clarity\": \"Description of clarity criterion\",
+                                    \"completeness\": \"Description of completeness criterion\",
+                                    \"effectiveness\": \"Description of effectiveness criterion\"
+                                }
+                            }
+                        ]
+                    }"
+                    ]
+                ],
+                'temperature' => 0.7,
+                'max_tokens' => 2000,
+                'response_format' => ['type' => 'json_object']
+            ]);
+
+            // Validate response
+            if (!$response || !isset($response->choices[0]->message->content)) {
+                throw new \Exception('Invalid response from OpenAI');
+            }
+
+            // Decode JSON response
+            $content = json_decode($response->choices[0]->message->content, true);
+            
+            // Validate decoded content
+            if (!$content || !isset($content['questions']) || empty($content['questions'])) {
+                throw new \Exception('Invalid question format received');
+            }
+
+            // Log successful response for debugging
+            // \Log::info('Prompt questions generated successfully', [
+            //     'topic' => $validated['topic'],
+            //     'count' => count($content['questions'])
+            // ]);
+
+            return response()->json([
+                'message' => 'Questions generated successfully',
+                'questions' => $content['questions']
+            ]);
+
+        } catch (\Exception $e) {
+            // Log the error with context
+            // \Log::error('Failed to generate prompt questions', [
+            //     'error' => $e->getMessage(),
+            //     'topic' => $validated['topic'] ?? null,
+            //     'difficulty' => $validated['difficulty'] ?? null
+            // ]);
+
+            return response()->json([
+                'error' => 'Failed to generate questions',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * savePromptExam
+     */
+    public function savePromptExam(Request $request)
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'topic' => 'required|string',
+            'difficulty' => 'required|in:beginner,intermediate,advanced',
+            'questions' => 'required|array|min:1',
+            'questions.*.question_text' => 'required|string',
+            'questions.*.challenge_description' => 'required|string',
+            'questions.*.requirements' => 'required|array',
+            'questions.*.evaluation_criteria' => 'required|array'
+        ]);
+
+        try {
+            $exam = Exam::create([
+                'title' => $validated['title'],
+                'slug' => Str::slug($validated['title']),
+                'description' => "Prompt Engineering Assessment: {$validated['topic']}",
+                'difficulty' => $validated['difficulty'],
+                'status' => 'draft',
+                'passing_score' => 70,
+                'duration' => 60,
+                'total_questions' => count($validated['questions']),
+                'category' => 'AI & Machine Learning',
+                'source' => 'ai_generated'
+            ]);
+
+            foreach ($validated['questions'] as $questionData) {
+                $question = $exam->questions()->create([
+                    'question_text' => $questionData['question_text'],
+                    'type' => Question::TYPE_PROMPT,
+                    'points' => 100,
+                    'challenge_description' => $questionData['challenge_description'],
+                    'requirements' => $questionData['requirements'],
+                    'evaluation_criteria' => $questionData['evaluation_criteria'],
+                    'example_solution' => $questionData['example_solution'] ?? null,
+                    'explanation' => $questionData['explanation'] ?? null
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Exam saved successfully',
+                'exam' => $exam->load('questions')
+            ]);
+
+        } catch (\Exception $e) {
+            //\Log::error('Failed to save prompt exam: ' . $e->getMessage());
+            return response()->json([
+                'error' => 'Failed to save exam',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    private function mapDifficulty($difficulty)
+    {
+        return match ($difficulty) {
+            'easy' => Exam::DIFFICULTY_BEGINNER,
+            'medium' => Exam::DIFFICULTY_INTERMEDIATE,
+            'hard' => Exam::DIFFICULTY_ADVANCED,
+            default => Exam::DIFFICULTY_INTERMEDIATE
+        };
     }
 }

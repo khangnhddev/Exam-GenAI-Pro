@@ -128,6 +128,9 @@ Route::prefix('v1')->group(function () {
         // AI Exam Generation routes
         Route::post('exams/generate', [AdminExamController::class, 'generate']);
         Route::post('exams/save-generated', [AdminExamController::class, 'saveGeneratedExam']);
+        
+        Route::post('/exams/generate-prompt', [AdminExamController::class, 'generatePrompt']);
+        Route::post('/exams/save-prompt', [AdminExamController::class, 'savePromptExam']);
 
         Route::apiResource('questions', AdminQuestionController::class);
         Route::post('questions/generate', [AdminQuestionController::class, 'generate']);
@@ -150,9 +153,6 @@ Route::prefix('v1')->group(function () {
 
 // Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])
 //     ->name('password.email');
-
-// Route::post('/reset-password', [AuthController::class, 'resetPassword'])
-//     ->name('password.reset');
 
 Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
     ->middleware(['signed'])

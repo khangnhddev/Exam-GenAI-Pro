@@ -2,26 +2,53 @@
   <div class="min-h-screen bg-gray-50">
     <!-- Top Navigation Bar -->
     <div class="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
-      <div class="px-4 sm:px-6 lg:px-8 mx-auto flex items-center justify-between h-14">
+      <div class="px-4 sm:px-6 lg:px-8 mx-auto flex items-center justify-between h-16"> <!-- Increased height -->
         <h1 class="text-lg font-medium text-gray-900 truncate">{{ exam?.title }}</h1>
 
-        <div class="flex items-center space-x-4">
-          <!-- Timer -->
-          <div class="flex items-center bg-gradient-to-r from-indigo-600/10 to-purple-600/10 rounded-md px-3 py-1">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-indigo-600 mr-1" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div class="flex items-center space-x-6"> <!-- Increased spacing -->
+          <!-- Enhanced Timer -->
+          <div class="flex items-center px-4 py-2 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg border border-indigo-100 shadow-sm">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              class="h-6 w-6 text-indigo-600 mr-2"
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+              />
             </svg>
-            <span
-              class="text-sm font-medium bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              {{ formatTime(timeLeft) }}
-            </span>
+            <div class="flex flex-col">
+              <!-- <span class="text-xs text-indigo-600 font-medium">Time Remaining</span> -->
+              <span class="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                {{ formatTime(timeLeft) }}
+              </span>
+            </div>
           </div>
 
           <!-- Exit Button -->
-          <button @click="confirmExit"
-            class="text-sm font-medium text-gray-600 hover:text-indigo-600 transition-colors">
+          <button 
+            @click="confirmExit"
+            class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-indigo-600 transition-colors rounded-md hover:bg-gray-50"
+          >
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              class="h-5 w-5 mr-2" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                stroke-linecap="round" 
+                stroke-linejoin="round" 
+                stroke-width="2" 
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
+              />
+            </svg>
             Exit
           </button>
         </div>
@@ -192,8 +219,7 @@
                 </div>
 
                 <!-- Test Prompt Section -->
-                <div class="mt-6">
-                  <!-- Test Actions -->
+                <!-- <div class="mt-6">
                   <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center space-x-3">
                       <button @click="testPrompt" :disabled="!selectedAnswers[currentQuestion.id] || isTestingPrompt"
@@ -242,7 +268,6 @@
                     </transition>
                   </div>
 
-                  <!-- Test Results -->
                   <transition enter-active-class="transition-all duration-300 ease-out"
                     enter-from-class="opacity-0 -translate-y-4" enter-to-class="opacity-100 translate-y-0"
                     leave-active-class="transition-all duration-200 ease-in"
@@ -262,13 +287,11 @@
                       </div>
 
                       <div class="px-4 py-3 space-y-4">
-                        <!-- AI Feedback -->
+              
                         <div>
                           <h5 class="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">Feedback</h5>
                           <p class="text-sm text-gray-600">{{ testResults.feedback }}</p>
                         </div>
-
-                        <!-- Criteria -->
                         <div v-if="testResults.criteria?.length">
                           <h5 class="text-xs font-medium text-gray-700 uppercase tracking-wide mb-2">Evaluation Criteria
                           </h5>
@@ -287,7 +310,7 @@
                       </div>
                     </div>
                   </transition>
-                </div>
+                </div> -->
               </div>
             </template>
 

@@ -31,11 +31,11 @@
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
               <button 
-                @click="router.back()"
+                @click="goBackToExam"
                 class="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
               >
                 <ArrowLeftIcon class="w-4 h-4 mr-1.5" />
-                Back
+                Back to Exam
               </button>
               <div>
                 <h1 class="text-2xl font-bold text-gray-900">
@@ -309,6 +309,13 @@ const formatQuestionType = (type) => {
     'prompt': 'Written Response'
   }
   return types[type] || type
+}
+
+const goBackToExam = () => {
+  router.push({
+    name: 'exams.show',
+    params: { id: route.params.examId }
+  })
 }
 
 onMounted(() => {

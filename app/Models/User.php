@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Models\Role;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -91,7 +92,7 @@ class User extends Authenticatable implements MustVerifyEmail
     //  */
     // public function roles(): BelongsToMany
     // {
-    //     //return $this->belongsToMany(Role::class);
+    //     return $this->belongsToMany(Role::class);
     // }
 
     public function department()
