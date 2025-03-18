@@ -15,6 +15,8 @@ class ExamResource extends JsonResource
             'description' => $this->description,
             'duration' => $this->duration,
             'topics_covered' => $this->topics_covered,
+            'language' => $this->language,
+            'question_type' => $this->question_type,
             'source' => $this->source,
             'category' => $this->category,
             'difficulty' => $this->difficulty,

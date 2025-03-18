@@ -11,17 +11,17 @@ class Exam extends Model
 {
     protected $fillable = [
         'title',
-        'description',
-        'duration',
+        'slug',
+        'topic',
+        'difficulty',
+        'language',
+        'question_type',
         'status',
         'passing_score',
-        'attempts_allowed',
+        'duration',
         'total_questions',
-        'topics_covered',
-        'source',
-        'slug',
-        'category',  // Add new field
-        'difficulty' // Add new field
+        'category',
+        'source'
     ];
 
     // Optional: Add status constants
@@ -62,11 +62,9 @@ class Exam extends Model
     ];
 
     protected $casts = [
-        'topics_covered' => 'array',
-        'duration' => 'integer',
-        'passing_score' => 'integer',
-        'attempts_allowed' => 'integer',
         'total_questions' => 'integer',
+        'passing_score' => 'integer',
+        'duration' => 'integer'
     ];
 
     protected $attributes = [

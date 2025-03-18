@@ -84,6 +84,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return LogOptions::defaults()
             ->logOnly(['name', 'email'])
             ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(fn(string $eventName) => "User has been {$eventName}");
     }
 

@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\Admin\KnowledgeBaseController;
 use App\Http\Controllers\Api\Admin\AdminDepartmentController;
 use App\Http\Controllers\Api\AIController;
 use App\Http\Controllers\Api\PromptController;
+use App\Http\Controllers\Api\Admin\AdminDashboardController;
 
 // use App\Http\Controllers\Api\CodeEvaluationController;
 
@@ -33,11 +34,6 @@ Route::prefix('v1')->group(function () {
     Route::get('exams', [ExamController::class, 'index']);
 
     // Public routes
-    Route::middleware(['auth:sanctum', 'admin'])->group(function () {
-        Route::get('test-role-permission', function () {
-            return 'Khang Ngan Dev Love Ngan Ngan';
-        });
-    });
 
     Route::get('/exams/{id}/public', [ExamController::class, 'showPublic']);
 
@@ -89,6 +85,10 @@ Route::prefix('v1')->group(function () {
 
     // Admin Routes
     Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+        // Dashboard routes
+        Route::get('/dashboard/stats', [AdminDashboardController::class, 'getStats']);
+        Route::get('/dashboard/activities', [AdminDashboardController::class, 'getActivities']);
+        
         // Add test endpoint
         Route::post('exams/test-generate', [AdminExamController::class, 'testGenerate']);
 
@@ -131,6 +131,8 @@ Route::prefix('v1')->group(function () {
         
         Route::post('/exams/generate-prompt', [AdminExamController::class, 'generatePrompt']);
         Route::post('/exams/save-prompt', [AdminExamController::class, 'savePromptExam']);
+        
+        Route::post('exams/generate-mixed', [AdminExamController::class, 'generateMixed']);
 
         Route::apiResource('questions', AdminQuestionController::class);
         Route::post('questions/generate', [AdminQuestionController::class, 'generate']);

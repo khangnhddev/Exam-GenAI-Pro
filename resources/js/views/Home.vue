@@ -156,7 +156,7 @@
                   <div class="flex space-x-4 text-sm text-gray-500">
                     <span>{{ exam.duration }}m</span>
                     <span>•</span>
-                    <span>{{ exam.total_questions }} questions</span>
+                    <span>{{ exam.questions_count }} questions</span>
                   </div>
                   <router-link 
                     :to="{ name: 'exams.show', params: { id: exam.id }}" 

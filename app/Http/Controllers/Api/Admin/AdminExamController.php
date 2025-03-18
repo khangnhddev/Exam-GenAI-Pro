@@ -482,64 +482,85 @@ class AdminExamController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'topic' => 'required|string',
-            'difficulty' => 'required|in:easy,medium,hard',
+            'difficulty' => 'required|in:beginner,intermediate,advanced',
+            'language' => 'required|in:en,vi,ja',
+            'question_type' => 'required|in:single_choice,prompt,mixed',
             'questions' => 'required|array|min:1',
-            'questions.*.question' => 'required|string',
-            'questions.*.type' => 'required|in:single_choice,multiple',
-            'questions.*.options' => 'required|array|min:2|max:6',
-            'questions.*.options.*.text' => 'required|string',
-            'questions.*.options.*.is_correct' => 'required|boolean',
-            'questions.*.explanation' => 'nullable|string'
+            'questions.*.type' => 'required|in:single_choice,prompt',
+            'questions.*.question' => 'required_if:questions.*.type,single_choice',
+            'questions.*.options' => 'required_if:questions.*.type,single_choice|array',
+            'questions.*.options.*.text' => 'required_if:questions.*.type,single_choice',
+            'questions.*.options.*.is_correct' => 'required_if:questions.*.type,single_choice|boolean',
+            'questions.*.explanation' => 'nullable|string',
+            // Prompt specific validation
+            'questions.*.question_text' => 'required_if:questions.*.type,prompt',
+            'questions.*.challenge_description' => 'required_if:questions.*.type,prompt',
+            'questions.*.requirements' => 'required_if:questions.*.type,prompt|array',
+            'questions.*.evaluation_criteria' => 'required_if:questions.*.type,prompt|array',
+            'questions.*.example_solution' => 'nullable|string'
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Map the difficulty level
-            $mappedDifficulty = $this->mapDifficulty($validated['difficulty']);
-
-            // Create exam with mapped difficulty
             $exam = Exam::create([
                 'title' => $validated['title'],
-                'topic' => $validated['topic'],
-                'difficulty' => $mappedDifficulty, // Use mapped difficulty here
+                'slug' => Str::slug($validated['title']),
+                'description' => "AI Generated Exam: {$validated['topic']}",
+                'difficulty' => $validated['difficulty'],
+                'language' => $validated['language'],
+                'question_type' => $validated['question_type'],
                 'status' => 'draft',
-                'user_id' => auth()->id(),
-                'description' => "AI Generated exam about {$validated['topic']}",
-                'duration' => 60, // Default 60 minutes
-                'passing_score' => 70, // Default 70%
-                'max_attempts' => 3 // Default 3 attempts
+                'passing_score' => 70,
+                'duration' => 60,
+                'category' => 'AI & Machine Learning',
+                'source' => 'ai_generated',
+                'total_questions' => count($validated['questions'])
             ]);
 
-            // Create questions with options
             foreach ($validated['questions'] as $questionData) {
-                $question = $exam->questions()->create([
-                    'question_text' => $questionData['question'],
-                    'type' => $questionData['type'],
-                    'explanation' => $questionData['explanation'] ?? null,
-                    'points' => 1 // Default value
-                ]);
-
-                // Create options for the question
-                foreach ($questionData['options'] as $option) {
-                    $question->options()->create([
-                        'option_text' => $option['text'],
-                        'is_correct' => $option['is_correct']
+                if ($questionData['type'] === 'prompt') {
+                    $question = $exam->questions()->create([
+                        'type' => 'prompt',
+                        'question_text' => $questionData['question_text'],
+                        'challenge_description' => $questionData['challenge_description'],
+                        'requirements' => $questionData['requirements'],
+                        'evaluation_criteria' => $questionData['evaluation_criteria'],
+                        'example_solution' => $questionData['example_solution'] ?? null,
+                        'points' => 100,
+                        'language' => $validated['language']
                     ]);
+                } else {
+                    $question = $exam->questions()->create([
+                        'type' => 'single_choice',
+                        'question_text' => $questionData['question'], // Fix: Map 'question' to 'question_text'
+                        'explanation' => $questionData['explanation'] ?? null,
+                        'points' => 100,
+                        'language' => $validated['language']
+                    ]);
+
+                    foreach ($questionData['options'] as $option) {
+                        $question->options()->create([
+                            'option_text' => $option['text'],
+                            'is_correct' => $option['is_correct']
+                        ]);
+                    }
                 }
             }
 
             DB::commit();
 
             return response()->json([
-                'message' => 'AI Generated exam saved successfully',
-                'exam' => new ExamResource($exam->load(['questions.options']))
-            ], 201);
+                'message' => 'Exam saved successfully',
+                'exam' => $exam->load(['questions' => function ($q) {
+                    $q->with('options');
+                }])
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Failed to save AI generated exam:', [
+            Log::error('Failed to save exam:', [
                 'error' => $e->getMessage(),
-                'title' => $validated['title']
+                'data' => $validated
             ]);
 
             return response()->json([
@@ -557,71 +578,27 @@ class AdminExamController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'topic' => 'required|string',
-            'difficulty' => 'required|in:easy,medium,hard',
-            'questionCount' => 'required|integer|min:5|max:20'
+            'difficulty' => 'required|in:beginner,intermediate,advanced',
+            'questionCount' => 'required|integer|min:1|max:20',
+            'questionType' => 'required|in:single_choice,prompt,mixed',
+            'language' => 'required|in:en,vi,ja'
         ]);
 
         try {
-            $response = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo',
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'You are an expert exam creator. Generate questions in valid JSON format.'
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => "Generate {$validated['questionCount']} {$validated['difficulty']} level multiple-choice questions about {$validated['topic']}. 
-                            Return ONLY valid JSON in this exact format:
-                            {
-                              \"questions\": [
-                                {
-                                  \"question\": \"Question text goes here?\",
-                                  \"type\": \"single_choice\",
-                                  \"options\": [
-                                    {\"text\": \"Option 1\", \"is_correct\": false},
-                                    {\"text\": \"Option 2\", \"is_correct\": true},
-                                    {\"text\": \"Option 3\", \"is_correct\": false},
-                                    {\"text\": \"Option 4\", \"is_correct\": false}
-                                  ],
-                                  \"explanation\": \"Explanation for the correct answer\"
-                                }
-                              ]
-                            }"
-                    ]
-                ],
-                'temperature' => 0.7,
-                'max_tokens' => 2000
-            ]);
-
-            $content = $response->choices[0]->message->content;
-
-            // Parse and validate JSON response
-            $data = json_decode($content, true);
-            if (json_last_error() !== JSON_ERROR_NONE || !isset($data['questions'])) {
-                throw new \Exception('Invalid JSON response from AI');
+            if ($validated['questionType'] === 'mixed') {
+                return $this->generateMixedQuestions($validated);
             }
 
-            // Validate each question has required structure and type is single_choice
-            foreach ($data['questions'] as $question) {
-                if (!isset($question['question'], $question['type'], $question['options']) || 
-                    $question['type'] !== 'single_choice') {
-                    throw new \Exception('Invalid question structure in AI response');
-                }
-
-                // Validate options
-                $correctCount = collect($question['options'])->where('is_correct', true)->count();
-                if ($correctCount !== 1) {
-                    throw new \Exception('Each question must have exactly one correct answer');
-                }
-            }
+            $questions = $validated['questionType'] === 'single_choice'
+                ? $this->generateMCQQuestions($validated)
+                : $this->generatePromptQuestions($validated);
 
             return response()->json([
                 'message' => 'Questions generated successfully',
-                'questions' => $data['questions']
+                'questions' => $questions
             ]);
         } catch (\Exception $e) {
-            Log::error('Failed to generate exam questions:', [
+            Log::error('Failed to generate questions:', [
                 'error' => $e->getMessage(),
                 'topic' => $validated['topic']
             ]);
@@ -631,6 +608,131 @@ class AdminExamController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function generateMixedQuestions($data)
+    {
+        // Calculate counts for 50/50 split
+        $mcqCount = floor($data['questionCount'] / 2);
+        $promptCount = $data['questionCount'] - $mcqCount;
+
+        // Get language instructions
+        $languagePrompt = $this->getLanguageInstructions($data['language']);
+
+        // Generate MCQ questions
+        $mcqData = array_merge($data, ['questionCount' => $mcqCount]);
+        $mcqQuestions = $this->generateMCQQuestions($mcqData);
+
+        // Generate Prompt questions
+        $promptData = array_merge($data, ['questionCount' => $promptCount]);
+        $promptQuestions = $this->generatePromptQuestions($promptData);
+
+        return response()->json([
+            'message' => 'Mixed questions generated successfully',
+            'questions' => [
+                'mcq' => $mcqQuestions,
+                'prompt' => $promptQuestions
+            ],
+            'metadata' => [
+                'mcq_count' => $mcqCount,
+                'prompt_count' => $promptCount,
+                'language' => $data['language']
+            ]
+        ]);
+    }
+
+    private function generateMCQQuestions($data)
+    {
+        try {
+            $languagePrompt = $this->getLanguageInstructions($data['language']);
+
+            $prompt = <<<PROMPT
+            Generate {$data['questionCount']} multiple choice questions about {$data['topic']} at {$data['difficulty']} level.
+            
+            Requirements:
+            - Each question must have exactly 4 options
+            - Only one correct answer per question
+            - Include explanation for the correct answer
+            - {$languagePrompt}
+
+            Return in this exact JSON format:
+            {
+                "questions": [
+                    {
+                        "question": "Question text here?",
+                        "options": [
+                            {"text": "Option 1", "is_correct": false},
+                            {"text": "Option 2", "is_correct": true},
+                            {"text": "Option 3", "is_correct": false},
+                            {"text": "Option 4", "is_correct": false}
+                        ],
+                        "explanation": "Explanation for the correct answer"
+                    }
+                ]
+            }
+            PROMPT;
+
+            $result = $this->generateWithRetry($prompt);
+
+            // Ensure we have a questions array
+            if (!isset($result->questions)) {
+                throw new \Exception('Invalid response format: missing questions array');
+            }
+
+            return $result->questions;
+        } catch (\Exception $e) {
+            Log::error('MCQ Generation failed:', [
+                'error' => $e->getMessage(),
+                'topic' => $data['topic']
+            ]);
+            throw $e;
+        }
+    }
+
+    private function generatePromptQuestions($data)
+    {
+        $languagePrompt = $this->getLanguageInstructions($data['language']);
+
+        $prompt = <<<PROMPT
+        Generate {$data['questionCount']} {$data['difficulty']} level prompt engineering questions about {$data['topic']}.
+
+        Each question should test the ability to design effective AI system prompts.
+        {$languagePrompt}
+
+        Return in this exact JSON format only:
+        {
+            "questions": [
+                {
+                    "question_text": "Question title here",
+                    "challenge_description": "Detailed task description",
+                    "requirements": ["requirement1", "requirement2", "requirement3"],
+                    "evaluation_criteria": {
+                        "clarity": "Description of clarity criterion",
+                        "completeness": "Description of completeness criterion",
+                        "effectiveness": "Description of effectiveness criterion"
+                    },
+                    "example_solution": "Example of a well-crafted prompt that meets the requirements"
+                }
+            ]
+        }
+        PROMPT;
+
+        $result = $this->generateWithRetry($prompt);
+
+        if (!isset($result->questions)) {
+            throw new \Exception('Invalid response format: missing questions array');
+        }
+
+        return $result->questions;
+    }
+
+    private function getLanguageInstructions($language)
+    {
+        return match ($language) {
+            'vi' => "Generate all content in Vietnamese. Use natural Vietnamese expressions and terminology.",
+            'ja' => "Generate all content in Japanese. Use proper keigo and natural Japanese expressions.",
+            default => "Generate all content in English."
+        };
     }
 
     /**
@@ -722,7 +824,7 @@ class AdminExamController extends Controller
 
             // Decode JSON response
             $content = json_decode($response->choices[0]->message->content, true);
-            
+
             // Validate decoded content
             if (!$content || !isset($content['questions']) || empty($content['questions'])) {
                 throw new \Exception('Invalid question format received');
@@ -738,7 +840,6 @@ class AdminExamController extends Controller
                 'message' => 'Questions generated successfully',
                 'questions' => $content['questions']
             ]);
-
         } catch (\Exception $e) {
             // Log the error with context
             // \Log::error('Failed to generate prompt questions', [
@@ -801,7 +902,6 @@ class AdminExamController extends Controller
                 'message' => 'Exam saved successfully',
                 'exam' => $exam->load('questions')
             ]);
-
         } catch (\Exception $e) {
             //\Log::error('Failed to save prompt exam: ' . $e->getMessage());
             return response()->json([
@@ -819,5 +919,43 @@ class AdminExamController extends Controller
             'hard' => Exam::DIFFICULTY_ADVANCED,
             default => Exam::DIFFICULTY_INTERMEDIATE
         };
+    }
+
+    private function generateWithRetry($prompt, $maxRetries = 3)
+    {
+        $attempt = 0;
+
+        while ($attempt < $maxRetries) {
+            try {
+                $result = OpenAI::chat()->create([
+                    'model' => 'gpt-3.5-turbo', // Changed from gpt-4-turbo-preview
+                    'messages' => [
+                        [
+                            'role' => 'system',
+                            'content' => 'You are an expert exam creator. Always return responses in JSON format.'
+                        ],
+                        [
+                            'role' => 'user',
+                            'content' => "Generate the following in JSON format:\n\n" . $prompt
+                        ]
+                    ],
+                    'response_format' => ['type' => 'json_object'],
+                    'temperature' => 0.7,
+                    'max_tokens' => 4000
+                ]);
+
+                return json_decode($result->choices[0]->message->content);
+            } catch (\Exception $e) {
+                $attempt++;
+                Log::warning("OpenAI API attempt {$attempt} failed: " . $e->getMessage());
+
+                if ($attempt === $maxRetries) {
+                    throw $e;
+                }
+                // Exponential backoff with jitter
+                $backoff = pow(2, $attempt) + rand(1, 1000) / 1000;
+                sleep($backoff);
+            }
+        }
     }
 }

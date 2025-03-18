@@ -19,17 +19,7 @@
             <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
             </svg>
-            Generate Single Choice with AI
-          </button>
-          
-          <button
-            @click="showPromptModal = true"
-            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500"
-          >
-            <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-            </svg>
-            Generate Prompt with AI
+            Generate with AI
           </button>
           
           <router-link
@@ -83,6 +73,12 @@
                   Questions
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Type
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Language
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Source
                 </th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -130,6 +126,31 @@
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ exam.questions_count || 0 }} questions
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span :class="[
+                    'px-2 py-1 text-xs font-medium rounded-full',
+                    exam.question_type === 'mixed' 
+                      ? 'bg-indigo-100 text-indigo-800'
+                      : exam.question_type === 'prompt'
+                        ? 'bg-purple-100 text-purple-800'
+                        : 'bg-blue-100 text-blue-800'
+                  ]">
+                    {{ exam.question_type === 'mixed' 
+                        ? 'Mixed'
+                        : exam.question_type === 'prompt'
+                          ? 'Prompt'
+                          : 'Single Choice' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800">
+                    {{ exam.language === 'en' 
+                        ? 'English'
+                        : exam.language === 'vi'
+                          ? 'Tiếng Việt'
+                          : '日本語' }}
+                  </span>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
@@ -293,6 +314,63 @@
             </div>
 
             <form @submit.prevent="generateExam" class="mt-4 space-y-6">
+              <!-- Question Type Selection -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Question Types</label>
+                <div class="grid grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    @click="selectQuestionType('single_choice')"
+                    :class="[
+                      'px-4 py-3 text-sm font-medium rounded-lg text-center transition-colors',
+                      aiForm.questionType === 'single_choice'
+                        ? 'bg-indigo-50 text-indigo-700 ring-2 ring-indigo-600'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                    ]"
+                  >
+                    Single Choice
+                  </button>
+                  <button
+                    type="button"
+                    @click="selectQuestionType('prompt')"
+                    :class="[
+                      'px-4 py-3 text-sm font-medium rounded-lg text-center transition-colors',
+                      aiForm.questionType === 'prompt'
+                        ? 'bg-indigo-50 text-indigo-700 ring-2 ring-indigo-600'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                    ]"
+                  >
+                    Prompt Based
+                  </button>
+                  <button
+                    type="button"
+                    @click="selectQuestionType('mixed')"
+                    :class="[
+                      'px-4 py-3 text-sm font-medium rounded-lg text-center transition-colors',
+                      aiForm.questionType === 'mixed'
+                        ? 'bg-indigo-50 text-indigo-700 ring-2 ring-indigo-600'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
+                    ]"
+                  >
+                    Mixed (50/50)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Language Selection -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Language</label>
+                <select
+                  v-model="aiForm.language"
+                  class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="en">English</option>
+                  <option value="vi">Tiếng Việt</option>
+                  <option value="ja">日本語</option>
+                </select>
+              </div>
+
+              <!-- Existing form fields -->
               <div class="grid grid-cols-1 gap-6">
                 <!-- Title Input -->
                 <div>
@@ -300,8 +378,8 @@
                   <input
                     v-model="aiForm.title"
                     type="text"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    placeholder="Enter exam title"
+                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    :placeholder="getPlaceholder"
                     required
                   />
                 </div>
@@ -312,72 +390,64 @@
                   <input
                     v-model="aiForm.topic"
                     type="text"
-                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="e.g., JavaScript Basics, Python OOP"
                     required
                   />
                 </div>
 
-                <!-- Two columns layout -->
                 <div class="grid grid-cols-2 gap-4">
                   <!-- Difficulty Selection -->
                   <div>
                     <label class="block text-sm font-medium text-gray-700">Difficulty</label>
                     <select
                       v-model="aiForm.difficulty"
-                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                     >
-                      <option value="easy">Easy</option>
-                      <option value="medium">Medium</option>
-                      <option value="hard">Hard</option>
+                      <option value="beginner">Beginner</option>
+                      <option value="intermediate">Intermediate</option>
+                      <option value="advanced">Advanced</option>
                     </select>
                   </div>
 
                   <!-- Question Count -->
                   <div>
-                    <label class="block text-sm font-medium text-gray-700">Number of Questions</label>
+                    <label class="block text-sm font-medium text-gray-700">
+                      Number of Questions
+                      <span v-if="aiForm.questionType === 'mixed'" class="text-gray-500">
+                        (Total)
+                      </span>
+                    </label>
                     <input
                       v-model.number="aiForm.questionCount"
                       type="number"
-                      min="5"
-                      max="20"
-                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      :min="getMinQuestions"
+                      :max="getMaxQuestions"
+                      class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                     />
                   </div>
                 </div>
               </div>
 
               <!-- Submit Button -->
-              <div class="mt-6 border-t border-gray-200 pt-4">
-                <div class="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    @click="showAIModal = false"
-                    class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    :disabled="generating"
-                    class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                  >
-                    <svg
-                      v-if="generating"
-                      class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                      <path
-                        class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
-                    </svg>
-                    {{ generating ? 'Generating...' : 'Generate Questions' }}
-                  </button>
-                </div>
+              <div class="mt-6 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  @click="showAIModal = false"
+                  class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  :disabled="generating || !aiForm.questionType"
+                  class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50"
+                >
+                  <svg v-if="generating" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white">
+                    <!-- ... loading spinner ... -->
+                  </svg>
+                  {{ generating ? 'Generating...' : 'Generate Questions' }}
+                </button>
               </div>
             </form>
           </DialogPanel>
@@ -537,48 +607,44 @@
                 <div class="flex items-start justify-between">
                   <h4 class="text-base font-medium text-gray-900">
                     Question {{ index + 1 }}
+                    <span class="ml-2 text-sm text-gray-500">
+                      ({{ question.type === 'prompt' ? 'Prompt Engineering' : 'Multiple Choice' }})
+                    </span>
                   </h4>
-                  <button 
-                    @click="removeQuestion(index)"
-                    class="text-red-500 hover:text-red-700"
-                  >
+                  <button @click="removeQuestion(index)" class="text-red-500 hover:text-red-700">
                     <TrashIcon class="h-5 w-5" />
                   </button>
                 </div>
                 
-                <!-- Different display for prompt questions -->
+                <!-- Prompt Question Display -->
                 <template v-if="question.type === 'prompt'">
                   <div class="mt-4 space-y-4">
                     <div>
                       <h5 class="text-sm font-medium text-gray-700">Task</h5>
-                      <p class="mt-1 text-gray-700">{{ question.question_text }}</p>
+                      <p class="mt-1 text-gray-700">{{ question.question_text || question.question }}</p>
                     </div>
 
-                    <div>
+                    <div v-if="question.challenge_description">
                       <h5 class="text-sm font-medium text-gray-700">Description</h5>
                       <p class="mt-1 text-gray-600">{{ question.challenge_description }}</p>
                     </div>
 
-                    <div>
+                    <div v-if="question.requirements?.length">
                       <h5 class="text-sm font-medium text-gray-700">Requirements</h5>
-                      <ul class="mt-1 list-disc pl-5 space-y-1">
-                        <li v-for="(req, reqIndex) in question.requirements" 
-                            :key="reqIndex" 
-                            class="text-gray-600"
-                        >
+                      <ul class="mt-1 list-disc pl-5">
+                        <li v-for="req in question.requirements" :key="req" class="text-gray-600">
                           {{ req }}
                         </li>
                       </ul>
                     </div>
 
-                    <div>
+                    <div v-if="question.evaluation_criteria">
                       <h5 class="text-sm font-medium text-gray-700">Evaluation Criteria</h5>
                       <div class="mt-2 space-y-2">
                         <div v-for="(criterion, key) in question.evaluation_criteria" 
                              :key="key" 
-                             class="bg-gray-50 p-3 rounded-md"
-                        >
-                          <span class="font-medium text-gray-700 capitalize">{{ key }}:</span>
+                             class="bg-gray-50 p-3 rounded-md">
+                          <span class="font-medium text-gray-700">{{ key }}:</span>
                           <span class="text-gray-600 ml-2">{{ criterion }}</span>
                         </div>
                       </div>
@@ -586,10 +652,9 @@
                   </div>
                 </template>
 
-                <!-- Existing display for multiple choice questions -->
+                <!-- Multiple Choice Question Display -->
                 <template v-else>
                   <p class="mt-2 text-gray-700">{{ question.question }}</p>
-                
                   <div class="mt-3 space-y-2">
                     <div v-for="(option, optIndex) in question.options" :key="optIndex"
                          class="flex items-center space-x-2">
@@ -607,8 +672,7 @@
                       </span>
                     </div>
                   </div>
-
-                  <div class="mt-3 text-sm text-gray-500">
+                  <div v-if="question.explanation" class="mt-3 text-sm text-gray-500">
                     <span class="font-medium">Explanation:</span>
                     {{ question.explanation }}
                   </div>
@@ -616,40 +680,37 @@
               </div>
             </div>
 
-            <!-- Footer -->
-            <div class="mt-6 border-t border-gray-200 pt-4 flex justify-between items-center">
-              <p class="text-sm text-gray-500">
-                {{ generatedExam.questions.length }} questions
-              </p>
-              <div class="flex space-x-3">
-                <button
-                  type="button"
-                  class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                  @click="showPreviewModal = false"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  :disabled="saving || generatedExam.questions.length === 0"
-                  @click="saveExam"
-                  class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg
-                    v-if="saving"
-                    class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
+            <!-- Footer with metadata -->
+            <div class="mt-6 pt-4 border-t border-gray-200">
+              <div class="flex justify-between items-center">
+                <div class="space-y-1">
+                  <p class="text-sm text-gray-500">
+                    {{ generatedExam.questions.length }} questions • {{ generatedExam.language.toUpperCase() }}
+                  </p>
+                  <p class="text-sm text-gray-500">
+                    Type: {{ generatedExam.type === 'mixed' ? 'Mixed (MCQ + Prompt)' : 
+                           generatedExam.type === 'prompt' ? 'Prompt Engineering' : 'Multiple Choice' }}
+                  </p>
+                </div>
+                
+                <div class="flex space-x-3">
+                  <button
+                    @click="showPreviewModal = false"
+                    class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                    <path
-                      class="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  {{ saving ? 'Saving...' : 'Save Exam' }}
-                </button>
+                    Cancel
+                  </button>
+                  <button
+                    @click="saveExam"
+                    :disabled="saving || generatedExam.questions.length === 0"
+                    class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50"
+                  >
+                    <svg v-if="saving" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white">
+                      <!-- ... loading spinner ... -->
+                    </svg>
+                    {{ saving ? 'Saving...' : 'Save Exam' }}
+                  </button>
+                </div>
               </div>
             </div>
           </DialogPanel>
@@ -697,8 +758,10 @@ const saving = ref(false)
 const aiForm = ref({
   title: '',
   topic: '',
-  difficulty: 'medium',
-  questionCount: 10
+  difficulty: 'intermediate',
+  questionCount: 5,
+  questionType: '', // single_choice, prompt, or mixed
+  language: 'en'  // en, vi, or ja
 })
 const generatedExam = ref({
   title: '',
@@ -801,13 +864,31 @@ const toast = useToast()
 async function generateExam() {
   generating.value = true
   try {
-    const { data } = await axios.post('/admin/exams/generate', aiForm.value)
-    
-    generatedExam.value = {
+    const formData = {
       title: aiForm.value.title,
       topic: aiForm.value.topic,
       difficulty: aiForm.value.difficulty,
-      questions: data.questions
+      questionCount: parseInt(aiForm.value.questionCount),
+      questionType: aiForm.value.questionType,
+      language: aiForm.value.language
+    }
+
+    const { data } = await axios.post('/admin/exams/generate', formData)
+    
+    // Update how we handle the generated questions
+    generatedExam.value = {
+      title: formData.title,
+      topic: formData.topic,
+      difficulty: formData.difficulty,
+      language: formData.language,
+      type: formData.questionType,
+      questions: formData.questionType === 'mixed' 
+        ? [...(data.questions.mcq || []).map(q => ({...q, type: 'single_choice'})), 
+           ...(data.questions.prompt || []).map(q => ({...q, type: 'prompt'}))]
+        : data.questions.map(q => ({
+            ...q, 
+            type: formData.questionType
+          }))
     }
     
     showAIModal.value = false
@@ -822,10 +903,76 @@ async function generateExam() {
 }
 
 async function saveExam() {
-  if (!generatedExam.value.type) {
-    return saveSingleChoiceExam()
+  saving.value = true
+  try {
+    // Format questions based on their type
+    const formattedQuestions = generatedExam.value.questions.map(q => {
+      if (q.type === 'prompt') {
+        return {
+          type: 'prompt',
+          question_text: q.question_text || q.question,
+          challenge_description: q.challenge_description,
+          requirements: q.requirements || [],
+          evaluation_criteria: q.evaluation_criteria || {},
+          example_solution: q.example_solution || null
+        }
+      }
+      
+      return {
+        type: 'single_choice',
+        question: q.question,
+        options: q.options.map(opt => ({
+          text: opt.text || opt,
+          is_correct: opt.is_correct || false
+        })),
+        explanation: q.explanation || null
+      }
+    })
+
+    const examData = {
+      title: generatedExam.value.title,
+      topic: generatedExam.value.topic,
+      difficulty: generatedExam.value.difficulty,
+      language: generatedExam.value.language,
+      question_type: generatedExam.value.type,
+      questions: formattedQuestions
+    }
+
+    const { data } = await axios.post('/admin/exams/save-generated', examData)
+    
+    // Update local list and close modal
+    exams.value.data.unshift(data.exam)
+    showPreviewModal.value = false
+    toast.success('Exam saved successfully!')
+    
+    // Reset forms
+    resetForm()
+  } catch (error) {
+    console.error('Error saving exam:', error)
+    toast.error(error.response?.data?.message || 'Failed to save exam')
+  } finally {
+    saving.value = false
   }
-  return savePromptExam()
+}
+
+function resetForm() {
+  generatedExam.value = {
+    title: '',
+    topic: '',
+    difficulty: '',
+    language: 'en',
+    type: '',
+    questions: []
+  }
+  
+  aiForm.value = {
+    title: '',
+    topic: '',
+    difficulty: 'intermediate',
+    questionCount: 5,
+    questionType: '',
+    language: 'en'
+  }
 }
 
 async function saveSingleChoiceExam() {
@@ -1021,6 +1168,67 @@ async function generatePromptExam() {
     toast.error(error.response?.data?.message || 'Failed to generate prompt exam')
   } finally {
     generatingPrompt.value = false
+  }
+}
+
+// Helper computed properties
+const getMinQuestions = computed(() => {
+  return aiForm.value.questionType === 'mixed' ? 2 : 1
+})
+
+const getMaxQuestions = computed(() => {
+  switch (aiForm.value.questionType) {
+    case 'prompt':
+      return 5
+    case 'mixed':
+      return 20
+    default:
+      return 15
+  }
+})
+
+const getPlaceholder = computed(() => {
+  switch (aiForm.value.questionType) {
+    case 'prompt':
+      return 'e.g., Advanced Prompt Engineering Assessment'
+    case 'mixed':
+      return 'e.g., Comprehensive AI Development Exam'
+    default:
+      return 'e.g., JavaScript Fundamentals Quiz'
+  }
+})
+
+function selectQuestionType(type) {
+  aiForm.value.questionType = type
+  // Adjust question count based on type
+  if (type === 'prompt') {
+    aiForm.value.questionCount = Math.min(aiForm.value.questionCount, 5)
+  } else if (type === 'mixed') {
+    aiForm.value.questionCount = Math.min(aiForm.value.questionCount, 20)
+  }
+}
+
+// Update the preview modal content
+const previewQuestion = (question) => {
+  if (question.type === 'prompt') {
+    return {
+      type: 'prompt',
+      question_text: question.question_text || question.question,
+      challenge_description: question.challenge_description,
+      requirements: question.requirements || [],
+      evaluation_criteria: question.evaluation_criteria || {},
+      example_solution: question.example_solution
+    }
+  }
+  
+  return {
+    type: 'single_choice',
+    question: question.question,
+    options: question.options.map(opt => ({
+      text: opt.text || opt,
+      is_correct: opt.is_correct || false
+    })),
+    explanation: question.explanation
   }
 }
 </script>

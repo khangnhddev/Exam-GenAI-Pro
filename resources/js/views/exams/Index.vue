@@ -167,7 +167,7 @@
                 </div>
                 <div class="bg-white rounded-lg p-2 text-center border border-gray-100">
                   <div class="text-xs text-gray-500 mb-0.5">Questions</div>
-                  <div class="text-sm font-medium text-gray-900">{{ exam.total_questions }}</div>
+                  <div class="text-sm font-medium text-gray-900">{{ exam.questions_count }}</div>
                 </div>
                 <div class="bg-white rounded-lg p-2 text-center border border-gray-100">
                   <div class="text-xs text-gray-500 mb-0.5">Pass Score</div>
