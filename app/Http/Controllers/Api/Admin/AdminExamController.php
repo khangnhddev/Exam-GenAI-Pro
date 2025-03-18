@@ -389,7 +389,7 @@ class AdminExamController extends Controller
 
             // Generate questions using the processed content
             $response = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo',
+                'model' => 'gpt-4-0125-preview', // Updated to GPT-4 Turbo
                 'messages' => [
                     [
                         'role' => 'system',
@@ -416,8 +416,10 @@ class AdminExamController extends Controller
                             "}"
                     ]
                 ],
-                'temperature' => 0.7,
-                'max_tokens' => 2000
+                'response_format' => ['type' => 'json_object'],
+                'temperature' => 0.3, // Lower temperature for more consistent results
+                'max_tokens' => 4000,
+                'top_p' => 0.8 // More focused sampling
             ]);
 
             $content = $response->choices[0]->message->content;
@@ -783,7 +785,7 @@ class AdminExamController extends Controller
 
         try {
             $response = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo',
+                'model' => 'gpt-4-0125-preview', // Updated to GPT-4 Turbo
                 'messages' => [
                     [
                         'role' => 'system',
@@ -812,9 +814,10 @@ class AdminExamController extends Controller
                     }"
                     ]
                 ],
-                'temperature' => 0.7,
-                'max_tokens' => 2000,
-                'response_format' => ['type' => 'json_object']
+                'response_format' => ['type' => 'json_object'],
+                'temperature' => 0.3,
+                'max_tokens' => 4000,
+                'top_p' => 0.8
             ]);
 
             // Validate response
@@ -928,7 +931,7 @@ class AdminExamController extends Controller
         while ($attempt < $maxRetries) {
             try {
                 $result = OpenAI::chat()->create([
-                    'model' => 'gpt-3.5-turbo', // Changed from gpt-4-turbo-preview
+                    'model' => 'gpt-4-0125-preview', // Updated to GPT-4 Turbo
                     'messages' => [
                         [
                             'role' => 'system',
@@ -940,8 +943,9 @@ class AdminExamController extends Controller
                         ]
                     ],
                     'response_format' => ['type' => 'json_object'],
-                    'temperature' => 0.7,
-                    'max_tokens' => 4000
+                    'temperature' => 0.3, // Lower temperature for more consistent results
+                    'max_tokens' => 4000,
+                    'top_p' => 0.8 // More focused sampling
                 ]);
 
                 return json_decode($result->choices[0]->message->content);

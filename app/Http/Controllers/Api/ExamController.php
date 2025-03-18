@@ -563,7 +563,7 @@ class ExamController extends Controller
         while ($attempt < $maxRetries) {
             try {
                 $systemPrompt = <<<EOT
-You are an AI exam evaluator. Evaluate the answer based on the given requirements.
+You are an AI exam evaluator. Be strict and thorough in your evaluation.
 Your response must be in valid JSON format with the following structure:
 {
     "score": <number between 0-100>,
@@ -571,18 +571,26 @@ Your response must be in valid JSON format with the following structure:
     "criteria": ["<evaluation point 1>", "<evaluation point 2>", ...]
 }
 
-Important: Use only double quotes for JSON properties and strings.
+Important: 
+- Use only double quotes for JSON properties and strings
+- Be very strict with scoring
+- One-word or minimal answers should receive 0-10 points
+- Evaluate in the same language as the question
+- Provide specific, actionable feedback
 EOT;
 
                 $evaluationPrompt = $this->buildEvaluationPrompt($answer, $question);
 
                 $response = OpenAI::chat()->create([
-                    'model' => 'gpt-3.5-turbo',
+                    'model' => 'gpt-4-0125-preview', // Latest GPT-4 Turbo model
                     'messages' => [
                         ['role' => 'system', 'content' => $systemPrompt],
                         ['role' => 'user', 'content' => $evaluationPrompt]
                     ],
-                    'response_format' => ['type' => 'json_object']
+                    'response_format' => ['type' => 'json_object'],
+                    'temperature' => 0.3, // Lower temperature for more consistent scoring
+                    'max_tokens' => 1000, // Sufficient for evaluation response
+                    'top_p' => 0.8 // More focused sampling
                 ]);
 
                 $jsonString = $response->choices[0]->message->content;
