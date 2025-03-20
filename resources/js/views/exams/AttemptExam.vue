@@ -49,7 +49,7 @@
                 d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" 
               />
             </svg>
-            Exit
+            {{ t.exit }}
           </button>
         </div>
       </div>
@@ -62,9 +62,9 @@
           <!-- Question Text -->
           <div class="prose max-w-none">
             <h3 class="text-lg font-medium text-gray-900 mb-2">
-              Question {{ currentQuestionIndex + 1 }}
+              {{ t.question }} {{ currentQuestionIndex + 1 }}
               <span class="text-sm text-gray-500 ml-2">
-                ({{ currentQuestion.type === 'multiple_choice' ? 'Multiple Choice' : 'Single Choice' }})
+                ({{ currentQuestion.type === 'multiple_choice' ? t.multipleChoice : t.singleChoice }})
               </span>
             </h3>
             <div class="text-gray-700" v-html="currentQuestion.question_text"></div>
@@ -167,7 +167,7 @@
                   <!-- Editor Toolbar -->
                   <div class="flex items-center justify-between px-4 py-2 border-b border-gray-200">
                     <div class="flex items-center space-x-4">
-                      <span class="text-sm font-medium text-gray-700">Your Answer</span>
+                      <span class="text-sm font-medium text-gray-700">{{ t.yourAnswer }}</span>
                       <div class="h-4 border-l border-gray-300"></div>
                       <span class="text-xs text-gray-500">
                         AI will evaluate your answer based on the requirements
@@ -178,7 +178,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                       </svg>
-                      <span>Markdown supported</span>
+                      <span>{{ t.markdownSupported }}</span>
                     </div>
                   </div>
 
@@ -210,10 +210,10 @@
                   <!-- Character Count -->
                   <div class="px-4 py-2 border-t border-gray-200 flex items-center justify-between">
                     <div class="text-xs text-gray-500">
-                      Characters: {{ selectedAnswers[currentQuestion.id]?.length || 0 }}
+                      {{ t.characters }}: {{ selectedAnswers[currentQuestion.id]?.length || 0 }}
                     </div>
                     <div class="text-xs text-gray-500">
-                      Press Ctrl+Space for suggestions
+                      {{ t.suggestions }}
                     </div>
                   </div>
                 </div>
@@ -242,7 +242,7 @@
                         <template v-else>
                           <svg class="mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2z" />
                           </svg>
                           Test Your Answer
                         </template>
@@ -316,7 +316,7 @@
 
             <!-- Validation Message -->
             <div v-if="!isCurrentQuestionAnswered" class="text-sm text-red-500 mt-2">
-              Please select an answer before proceeding
+              {{ t.pleaseAnswer }}
             </div>
           </div>
         </div>
@@ -334,7 +334,7 @@
               : 'bg-white text-indigo-600 hover:bg-indigo-50'
           ]">
           <ArrowLeftIcon class="h-5 w-5 mr-2" />
-          Previous
+          {{ t.previous }}
         </button>
 
         <button v-if="currentQuestionIndex < questions.length - 1" @click="nextQuestion"
@@ -344,7 +344,7 @@
               ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           ]">
-          Next
+          {{ t.next }}
           <ArrowRightIcon class="h-5 w-5 ml-2" />
         </button>
 
@@ -354,7 +354,7 @@
               ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white'
               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
           ]">
-          Submit
+          {{ t.submit }}
         </button>
       </div>
     </div>
@@ -380,12 +380,11 @@
               </div>
               <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                 <h3 class="text-lg leading-6 font-medium text-gray-900">
-                  Exit Exam
+                  {{ t.exitExam }}
                 </h3>
                 <div class="mt-2">
                   <p class="text-sm text-gray-500">
-                    Are you sure you want to exit? Your progress will be saved, but the exam timer will continue
-                    running.
+                    {{ t.exitConfirm }}
                   </p>
                 </div>
               </div>
@@ -394,11 +393,11 @@
           <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse"></div>
           <button @click="exit"
             class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-all">
-            Exit
+            {{ t.exit }}
           </button>
           <button @click="showExitModal = false"
             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-            Cancel
+            {{ t.cancel }}
           </button>
         </div>
       </div>
@@ -422,11 +421,11 @@
             </div>
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Time's Up!
+                {{ t.timesUp }}
               </h3>
               <div class="mt-2">
                 <p class="text-sm text-gray-500">
-                  The exam time has expired. Your answers will be automatically submitted.
+                  {{ t.examExpired }}
                 </p>
               </div>
             </div>
@@ -435,7 +434,7 @@
         <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
           <button @click="submitExam"
             class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-all">
-            Submit Exam
+            {{ t.submitExam }}
           </button>
         </div>
       </div>
@@ -459,7 +458,7 @@
               d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
             </path>
           </svg>
-          <span class="text-lg font-medium text-gray-900">Submitting your exam...</span>
+          <span class="text-lg font-medium text-gray-900">{{ t.submitting }}</span>
         </div>
       </div>
     </div>
@@ -482,12 +481,11 @@
             </div>
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 class="text-lg leading-6 font-medium text-gray-900">
-                Unanswered Questions
+                {{ t.unansweredQuestions }}
               </h3>
               <div class="mt-2">
                 <p class="text-sm text-gray-500">
-                  You have {{ unansweredCount }} unanswered {{ unansweredCount === 1 ? 'question' : 'questions' }}. Are
-                  you sure you want to submit anyway?
+                  {{ t.unansweredCount.replace('{count}', unansweredCount).replace('{plural}', unansweredCount === 1 ? 'question' : 'questions') }}
                 </p>
               </div>
             </div>
@@ -496,11 +494,11 @@
         <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
           <button @click="handleConfirmSubmit(true)"
             class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-all">
-            Submit Anyway
+            {{ t.submitAnyway }}
           </button>
           <button @click="handleConfirmSubmit(false)"
             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
-            Go Back
+            {{ t.goBack }}
           </button>
         </div>
       </div>
@@ -524,31 +522,31 @@
             </div>
             <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
               <h3 class="text-lg font-medium text-gray-900">
-                Submit Exam?
+                {{ t.submitBeforeExit }}
               </h3>
               <div class="mt-2">
                 <p class="text-sm text-gray-500">
-                  You still have time remaining. Would you like to submit your exam now?
+                  {{ t.timeRemaining }}
                 </p>
                 <p class="text-sm text-gray-500 mt-1">
-                  Note: Exiting without submitting will save your progress but the timer will continue.
+                  {{ t.exitNote }}
                 </p>
               </div>
             </div>
           </div>
         </div>
         <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
-          <button @click="handleExitSubmit(true)"
+          <!-- <button @click="handleExitSubmit(true)"
             class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-base font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm transition-all">
-            Submit & Exit
+            {{ t.submitAndExit }}
+          </button> -->
+          <button @click="showSubmitBeforeExitModal = false"
+            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium  bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
+            {{ t.cancel }}
           </button>
           <button @click="handleExitSubmit(false)"
             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
-            Exit Without Submitting
-          </button>
-          <button @click="showSubmitBeforeExitModal = false"
-            class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm">
-            Cancel
+            {{ t.exitWithoutSubmit }}
           </button>
         </div>
       </div>
@@ -589,9 +587,16 @@ const unansweredCount = ref(0)
 const showSubmitBeforeExitModal = ref(false)
 const exitAfterSubmit = ref(false)
 
-const currentQuestion = computed(() => questions.value[currentQuestionIndex.value])
+const currentQuestion = computed(() => {
+  // Add null checks
+  if (!questions.value || !questions.value.length) return null
+  return questions.value[currentQuestionIndex.value] || null
+})
 
 const isOptionSelected = (optionIndex) => {
+  // Add null check
+  if (!currentQuestion.value || !currentQuestion.value.id) return false
+  
   const answer = selectedAnswers.value[currentQuestion.value.id]
   if (currentQuestion.value.type === 'multiple') {
     return Array.isArray(answer) && answer.includes(optionIndex)
@@ -664,12 +669,26 @@ const editorOptions = {
   padding: { top: 16, bottom: 16 }
 }
 
-// Replace the existing isCurrentQuestionAnswered computed
-const isCurrentQuestionAnswered = computed(() => {
-  const answer = selectedAnswers.value[currentQuestion.value?.id]
-  if (!currentQuestion.value) return false
+// Add new computed property to check if all prompts are answered
+const hasUnansweredPrompts = computed(() => {
+  return questions.value.some(question => {
+    if (question.type === 'prompt') {
+      const answer = selectedAnswers.value[question.id]
+      return !answer || answer.trim().length === 0
+    }
+    return false
+  })
+})
 
-  switch (currentQuestion.value.type) {
+// Update isCurrentQuestionAnswered computed property
+const isCurrentQuestionAnswered = computed(() => {
+  const question = currentQuestion.value
+  // Add null check
+  if (!question || !question.id) return false
+
+  const answer = selectedAnswers.value[question.id]
+
+  switch (question.type) {
     case 'prompt':
       return answer && answer.trim().length > 0
     case 'multiple_choice':
@@ -677,9 +696,8 @@ const isCurrentQuestionAnswered = computed(() => {
       return Array.isArray(answer) && answer.length > 0
     case 'single_choice':
     case 'single':
-      return answer !== null && answer !== undefined
     default:
-      return false
+      return answer !== null && answer !== undefined
   }
 })
 
@@ -745,14 +763,9 @@ const submitExamRequest = async () => {
   try {
     const response = await axios.post(`/exams/attempts/${route.params.attemptId}/submit`, {
       answers: formattedAnswers.value,
-      attempt_id: route.params.attemptId
-    });
-
-    console.log('response:', response.data)
-
-    if (timer) {
-      clearInterval(timer)
-    }
+      attempt_id: route.params.attemptId,
+      remaining_time: timeLeft.value // Add remaining time to request
+    })
 
     // Ensure minimum loading time
     const elapsedTime = Date.now() - startTime
@@ -766,33 +779,62 @@ const submitExamRequest = async () => {
   }
 }
 
+const checkUnansweredQuestions = () => {
+  return questions.value.filter(question => {
+    const answer = selectedAnswers.value[question.id]
+    
+    switch (question.type) {
+      case 'prompt':
+        return !answer || answer.trim().length === 0
+      case 'multiple_choice':
+      case 'multiple':
+        return !Array.isArray(answer) || answer.length === 0
+      case 'single_choice':
+      case 'single':
+      default:
+        return answer === null || answer === undefined
+    }
+  })
+}
+
+// Update submitExam function
 const submitExam = async () => {
+  if (hasUnansweredPrompts.value) {
+    const unansweredCount = questions.value.filter(q => {
+      if (q.type === 'prompt') {
+        const answer = selectedAnswers.value[q.id]
+        return !answer || answer.trim().length === 0
+      }
+      return false
+    }).length
+
+    toast.error(t.value.unansweredCount.replace(
+      '{count}', 
+      unansweredCount
+    ).replace(
+      '{plural}', 
+      unansweredCount === 1 ? t.value.question.toLowerCase() : t.value.questions.toLowerCase()
+    ))
+    return
+  }
+
   try {
-    // Check if current question is answered
-    if (!isCurrentQuestionAnswered.value) {
-      toast.warning('Please answer the current question before submitting.')
-      return
+    // Stop timer immediately when submitting
+    if (timer) {
+      clearInterval(timer)
+      timer = null
     }
 
-    // Check for any unanswered questions
-    const unansweredQuestions = questions.value.filter(question => {
-      const answer = selectedAnswers.value[question.id]
-      return question.type === 'multiple'
-        ? !Array.isArray(answer) || answer.length === 0
-        : answer === null || answer === undefined
-    })
-
-    if (unansweredQuestions.length > 0) {
-      toast.error(`Please answer all questions before submitting. You have ${unansweredQuestions.length} unanswered questions.`)
-      return
-    }
-
-    // If all questions are answered, proceed with submission
     isSubmitting.value = true
     await submitExamRequest()
   } catch (error) {
-    console.error('Error in submit process:', error)
-    toast.error('Failed to submit exam')
+    console.error('Submit error:', error)
+    toast.error(t.value.submitError)
+    
+    // Restart timer if submission fails
+    if (!timer && timeLeft.value > 0) {
+      startTimer()
+    }
   } finally {
     isSubmitting.value = false
   }
@@ -1022,4 +1064,94 @@ onUnmounted(() => {
 })
 
 onBeforeRouteLeave(handleBeforeRouteLeave)
+
+// Add language utilities
+const getTranslations = (language = 'en') => {
+  return {
+    en: {
+      timeRemaining: "Time Remaining",
+      exit: "Exit",
+      question: "Question",
+      multipleChoice: "Multiple Choice",
+      singleChoice: "Single Choice",
+      prompt: "Prompt",
+      requirements: "Requirements",
+      yourAnswer: "Your Answer",
+      markdownSupported: "Markdown supported",
+      characters: "Characters",
+      suggestions: "Press Ctrl+Space for suggestions",
+      pleaseAnswer: "Please select an answer before proceeding",
+      previous: "Previous",
+      next: "Next",
+      submit: "Submit",
+      exitExam: "Exit Exam",
+      exitConfirm: "Are you sure you want to exit? Your progress will be saved, but the exam timer will continue running.",
+      cancel: "Cancel",
+      timesUp: "Time's Up!",
+      examExpired: "The exam time has expired. Your answers will be automatically submitted.",
+      submitExam: "Submit Exam",
+      submitting: "Submitting your exam...",
+      unansweredQuestions: "Unanswered Questions",
+      unansweredCount: "You have {count} unanswered {plural}. Are you sure you want to submit anyway?",
+      submitAnyway: "Submit Anyway",
+      goBack: "Go Back",
+      submitBeforeExit: "Submit Exam?",
+      timeRemaining: "You still have time remaining. Would you like to submit your exam now?",
+      exitNote: "Note: Exiting without submitting will save your progress but the timer will continue.",
+      submitAndExit: "Submit & Exit",
+      exitWithoutSubmit: "Exit Without Submitting",
+      promptRequired: "Please provide an answer for all prompt questions before submitting",
+      question: "Question",
+      questions: "Questions",
+      submitError: "Failed to submit exam. Please try again.",
+    },
+    ja: {
+      timeRemaining: "残り時間",
+      exit: "終了",
+      question: "問題",
+      multipleChoice: "複数選択",
+      singleChoice: "単一選択",
+      prompt: "プロンプト",
+      requirements: "要件",
+      yourAnswer: "あなたの回答",
+      markdownSupported: "Markdown対応",
+      characters: "文字数",
+      suggestions: "Ctrl+Spaceでサジェスト",
+      pleaseAnswer: "次に進む前に回答を選択してください",
+      previous: "前へ",
+      next: "次へ",
+      submit: "提出",
+      // ... add other Japanese translations
+      promptRequired: "提出前に、すべてのプロンプト問題に回答してください",
+      question: "問題",
+      questions: "問題",
+      submitError: "提出に失敗しました。もう一度お試しください。",
+    },
+    vi: {
+      timeRemaining: "Thời gian còn lại",
+      exit: "Thoát",
+      question: "Câu hỏi",
+      multipleChoice: "Nhiều lựa chọn",
+      singleChoice: "Một lựa chọn",
+      prompt: "Câu hỏi tự luận",
+      requirements: "Yêu cầu",
+      yourAnswer: "Câu trả lời của bạn",
+      markdownSupported: "Hỗ trợ Markdown",
+      characters: "Số ký tự",
+      suggestions: "Nhấn Ctrl+Space để gợi ý",
+      pleaseAnswer: "Vui lòng chọn câu trả lời trước khi tiếp tục",
+      previous: "Trước",
+      next: "Tiếp theo",
+      submit: "Nộp bài",
+      // ... add other Vietnamese translations
+      promptRequired: "Vui lòng trả lời tất cả các câu hỏi tự luận trước khi nộp bài",
+      question: "câu hỏi",
+      questions: "câu hỏi",
+      submitError: "Không thể nộp bài. Vui lòng thử lại.",
+    }
+  }[language]
+}
+
+// Add computed for translations
+const t = computed(() => getTranslations(exam.value?.language))
 </script>

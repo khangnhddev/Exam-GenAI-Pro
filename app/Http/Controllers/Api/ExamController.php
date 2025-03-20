@@ -319,6 +319,7 @@ class ExamController extends Controller
             'exam' => [
                 'id' => $exam->id,
                 'title' => $exam->title,
+                'language' => $exam->language,
                 'duration' => $exam->duration
             ],
             'questions' => $questions,

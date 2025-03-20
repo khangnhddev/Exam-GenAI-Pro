@@ -217,11 +217,11 @@ const profileMenuItems = [
     to: { name: 'profile' },
     icon: UserCircleIcon
   },
-  {
-    name: 'History',
-    to: { name: 'my-learning' },
-    icon: BookOpenIcon
-  },
+  // {
+  //   name: 'History',
+  //   to: { name: 'my-learning' },
+  //   icon: BookOpenIcon
+  // },
   {
     name: 'Certificates',
     to: { name: 'certificates' },

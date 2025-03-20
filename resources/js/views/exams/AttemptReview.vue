@@ -221,14 +221,14 @@
               </div>
 
               <!-- Correct Answer (if wrong) -->
-              <div v-if="!question.is_correct" class="mt-4 pt-4 border-t">
+              <!-- <div v-if="!question.is_correct" class="mt-4 pt-4 border-t">
                 <h4 class="text-sm font-medium text-gray-900 mb-2">Correct Answer:</h4>
                 <div class="bg-green-50 rounded-lg p-4">
                   <div class="prose prose-sm max-w-none">
                     <div v-html="question.correct_answer"></div>
                   </div>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>

@@ -302,123 +302,158 @@ function getScoreClass() {
 }
 
 /**
- * Download the certificate as a PDF
+ * Download the certificate as a high-quality PNG
  */
 const downloadCertificate = async () => {
   try {
-    loading.value = true;
-    
-    const certificateElement = certificateRef.value.querySelector('.border');
+    loading.value = true
+    const certificateElement = certificateRef.value.querySelector('.border')
     
     if (!certificateElement) {
-      throw new Error('Certificate element not found');
+      throw new Error('Certificate element not found')
     }
 
-    // Create container with A4 dimensions
-    const tempContainer = document.createElement('div');
-    tempContainer.style.position = 'absolute';
-    tempContainer.style.left = '-9999px';
-    tempContainer.style.width = '2480px';
-    tempContainer.style.height = '3508px';
-    tempContainer.style.backgroundColor = '#ffffff';
-    document.body.appendChild(tempContainer);
+    // Tạo container tạm
+    const tempContainer = document.createElement('div')
+    tempContainer.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: white;
+      padding: 40px;
+      z-index: -9999;
+    `
+    document.body.appendChild(tempContainer)
+    
+    // Clone chứng chỉ
+    const clonedCertificate = certificateElement.cloneNode(true)
+    
+    // Style cho chứng chỉ
+    clonedCertificate.style.cssText = `
+      width: 800px;
+      padding: 60px;
+      border-width: 2px;
+      border-color: #e2e8f0;
+      border-style: solid;
+      border-radius: 16px;
+      background-color: white;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      transform: scale(1);
+      transform-origin: center;
+    `
+    tempContainer.appendChild(clonedCertificate)
+    
+    // PHƯƠNG PHÁP MỚI: Thay thế logo hoàn toàn bằng hình ảnh
+    const fixStyles = async (element) => {
+      try {
+        // 1. Tìm logo container
+        const logoContainer = element.querySelector('.mb-12.inline-flex');
+        if (logoContainer) {
+          // 2. Tạo logo đầy đủ bao gồm cả chữ AI Pro
+          const logoImg = document.createElement('img');
+          logoImg.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxNTAgNDAiIGZpbGw9Im5vbmUiPgogIDxnIGZpbGw9Im5vbmUiPgogICAgPHJlY3QgeD0iMCIgeT0iMiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjM2IiByeD0iOCIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KICAgIDxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNS41NCAxNC4wMzVsNS44MiAzLjM3Yy40Mi4yNDMuNzk2LjU0NyAxLjExNy45WiIvPgogICAgPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTkuNTQgMTcuNDA1bDcuNDc0LTQuMzJjMS40MjItLjgyMyAzLjE3OC0uODIzIDQuNiAwbDQuOTIzIDIuODQzYy0uMzItLjM1Mi0uNjk2LS42NTctMS4xMTYtLjl8LTUuODItMy4zNjRhMy4zOCAzLjM4IDAgMDAtMy4zODQgMEw5LjU0IDE3LjQwNXoiLz4KICAgIDxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTkuNTQgMTcuNDA1bDIuNTg3IDEuNDk1TTEyLjEyNyAxOC45Yy4zMi4xODUuNjI1LjQwMi45MS42NDVsMS43NTcgMS41IDEuNzU4LTEuNWMuMjg1LS4yNDMuNTktLjQ2LjkxLS42NDVsMi41ODctMS40OTUiLz4KICAgIDxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTIyLjUzOCAxNS45MjhsLTQuOTI0LTIuODQzYy0xLjQyMi0uODIyLTMuMTc4LS44MjItNC42IDBsLTcuNDc0IDQuMzIgMi41ODcgMS40OTVjLjMyLjE4NS42MjUuNDAyLjkxLjY0NWwxLjc1NyAxLjUgMS43NTgtMS41Yy4yODUtLjI0My41OS0uNDYuOTEtLjY0NWwyLjU4Ny0xLjQ5NSA1LjQ3Mi0zLjE2MmMxLjA3My0uNjIgMi4zOTMtLjYyIDMuNDY2IDB8MS41NTIuODk2Ii8+CiAgICA8cGF0aCBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGQ9Ik0yMi41MzggMTUuOTI4bC0xLjU1Mi0uODk3Yy0xLjA3My0uNjItMi4zOTMtLjYyLTMuNDY2IDBsLTUuNDcyIDMuMTYyIi8+CiAgICA8cGF0aCBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGQ9Ik0yMi41MzggMTUuOTI4YzEuMDcyLjYyIDEuNzMgMS43NjggMS43MyAzLjAwOXY2LjEyNmMwIDEuMjQtLjY1OCAyLjM4Ny0xLjczIDMuMDA5bC01LjMwNyAzLjA2NGMtMS4wNzMuNjItMi4zOTMuNjItMy40NjYgMGwtNS4zMDgtMy4wNjRjLTEuMDcyLS42MjItMS43My0xLjc2OC0xLjczLTMuMDF2LTYuMTI1Ii8+CiAgICA8dGV4dCB4PSI1MCIgeT0iMjYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzRmNDZlNSI+QUk8L3RleHQ+CiAgICA8dGV4dCB4PSI3MiIgeT0iMjYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzRmNDZlNSI+UHJvPC90ZXh0PgogIDwvZz4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwIiB5MT0iMCIgeDI9IjM2IiB5Mj0iMCIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjNGY0NmU1Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzkzMzNlYSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+Cjwvc3ZnPg==';
+          logoImg.alt = 'AI Pro';
+          logoImg.style.cssText = `
+            height: 40px;
+            margin-bottom: 48px;
+          `;
 
-    const certificateContainer = document.createElement('div');
-    certificateContainer.style.width = '100%';
-    certificateContainer.style.height = '100%';
-    certificateContainer.style.padding = '120px';
-    certificateContainer.style.boxSizing = 'border-box';
-    certificateContainer.style.position = 'relative';
-    tempContainer.appendChild(certificateContainer);
-
-    // Clone and handle special elements
-    const clone = certificateElement.cloneNode(true);
-
-    // Fix Logo Icon gradient
-    const logoIcon = clone.querySelector('.bg-gradient-to-r.from-indigo-600.to-purple-600');
-    if (logoIcon) {
-      logoIcon.style.background = 'linear-gradient(to right, #4f46e5, #9333ea)';
-    }
-
-    // Fix AI Pro text
-    const aiText = clone.querySelector('.text-indigo-600');
-    if (aiText) {
-      aiText.style.color = '#4f46e5';
-    }
-
-    const proText = clone.querySelector('.bg-gradient-to-r.bg-clip-text.text-transparent');
-    if (proText) {
-      proText.style.backgroundImage = 'linear-gradient(to right, #4f46e5, #9333ea)';
-      proText.style.webkitBackgroundClip = 'text';
-      proText.style.backgroundClip = 'text';
-      proText.style.color = 'transparent';
-    }
-
-    // Apply other styles
-    clone.style.transform = 'scale(2)';
-    clone.style.transformOrigin = 'top center';
-    clone.style.border = '1px solid #e5e7eb';
-    clone.style.borderRadius = '1rem';
-    clone.style.padding = '60px';
-    clone.style.backgroundColor = '#ffffff';
-    certificateContainer.appendChild(clone);
-
-    // Handle QR code specifically
-    const qrCodeElement = clone.querySelector('.qr-code');
-    if (qrCodeElement) {
-      const qrCodeSvg = qrCodeElement.querySelector('svg');
-      if (qrCodeSvg) {
-        qrCodeSvg.setAttribute('width', '240');
-        qrCodeSvg.setAttribute('height', '240');
-        qrCodeSvg.style.width = '240px';
-        qrCodeSvg.style.height = '240px';
+          // 3. Xóa nội dung cũ và thêm logo mới
+          logoContainer.innerHTML = '';
+          logoContainer.appendChild(logoImg);
+          logoContainer.style.justifyContent = 'center';
+          logoContainer.style.display = 'flex';
+        }
+        
+        // Tiếp tục với các style khác...
+        const headings = element.querySelectorAll('h2');
+        headings.forEach(heading => {
+          heading.style.cssText = `
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.2;
+            color: #0f172a;
+            margin: 20px 0;
+          `;
+        });
+        
+        const subHeadings = element.querySelectorAll('h3');
+        subHeadings.forEach(heading => {
+          heading.style.cssText = `
+            font-size: 24px;
+            font-weight: 600;
+            line-height: 1.2;
+            color: #0f172a;
+          `;
+        });
+        
+        // Fix các phần text khác có gradient
+        element.querySelectorAll('.text-indigo-600').forEach(el => {
+          el.style.color = '#4f46e5';
+        });
+        
+        // Fix layout cho certificate details
+        const detailsGrid = element.querySelector('.grid.grid-cols-3');
+        if (detailsGrid) {
+          detailsGrid.style.cssText = `
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin: 32px 0;
+            padding: 24px 0;
+            border-top: 1px solid #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+          `;
+        }
+        
+        // Fix QR code
+        const qrCode = element.querySelector('.qr-code');
+        if (qrCode) {
+          const svg = qrCode.querySelector('svg');
+          if (svg) {
+            svg.setAttribute('width', '140');
+            svg.setAttribute('height', '140');
+            svg.style.opacity = '0.85';
+          }
+        }
+      } catch (error) {
+        console.error('Error fixing styles:', error);
       }
-    }
-
-    // Ensure fonts are loaded
-    await document.fonts.ready;
-
-    // Generate high-quality canvas
+    };
+    
+    await fixStyles(clonedCertificate);
+    
+    // Đảm bảo logo được tải xong
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Generate the image với scale cao hơn
     const html2canvas = (await import('html2canvas')).default;
-    const canvas = await html2canvas(tempContainer, {
-      scale: 1, // Already scaled the content
+    const canvas = await html2canvas(clonedCertificate, {
+      scale: 4,
       useCORS: true,
       allowTaint: true,
       backgroundColor: '#ffffff',
-      imageTimeout: 15000,
       logging: false,
-      width: 2480,
-      height: 3508,
-      onclone: (clonedDoc) => {
-        // Copy all styles
-        const styleSheets = [...document.styleSheets];
-        styleSheets.forEach(styleSheet => {
-          try {
-            const cssRules = [...styleSheet.cssRules];
-            const style = document.createElement('style');
-            cssRules.forEach(rule => style.append(rule.cssText));
-            clonedDoc.head.appendChild(style);
-          } catch (e) {
-            console.warn('Could not copy styles', e);
-          }
-        });
-      }
+      imageTimeout: 30000
     });
-
-    // Clean up
+    
+    // Remove container
     document.body.removeChild(tempContainer);
-
-    // Convert and download
+    
+    // Tạo download link
     const dataUrl = canvas.toDataURL('image/png', 1.0);
     const link = document.createElement('a');
-    const fileName = `AI-Pro-Certificate-${certificate.value.certificate_number || 'download'}.png`;
-    link.download = fileName;
+    link.download = `AI-Pro-Certificate-${certificate.value.certificate_number}.png`;
     link.href = dataUrl;
     link.click();
-
+    
   } catch (error) {
-    console.error('Error generating certificate:', error);
-    // Add toast notification
+    console.error('Failed to generate certificate:', error);
   } finally {
     loading.value = false;
   }
