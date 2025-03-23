@@ -61,7 +61,7 @@ class AdminExamController extends Controller
 
         try {
             $response = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo',
+                'model' => 'gpt-4o',
                 'messages' => [
                     [
                         'role' => 'system',
@@ -125,7 +125,7 @@ class AdminExamController extends Controller
 
         try {
             $response = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo',
+                'model' => 'gpt-4o',
                 'messages' => [
                     [
                         'role' => 'system',
@@ -389,7 +389,7 @@ class AdminExamController extends Controller
 
             // Generate questions using the processed content
             $response = OpenAI::chat()->create([
-                'model' => 'gpt-4-0125-preview', // Updated to GPT-4 Turbo
+                'model' => 'gpt-4o', // Updated to GPT-4o
                 'messages' => [
                     [
                         'role' => 'system',
@@ -614,8 +614,8 @@ class AdminExamController extends Controller
 
     private function generateMixedQuestions($data)
     {
-        // Calculate counts for 50/50 split
-        $mcqCount = floor($data['questionCount'] / 2);
+        // Calculate counts for 70/30 split (70% MCQ, 30% prompt)
+        $mcqCount = ceil($data['questionCount'] * 0.7);
         $promptCount = $data['questionCount'] - $mcqCount;
 
         // Get language instructions
@@ -638,7 +638,8 @@ class AdminExamController extends Controller
             'metadata' => [
                 'mcq_count' => $mcqCount,
                 'prompt_count' => $promptCount,
-                'language' => $data['language']
+                'language' => $data['language'],
+                'ratio' => '70/30' // Adding ratio for reference
             ]
         ]);
     }
@@ -785,7 +786,7 @@ class AdminExamController extends Controller
 
         try {
             $response = OpenAI::chat()->create([
-                'model' => 'gpt-4-0125-preview', // Updated to GPT-4 Turbo
+                'model' => 'gpt-4o', // Updated to GPT-4o
                 'messages' => [
                     [
                         'role' => 'system',
@@ -931,7 +932,7 @@ class AdminExamController extends Controller
         while ($attempt < $maxRetries) {
             try {
                 $result = OpenAI::chat()->create([
-                    'model' => 'gpt-4-0125-preview', // Updated to GPT-4 Turbo
+                    'model' => 'gpt-4o', // Updated to GPT-4o
                     'messages' => [
                         [
                             'role' => 'system',

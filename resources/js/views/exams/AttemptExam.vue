@@ -1128,8 +1128,13 @@ const getTranslations = (language = 'en') => {
       submitError: "提出に失敗しました。もう一度お試しください。",
     },
     vi: {
-      timeRemaining: "Thời gian còn lại",
+      timeRemaining: "Bạn vẫn còn thời gian làm bài. Bạn có muốn thoát ngay bây giờ không?",
+      submitExam: "Nộp bài?",
+      submitBeforeExit: "Nộp bài?",
+      exitWithoutSubmit: "Thoát và không Submit",
+      exitConfirm: "Are you sure you want to exit? Your progress will be saved, but the exam timer will continue running.",
       exit: "Thoát",
+      cancel: "Đóng",
       question: "Câu hỏi",
       multipleChoice: "Nhiều lựa chọn",
       singleChoice: "Một lựa chọn",
@@ -1145,8 +1150,8 @@ const getTranslations = (language = 'en') => {
       submit: "Nộp bài",
       // ... add other Vietnamese translations
       promptRequired: "Vui lòng trả lời tất cả các câu hỏi tự luận trước khi nộp bài",
-      question: "câu hỏi",
-      questions: "câu hỏi",
+      question: "Câu hỏi",
+      questions: "Câu hỏi",
       submitError: "Không thể nộp bài. Vui lòng thử lại.",
     }
   }[language]

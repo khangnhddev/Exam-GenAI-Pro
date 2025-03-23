@@ -583,7 +583,7 @@ EOT;
                 $evaluationPrompt = $this->buildEvaluationPrompt($answer, $question);
 
                 $response = OpenAI::chat()->create([
-                    'model' => 'gpt-4-0125-preview', // Latest GPT-4 Turbo model
+                    'model' => 'gpt-4o', // Updated to GPT-4o from gpt-4-0125-preview
                     'messages' => [
                         ['role' => 'system', 'content' => $systemPrompt],
                         ['role' => 'user', 'content' => $evaluationPrompt]
