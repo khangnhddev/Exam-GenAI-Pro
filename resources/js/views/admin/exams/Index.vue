@@ -352,7 +352,7 @@
                         : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                     ]"
                   >
-                    Mixed (50/50)
+                    Mixed (70/30)
                   </button>
                 </div>
               </div>
