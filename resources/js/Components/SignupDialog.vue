@@ -27,10 +27,11 @@
                 <div class="flex flex-col items-center justify-center">
                   <div class="flex items-center justify-center gap-2 mb-6">
                     <div class="flex items-center bg-white/10 p-3 rounded-xl backdrop-blur-sm">
-                      <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <!-- <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                      </svg>
+                      </svg> -->
+                      <img src="/images/JVITTechs-Logo.png" alt="JVITTechs Logo" class="h-10 w-auto" />
                     </div>
                     <div class="flex items-center gap-1">
                       <span class="text-2xl font-medium text-white">AI</span>
@@ -53,14 +54,9 @@
                       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <UserIcon class="h-5 w-5 text-gray-400" />
                       </div>
-                      <input
-                        id="fullname"
-                        v-model="form.fullname"
-                        type="text"
-                        required
+                      <input id="fullname" v-model="form.fullname" type="text" required
                         class="block w-full pl-10 py-2 sm:text-sm rounded-lg bg-white/10 border border-gray-400/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="Your name"
-                      />
+                        placeholder="Your name" />
                     </div>
                     <div v-if="errors.fullname" class="mt-1 text-sm text-red-400">
                       {{ errors.fullname[0] }}
@@ -76,14 +72,9 @@
                       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <EnvelopeIcon class="h-5 w-5 text-gray-400" />
                       </div>
-                      <input
-                        id="email"
-                        v-model="form.email"
-                        type="email"
-                        required
+                      <input id="email" v-model="form.email" type="email" required
                         class="block w-full pl-10 py-2 sm:text-sm rounded-lg bg-white/10 border border-gray-400/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="you@example.com"
-                      />
+                        placeholder="you@example.com" />
                     </div>
                     <div v-if="errors.email" class="mt-1 text-sm text-red-400">
                       {{ errors.email[0] }}
@@ -99,14 +90,9 @@
                       <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <LockClosedIcon class="h-5 w-5 text-gray-400" />
                       </div>
-                      <input
-                        id="password"
-                        v-model="form.password"
-                        type="password"
-                        required
+                      <input id="password" v-model="form.password" type="password" required
                         class="block w-full pl-10 py-2 sm:text-sm rounded-lg bg-white/10 border border-gray-400/20 text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="••••••••"
-                      />
+                        placeholder="••••••••" />
                     </div>
                     <div v-if="errors.password" class="mt-1 text-sm text-red-400">
                       {{ errors.password[0] }}
@@ -134,24 +120,13 @@
                   </div> -->
 
                   <!-- Submit Button -->
-                  <button
-                    type="submit"
-                    :disabled="loading"
-                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                  >
-                    <svg
-                      v-if="loading"
-                      class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
+                  <button type="submit" :disabled="loading"
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50">
+                    <svg v-if="loading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                      <path
-                        class="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      />
+                      <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
                     {{ loading ? 'Creating account...' : 'Create account' }}
                   </button>
@@ -168,11 +143,11 @@
                               {{ message }}
                             </li>
                           </template>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div> -->
+</ul>
+</div>
+</div>
+</div>
+</div> -->
 
                 <!-- Footer -->
                 <div class="text-center">
@@ -195,11 +170,11 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { 
-  XMarkIcon, 
+import {
+  XMarkIcon,
   ExclamationCircleIcon,
   UserIcon,
-  EnvelopeIcon, 
+  EnvelopeIcon,
   LockClosedIcon,
   EyeIcon,
   EyeSlashIcon,
