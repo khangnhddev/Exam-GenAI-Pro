@@ -445,20 +445,86 @@
     @download-certificate="handleDownloadCertificate" />
 
   <!-- Loading Dialog -->
+  <!-- Enhanced Loading Dialog with animated icons -->
   <div v-if="isSubmitting" class="fixed inset-0 z-50 overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen">
       <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
-      <div class="relative bg-white rounded-lg px-8 py-6 shadow-xl transform transition-all">
-        <div class="flex items-center space-x-4">
-          <svg class="animate-spin h-6 w-6 text-gradient-to-r from-indigo-600 to-purple-600"
-            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-            </path>
-          </svg>
-          <span class="text-lg font-medium text-gray-900">{{ t.submitting }}</span>
+      <div class="relative bg-white rounded-lg px-8 py-8 shadow-xl transform transition-all max-w-md w-full">
+        <!-- Loading animation -->
+        <div class="flex flex-col items-center space-y-6">
+          <!-- Brain animation with gears -->
+          <div class="relative h-24 w-24">
+            <!-- Brain outline -->
+            <svg class="absolute inset-0" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
+              <path d="M50 12C35 12 25 22 25 33C25 44 35 54 50 54C65 54 75 44 75 33C75 22 65 12 50 12Z" 
+                stroke="url(#brain-gradient)" stroke-width="4" stroke-linecap="round" />
+              <path d="M35 33C35 38 40 43 50 43C60 43 65 38 65 33" 
+                stroke="url(#brain-gradient)" stroke-width="4" stroke-linecap="round" />
+              <path d="M40 12C40 8 45 3 50 3C55 3 60 8 60 12" 
+                stroke="url(#brain-gradient)" stroke-width="4" stroke-linecap="round" />
+              <path class="animate-pulse" d="M50 54C50 70 50 84 50 88" 
+                stroke="url(#brain-gradient)" stroke-width="4" stroke-linecap="round" opacity="0.7" />
+              
+              <!-- Left lobe -->
+              <path d="M35 22C30 22 25 27 25 33" 
+                stroke="url(#brain-gradient)" stroke-width="4" stroke-linecap="round" />
+              <path d="M35 22C30 17 32 12 35 12" 
+                stroke="url(#brain-gradient)" stroke-width="4" stroke-linecap="round" />
+                
+              <!-- Right lobe -->
+              <path d="M65 22C70 22 75 27 75 33" 
+                stroke="url(#brain-gradient)" stroke-width="4" stroke-linecap="round" />
+              <path d="M65 22C70 17 68 12 65 12" 
+                stroke="url(#brain-gradient)" stroke-width="4" stroke-linecap="round" />
+              
+              <!-- Defs for gradients -->
+              <defs>
+                <linearGradient id="brain-gradient" x1="25" y1="12" x2="75" y2="54" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#4F46E5" />
+                  <stop offset="1" stop-color="#9333EA" />
+                </linearGradient>
+              </defs>
+            </svg>
+            
+            <!-- Spinning gears -->
+            <svg class="absolute top-3 left-3 animate-spin-slow" width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" fill="#4F46E5"/>
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z"
+                fill="#4F46E5" fill-opacity="0.3"/>
+            </svg>
+            
+            <svg class="absolute bottom-3 right-3 animate-spin-slow-reverse" width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" fill="#9333EA"/>
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z"
+                fill="#9333EA" fill-opacity="0.3"/>
+            </svg>
+            
+            <!-- Pulsing dots representing neural activity -->
+            <div class="absolute -top-1 left-1/2 h-2 w-2 rounded-full bg-indigo-500 animate-ping-slow"></div>
+            <div class="absolute top-1/3 -left-1 h-2 w-2 rounded-full bg-purple-500 animate-ping-slower"></div>
+            <div class="absolute top-1/2 -right-1 h-2 w-2 rounded-full bg-indigo-500 animate-ping-slow"></div>
+            <div class="absolute -bottom-1 left-1/3 h-2 w-2 rounded-full bg-purple-500 animate-ping-slower"></div>
+          </div>
+
+          <!-- Message -->
+          <div class="text-center">
+            <h3 class="text-lg font-medium text-gray-900 mb-2">{{ t.submitting }}</h3>
+            <p class="text-sm text-gray-500">{{ loadingMessage }}</p>
+          </div>
+
+          <!-- Progress indicators -->
+          <div class="flex space-x-2">
+            <div v-for="i in 3" :key="i" 
+                 class="h-2 w-2 rounded-full" 
+                 :class="[
+                   'bg-gradient-to-r from-indigo-600 to-purple-600',
+                   `animate-pulse-${i}`
+                 ]">
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -721,6 +787,7 @@ const initializeAnswer = (question) => {
   }
 }
 
+// Update the nextQuestion function
 const nextQuestion = () => {
   if (!isCurrentQuestionAnswered.value) {
     toast.warning('Please select an answer before proceeding to the next question.')
@@ -729,25 +796,64 @@ const nextQuestion = () => {
 
   if (currentQuestionIndex.value < questions.value.length - 1) {
     resetEditor()
-    resetTestResults() // Add this line
+    resetTestResults()
     currentQuestionIndex.value++
+    
+    // Scroll to top of the question container with smooth animation
+    nextTick(() => {
+      scrollToTop()
+    })
   }
 }
 
+// Update the previousQuestion function
 const previousQuestion = () => {
   if (currentQuestionIndex.value > 0) {
     resetEditor()
-    resetTestResults() // Add this line
+    resetTestResults()
     currentQuestionIndex.value--
+    
+    // Scroll to top of the question container with smooth animation
+    nextTick(() => {
+      scrollToTop()
+    })
   }
 }
 
-// Add reset editor function
+// Add a new scrollToTop function
+const scrollToTop = () => {
+  // Target the main content area (adjust the selector if needed)
+  const mainContent = document.querySelector('.max-w-3xl.mx-auto')
+  
+  if (mainContent) {
+    // Calculate position to scroll to (accounting for the fixed header)
+    const headerHeight = 64 // This matches the h-16 class in your fixed header
+    const scrollPosition = mainContent.offsetTop - headerHeight - 16 // Additional padding
+    
+    // Scroll with smooth animation
+    window.scrollTo({
+      top: scrollPosition,
+      behavior: 'smooth'
+    })
+  } else {
+    // Fallback to scrolling to the very top if container not found
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    })
+  }
+}
+
+// Add this function after the scrollToTop function
 const resetEditor = () => {
-  shouldShowEditor.value = false
-  nextTick(() => {
-    shouldShowEditor.value = true
-  })
+  // Reset editor state for prompt questions
+  if (currentQuestion.value?.type === 'prompt') {
+    // Force editor to re-render by toggling the visibility
+    shouldShowEditor.value = false
+    nextTick(() => {
+      shouldShowEditor.value = true
+    })
+  }
 }
 
 /**
@@ -825,8 +931,17 @@ const submitExam = async () => {
       timer = null
     }
 
-    isSubmitting.value = true
-    await submitExamRequest()
+    // Start rotating loading messages
+    isSubmitting.value = true;
+    let messageIndex = 0;
+    loadingMessage.value = loadingMessages[messageIndex];
+    
+    loadingMessageInterval.value = setInterval(() => {
+      messageIndex = (messageIndex + 1) % loadingMessages.length;
+      loadingMessage.value = loadingMessages[messageIndex];
+    }, 2500);
+    
+    await submitExamRequest();
   } catch (error) {
     console.error('Submit error:', error)
     toast.error(t.value.submitError)
@@ -837,6 +952,10 @@ const submitExam = async () => {
     }
   } finally {
     isSubmitting.value = false
+    if (loadingMessageInterval.value) {
+      clearInterval(loadingMessageInterval.value);
+      loadingMessageInterval.value = null;
+    }
   }
 }
 
@@ -946,6 +1065,7 @@ const handleTimeout = () => {
   showTimeoutModal.value = true
 }
 
+// Also add this to the handleConfirmSubmit function
 const handleConfirmSubmit = async (confirm) => {
   // Close the confirmation modal immediately
   showConfirmSubmitModal.value = false
@@ -954,6 +1074,11 @@ const handleConfirmSubmit = async (confirm) => {
     if (confirm) {
       isSubmitting.value = true
       await submitExamRequest()
+    } else {
+      // Scroll to top when user cancels submission and returns to exam
+      nextTick(() => {
+        scrollToTop()
+      })
     }
   } catch (error) {
     console.error('Error in confirm submit:', error)
@@ -1061,6 +1186,10 @@ onUnmounted(() => {
   if (timer) {
     clearInterval(timer)
   }
+  
+  if (loadingMessageInterval.value) {
+    clearInterval(loadingMessageInterval.value);
+  }
 })
 
 onBeforeRouteLeave(handleBeforeRouteLeave)
@@ -1159,4 +1288,83 @@ const getTranslations = (language = 'en') => {
 
 // Add computed for translations
 const t = computed(() => getTranslations(exam.value?.language))
+
+// Add these new variables at the appropriate place in your script
+const loadingMessages = [
+  "Evaluating your answers...",
+  "Processing your submission...",
+  "Analyzing your responses...",
+  "Calculating your score...",
+  "Almost there...",
+  "Preparing your results..."
+];
+
+const loadingMessage = ref(loadingMessages[0]);
+const loadingMessageInterval = ref(null);
 </script>
+
+<style>
+/* Add these custom animations to your component or global CSS */
+@keyframes ping-slow {
+  0% { transform: scale(1); opacity: 1; }
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes ping-slower {
+  0% { transform: scale(1); opacity: 1; }
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin-slow-reverse {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes pulse-1 {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+@keyframes pulse-2 {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+@keyframes pulse-3 {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+
+.animate-ping-slow {
+  animation: ping-slow 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-ping-slower {
+  animation: ping-slower 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+.animate-spin-slow-reverse {
+  animation: spin-slow-reverse 4s linear infinite;
+}
+
+.animate-pulse-1 {
+  animation: pulse-1 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-pulse-2 {
+  animation: pulse-2 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: 0.5s;
+}
+
+.animate-pulse-3 {
+  animation: pulse-3 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: 1s;
+}
+</style>
