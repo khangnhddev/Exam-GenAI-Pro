@@ -211,7 +211,6 @@ function formatDate(date) {
 }
 
 onMounted(() => {
-   console.log('Fetching files...');
   fetchFiles();
 })
 </script>

@@ -206,7 +206,6 @@ onMounted(async () => {
   try {
     const { data } = await axios.get('/certificates')
     certificates.value = data.data;
-    console.log(certificates.value);
   } catch (error) {
     console.error('Error loading certificates:', error)
   } finally {

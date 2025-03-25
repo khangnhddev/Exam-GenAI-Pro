@@ -370,6 +370,21 @@
                 </select>
               </div>
 
+              <!-- Category Selection -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Category</label>
+                <select
+                  v-model="aiForm.category"
+                  class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                >
+                  <option value="" disabled>Select category</option>
+                  <option v-for="(label, value) in categories" :key="value" :value="value">
+                    {{ label }}
+                  </option>
+                </select>
+              </div>
+
               <!-- Existing form fields -->
               <div class="grid grid-cols-1 gap-6">
                 <!-- Title Input -->
@@ -536,6 +551,21 @@
                     />
                   </div>
                 </div>
+              </div>
+
+              <!-- Add to the form in the prompt modal -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Category</label>
+                <select
+                  v-model="promptForm.category"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  required
+                >
+                  <option value="" disabled>Select category</option>
+                  <option v-for="(label, value) in categories" :key="value" :value="value">
+                    {{ label }}
+                  </option>
+                </select>
               </div>
 
               <!-- Submit Button -->
@@ -761,7 +791,8 @@ const aiForm = ref({
   difficulty: 'intermediate',
   questionCount: 5,
   questionType: '', // single_choice, prompt, or mixed
-  language: 'en'  // en, vi, or ja
+  language: 'en',  // en, vi, or ja
+  category: 'gen_ai_fundamentals' // Add default category
 })
 const generatedExam = ref({
   title: '',
@@ -870,7 +901,8 @@ async function generateExam() {
       difficulty: aiForm.value.difficulty,
       questionCount: parseInt(aiForm.value.questionCount),
       questionType: aiForm.value.questionType,
-      language: aiForm.value.language
+      language: aiForm.value.language,
+      category: aiForm.value.category  // Add the category
     }
 
     const { data } = await axios.post('/admin/exams/generate', formData)
@@ -881,6 +913,7 @@ async function generateExam() {
       topic: formData.topic,
       difficulty: formData.difficulty,
       language: formData.language,
+      category: formData.category,  // Add the category
       type: formData.questionType,
       questions: formData.questionType === 'mixed' 
         ? [...(data.questions.mcq || []).map(q => ({...q, type: 'single_choice'})), 
@@ -935,6 +968,7 @@ async function saveExam() {
       difficulty: generatedExam.value.difficulty,
       language: generatedExam.value.language,
       question_type: generatedExam.value.type,
+      category: generatedExam.value.category,  // Add the category
       questions: formattedQuestions
     }
 
@@ -962,6 +996,7 @@ function resetForm() {
     difficulty: '',
     language: 'en',
     type: '',
+    category: 'gen_ai_fundamentals', // Add default category
     questions: []
   }
   
@@ -971,7 +1006,8 @@ function resetForm() {
     difficulty: 'intermediate',
     questionCount: 5,
     questionType: '',
-    language: 'en'
+    language: 'en',
+    category: 'gen_ai_fundamentals' // Add default category
   }
 }
 
@@ -1134,7 +1170,8 @@ const promptForm = ref({
   title: '',
   topic: '',
   difficulty: 'intermediate',
-  questionCount: 3
+  questionCount: 3,
+  category: 'prompt_engineering' // Add default category
 })
 
 // Update the generatePromptExam function
@@ -1231,4 +1268,20 @@ const previewQuestion = (question) => {
     explanation: question.explanation
   }
 }
+
+// Add categories object
+const categories = ref({
+  'chatgpt': 'ChatGPT & GPT Models',
+  'gen_ai_fundamentals': 'Generative AI Fundamentals',
+  'prompt_engineering': 'Prompt Engineering',
+  'google_gemini': 'Google Gemini',
+  'dalle': 'DALL-E & Image Generation',
+  'stable_diffusion': 'Stable Diffusion',
+  'llm': 'Large Language Models',
+  'ai_ethics': 'AI Ethics & Safety',
+  'ai_tools': 'AI Tools & Applications',
+  'midjourney': 'Midjourney',
+  'ai_agents': 'AI Agents & Automation',
+  'claude': 'Anthropic Claude'
+})
 </script>

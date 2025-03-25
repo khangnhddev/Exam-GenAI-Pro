@@ -117,7 +117,6 @@ onMounted(async () => {
     try {
         const { id, hash } = route.params;
         const { expires, signature } = route.query;
-        console.log('Email Verification:', id, hash, expires, signature);
 
         // Include the full signed URL parameters
         const response = await axios.get(`/email/verify/${id}/${hash}`, {

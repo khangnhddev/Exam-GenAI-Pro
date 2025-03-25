@@ -666,7 +666,6 @@ const handleExamStart = () => {
       examId: route.params.id
     };
     showLoginDialog.value = true;
-    console.log('returnPath:', returnPath.value);
     return;
   }
   startExam();
@@ -680,7 +679,6 @@ const onLoginSuccess = async () => {
       await loadExam();
       
       const path = returnPath.value.path;
-      console.log('Navigating to:', path);
       returnPath.value = null; 
       
       await router.replace(path);

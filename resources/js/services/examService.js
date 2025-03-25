@@ -18,7 +18,6 @@ const examService = {
 
     // Start an exam session
     startExam(examId) {
-        console.log('startExam examId', examId);
         return axios.post(`/exams/${examId}/start`);
     },
 

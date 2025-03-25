@@ -347,7 +347,6 @@ const roleFilters = [
 // Add computed property for department names
 const getDepartmentName = (departmentId) => {
   const department = departments.value?.find(d => d.id === departmentId);
-  console.log(departmentId);
   return department ? department.name : 'N/A'
 }
 
@@ -391,9 +390,7 @@ onMounted(async () => {
     loading.value = true
     error.value = null
     const response = await axios.get('/admin/users');
-    console.log(response);
     users.value = response.data.data;
-    console.log(users.value);
   } catch (err) {
     error.value = err.response?.data?.message || 'Error loading users'
     console.error('Error fetching users:', err)

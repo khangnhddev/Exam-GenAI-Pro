@@ -23,7 +23,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const setUser = (userData) => {
-    console.log('setUser khang dev:', userData);
     user.value = userData;
     // Add roles and permissions from user data
     roles.value = userData?.roles || [];
@@ -34,7 +33,6 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await axios.get('/auth/user');
       setUser(response.data.data.user);
-      console.log('fetchUser khang dev:', response.data.data.user);
       return response.data.data;
     } catch (error) {
       setToken(null)
@@ -67,9 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await axios.post('/auth/login', credentials)
       const { token, user: userData } = response.data.data;
-      console.log('Login success: ', token);
-      console.log('Login success: ', userData);
-
+  
       setToken(token);
       setUser(userData);
 
@@ -131,8 +127,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const hasAnyRole = (roleList) => {
-    console.log('Current roles:', roles.value); // Debug log
-    console.log('Checking for roles:', roleList); // Debug log
     return roles.value.some(role => roleList.includes(role));
   }
 

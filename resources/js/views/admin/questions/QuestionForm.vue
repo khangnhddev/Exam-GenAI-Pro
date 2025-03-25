@@ -231,7 +231,6 @@ function handleCorrectOptionChange(index) {
 
 // Update save function to handle both cases
 async function handleSubmit() {
-  console.log('isFormValid.value :>> ', isFormValid.value);
   if (!isFormValid.value) return;
 
   loading.value = true

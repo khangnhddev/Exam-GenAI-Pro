@@ -153,7 +153,6 @@ async function evaluatePrompt() {
   evaluation.value = null
 
   try {
-    console.log('Evaluating prompt:', userPrompt.value)
     
     const response = await axios.post('/evaluate-prompt', {
       prompt: userPrompt.value,

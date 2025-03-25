@@ -149,7 +149,6 @@ const handleRegister = async () => {
   try {
     loading.value = true;
     error.value = null;
-    console.log(form);
     await authStore.register(form)
     router.push({ name: 'home' })
   } catch (err) {

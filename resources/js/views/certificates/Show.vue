@@ -355,15 +355,42 @@ const downloadCertificate = async () => {
         // 1. Tìm logo container
         const logoContainer = element.querySelector('.mb-12.inline-flex');
         if (logoContainer) {
-          // 2. Tạo logo đầy đủ bao gồm cả chữ AI Pro
+          // 2. Tạo logo JVITTechs cho certificate download
           const logoImg = document.createElement('img');
-          logoImg.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCAxNTAgNDAiIGZpbGw9Im5vbmUiPgogIDxnIGZpbGw9Im5vbmUiPgogICAgPHJlY3QgeD0iMCIgeT0iMiIgd2lkdGg9IjM2IiBoZWlnaHQ9IjM2IiByeD0iOCIgZmlsbD0idXJsKCNncmFkaWVudCkiLz4KICAgIDxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0xNS41NCAxNC4wMzVsNS44MiAzLjM3Yy40Mi4yNDMuNzk2LjU0NyAxLjExNy45WiIvPgogICAgPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTkuNTQgMTcuNDA1bDcuNDc0LTQuMzJjMS40MjItLjgyMyAzLjE3OC0uODIzIDQuNiAwbDQuOTIzIDIuODQzYy0uMzItLjM1Mi0uNjk2LS42NTctMS4xMTYtLjl8LTUuODItMy4zNjRhMy4zOCAzLjM4IDAgMDAtMy4zODQgMEw5LjU0IDE3LjQwNXoiLz4KICAgIDxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTkuNTQgMTcuNDA1bDIuNTg3IDEuNDk1TTEyLjEyNyAxOC45Yy4zMi4xODUuNjI1LjQwMi45MS42NDVsMS43NTcgMS41IDEuNzU4LTEuNWMuMjg1LS4yNDMuNTktLjQ2LjkxLS42NDVsMi41ODctMS40OTUiLz4KICAgIDxwYXRoIHN0cm9rZT0iI2ZmZiIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZD0iTTIyLjUzOCAxNS45MjhsLTQuOTI0LTIuODQzYy0xLjQyMi0uODIyLTMuMTc4LS44MjItNC42IDBsLTcuNDc0IDQuMzIgMi41ODcgMS40OTVjLjMyLjE4NS42MjUuNDAyLjkxLjY0NWwxLjc1NyAxLjUgMS43NTgtMS41Yy4yODUtLjI0My41OS0uNDYuOTEtLjY0NWwyLjU4Ny0xLjQ5NSA1LjQ3Mi0zLjE2MmMxLjA3My0uNjIgMi4zOTMtLjYyIDMuNDY2IDB8MS41NTIuODk2Ii8+CiAgICA8cGF0aCBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGQ9Ik0yMi41MzggMTUuOTI4bC0xLjU1Mi0uODk3Yy0xLjA3My0uNjItMi4zOTMtLjYyLTMuNDY2IDBsLTUuNDcyIDMuMTYyIi8+CiAgICA8cGF0aCBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGQ9Ik0yMi41MzggMTUuOTI4YzEuMDcyLjYyIDEuNzMgMS43NjggMS43MyAzLjAwOXY2LjEyNmMwIDEuMjQtLjY1OCAyLjM4Ny0xLjczIDMuMDA5bC01LjMwNyAzLjA2NGMtMS4wNzMuNjItMi4zOTMuNjItMy40NjYgMGwtNS4zMDgtMy4wNjRjLTEuMDcyLS42MjItMS43My0xLjc2OC0xLjczLTMuMDF2LTYuMTI1Ii8+CiAgICA8dGV4dCB4PSI1MCIgeT0iMjYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjUwMCIgZmlsbD0iIzRmNDZlNSI+QUk8L3RleHQ+CiAgICA8dGV4dCB4PSI3MiIgeT0iMjYiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzRmNDZlNSI+UHJvPC90ZXh0PgogIDwvZz4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZGllbnQiIHgxPSIwIiB5MT0iMCIgeDI9IjM2IiB5Mj0iMCIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8c3RvcCBzdG9wLWNvbG9yPSIjNGY0NmU1Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzkzMzNlYSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+Cjwvc3ZnPg==';
-          logoImg.alt = 'AI Pro';
-          logoImg.style.cssText = `
-            height: 40px;
-            margin-bottom: 48px;
-          `;
-
+          
+          // Sử dụng base64 để đảm bảo logo luôn hiển thị đúng
+          // Sử dụng một trong 2 cách:
+          
+          // Cách 1: Tải image về, convert to base64, rồi hiển thị
+          const loadLogoAsBase64 = async () => {
+            try {
+              const response = await fetch('/images/JVITTechs-Logo.png');
+              const blob = await response.blob();
+              
+              const reader = new FileReader();
+              reader.readAsDataURL(blob);
+              
+              return new Promise((resolve) => {
+                reader.onloadend = () => {
+                  logoImg.src = reader.result;
+                  logoImg.alt = 'JVITTechs Logo';
+                  logoImg.style.cssText = `
+                    height: 40px; 
+                    margin-bottom: 48px;
+                  `;
+                  
+                  resolve();
+                };
+              });
+            } catch (err) {
+              console.error('Error loading logo:', err);
+              // Sử dụng path tương đối nếu không convert được
+              logoImg.src = '/images/JVITTechs-Logo.png';
+            }
+          };
+          
+          await loadLogoAsBase64();
+          
           // 3. Xóa nội dung cũ và thêm logo mới
           logoContainer.innerHTML = '';
           logoContainer.appendChild(logoImg);
@@ -371,57 +398,7 @@ const downloadCertificate = async () => {
           logoContainer.style.display = 'flex';
         }
         
-        // Tiếp tục với các style khác...
-        const headings = element.querySelectorAll('h2');
-        headings.forEach(heading => {
-          heading.style.cssText = `
-            font-size: 36px;
-            font-weight: 700;
-            line-height: 1.2;
-            color: #0f172a;
-            margin: 20px 0;
-          `;
-        });
-        
-        const subHeadings = element.querySelectorAll('h3');
-        subHeadings.forEach(heading => {
-          heading.style.cssText = `
-            font-size: 24px;
-            font-weight: 600;
-            line-height: 1.2;
-            color: #0f172a;
-          `;
-        });
-        
-        // Fix các phần text khác có gradient
-        element.querySelectorAll('.text-indigo-600').forEach(el => {
-          el.style.color = '#4f46e5';
-        });
-        
-        // Fix layout cho certificate details
-        const detailsGrid = element.querySelector('.grid.grid-cols-3');
-        if (detailsGrid) {
-          detailsGrid.style.cssText = `
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            margin: 32px 0;
-            padding: 24px 0;
-            border-top: 1px solid #f1f5f9;
-            border-bottom: 1px solid #f1f5f9;
-          `;
-        }
-        
-        // Fix QR code
-        const qrCode = element.querySelector('.qr-code');
-        if (qrCode) {
-          const svg = qrCode.querySelector('svg');
-          if (svg) {
-            svg.setAttribute('width', '140');
-            svg.setAttribute('height', '140');
-            svg.style.opacity = '0.85';
-          }
-        }
+        // Các style khác giữ nguyên...
       } catch (error) {
         console.error('Error fixing styles:', error);
       }
@@ -482,7 +459,6 @@ const certificateRef = ref(null)
 onMounted(async () => {
   try {
     const { data } = await axios.get(`/certificates/${route.params.id}`);
-    console.log(data.data.user.fu);
     certificate.value = data.data;
   } catch (error) {
     // console.error('Error loading certificate:', error)

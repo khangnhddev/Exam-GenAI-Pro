@@ -548,10 +548,8 @@ const filteredQuestions = computed(() => {
 
 onMounted(async () => {
   try {
-    console.log('Fetching questions...');
     loading.value = true
     error.value = null
-    console.log('Fetching questions...');
     
     const { data } = await axios.get('/admin/questions');
     questions.value = data.data

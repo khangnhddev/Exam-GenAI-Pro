@@ -328,7 +328,6 @@ const dashOffset = computed(() => circumference.value * (1 - props.results.score
 // Animation on mount
 onMounted(() => {
   // Add any mount animations if needed
-  console.log('Result assessment modal mounted results', props.results);
 })
 
 const goToReview = () => {

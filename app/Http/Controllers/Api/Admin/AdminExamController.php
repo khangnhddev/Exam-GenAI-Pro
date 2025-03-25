@@ -499,7 +499,9 @@ class AdminExamController extends Controller
             'questions.*.challenge_description' => 'required_if:questions.*.type,prompt',
             'questions.*.requirements' => 'required_if:questions.*.type,prompt|array',
             'questions.*.evaluation_criteria' => 'required_if:questions.*.type,prompt|array',
-            'questions.*.example_solution' => 'nullable|string'
+            'questions.*.example_solution' => 'nullable|string',
+            // Add category validation
+            'category' => 'required|string|in:' . implode(',', array_keys(Exam::CATEGORIES))
         ]);
 
         try {
@@ -513,9 +515,9 @@ class AdminExamController extends Controller
                 'language' => $validated['language'],
                 'question_type' => $validated['question_type'],
                 'status' => 'draft',
-                'passing_score' => 70,
+                'passing_score' => 80,
                 'duration' => 60,
-                'category' => 'AI & Machine Learning',
+                'category' => $validated['category'], // Use the category from request
                 'source' => 'ai_generated',
                 'total_questions' => count($validated['questions'])
             ]);
@@ -583,7 +585,8 @@ class AdminExamController extends Controller
             'difficulty' => 'required|in:beginner,intermediate,advanced',
             'questionCount' => 'required|integer|min:1|max:20',
             'questionType' => 'required|in:single_choice,prompt,mixed',
-            'language' => 'required|in:en,vi,ja'
+            'language' => 'required|in:en,vi,ja',
+            'category' => 'required|string|in:' . implode(',', array_keys(Exam::CATEGORIES))  // Add category parameter
         ]);
 
         try {
@@ -648,13 +651,16 @@ class AdminExamController extends Controller
     {
         try {
             $languagePrompt = $this->getLanguageInstructions($data['language']);
-
+            
+            // Add instruction to randomize correct answer position
             $prompt = <<<PROMPT
             Generate {$data['questionCount']} multiple choice questions about {$data['topic']} at {$data['difficulty']} level.
             
             Requirements:
             - Each question must have exactly 4 options
             - Only one correct answer per question
+            - IMPORTANT: Randomly vary the position of the correct answer for each question
+            - Ensure correct answers are distributed evenly across different positions (A, B, C, D)
             - Include explanation for the correct answer
             - {$languagePrompt}
 
@@ -665,8 +671,8 @@ class AdminExamController extends Controller
                         "question": "Question text here?",
                         "options": [
                             {"text": "Option 1", "is_correct": false},
-                            {"text": "Option 2", "is_correct": true},
-                            {"text": "Option 3", "is_correct": false},
+                            {"text": "Option 2", "is_correct": false},
+                            {"text": "Option 3", "is_correct": true},
                             {"text": "Option 4", "is_correct": false}
                         ],
                         "explanation": "Explanation for the correct answer"
@@ -681,7 +687,10 @@ class AdminExamController extends Controller
             if (!isset($result->questions)) {
                 throw new \Exception('Invalid response format: missing questions array');
             }
-
+            
+            // Additional check to ensure correct answers are randomized
+            $this->validateCorrectAnswerDistribution($result->questions);
+            
             return $result->questions;
         } catch (\Exception $e) {
             Log::error('MCQ Generation failed:', [
@@ -690,6 +699,77 @@ class AdminExamController extends Controller
             ]);
             throw $e;
         }
+    }
+
+    /**
+     * Validates that correct answers are well-distributed and randomized
+     * Will attempt to fix if they're not
+     */
+    private function validateCorrectAnswerDistribution($questions)
+    {
+        $positions = [0, 0, 0, 0]; // Count of correct answers at positions 0,1,2,3
+        
+        // Check distribution of correct answers
+        foreach ($questions as $question) {
+            foreach ($question->options as $index => $option) {
+                if ($option->is_correct) {
+                    $positions[$index]++;
+                    break;
+                }
+            }
+        }
+        
+        // If more than 50% of correct answers are at the same position
+        $questionCount = count($questions);
+        $threshold = $questionCount * 0.5;
+        
+        $needsRandomization = false;
+        foreach ($positions as $count) {
+            if ($count > $threshold) {
+                $needsRandomization = true;
+                break;
+            }
+        }
+        
+        // If distribution is poor, randomize some answers
+        if ($needsRandomization && $questionCount >= 4) {
+            // For each question with correct answer at over-represented position,
+            // move the correct answer to an under-represented position
+            foreach ($questions as $qIndex => $question) {
+                // Find current correct position
+                $correctPos = -1;
+                foreach ($question->options as $index => $option) {
+                    if ($option->is_correct) {
+                        $correctPos = $index;
+                        break;
+                    }
+                }
+                
+                // Find most over-represented position
+                $maxPos = array_search(max($positions), $positions);
+                
+                // If current position is the most common, try to move it
+                if ($correctPos === $maxPos) {
+                    // Find least represented position
+                    $minPos = array_search(min($positions), $positions);
+                    
+                    // Swap correct answer
+                    $question->options[$correctPos]->is_correct = false;
+                    $question->options[$minPos]->is_correct = true;
+                    
+                    // Update counts
+                    $positions[$correctPos]--;
+                    $positions[$minPos]++;
+                    
+                    // Only fix a few questions to maintain some randomness
+                    if ($qIndex >= 3) {
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return true;
     }
 
     private function generatePromptQuestions($data)
@@ -882,7 +962,7 @@ class AdminExamController extends Controller
                 'description' => "Prompt Engineering Assessment: {$validated['topic']}",
                 'difficulty' => $validated['difficulty'],
                 'status' => 'draft',
-                'passing_score' => 70,
+                'passing_score' => 80,
                 'duration' => 60,
                 'total_questions' => count($validated['questions']),
                 'category' => 'AI & Machine Learning',
