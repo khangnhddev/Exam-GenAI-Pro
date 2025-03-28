@@ -72,7 +72,7 @@ const certificates = ref([])
 
 onMounted(async () => {
   try {
-    const response = await axios.get('/certificates')
+    const response = await axios.get('/certificates');
     certificates.value = response.data
   } catch (error) {
     console.error('Error loading certificates:', error)

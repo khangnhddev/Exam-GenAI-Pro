@@ -1,12 +1,22 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import axios from 'axios'
+import NotFound from '../views/errors/404.vue'
+import ServerError from '../views/errors/500.vue'
+import { ERROR_TYPES } from '@/utils/errorHandler'
+import ErrorPage from '@/views/errors/ErrorPage.vue'
+import TestCode from '@/views/TestCode.vue'
+import TestPrompt from '@/views/TestPrompt.vue'
+import AttemptReview from '@/views/exams/AttemptReview.vue'
+// import EmailVerification from '@/views/auth/EmailVerification.vue'
+// import verifiedEmail from './middleware/verifiedEmail'
 
 // Import the admin layout
-import AdminLayout from '../layouts/AdminLayout.vue'
-import ActivityLogManager from '../components/admin/ActivityLogManager.vue'
-import KnowledgeBaseManager from '../components/admin/KnowledgeBaseManager.vue'
+import AdminLayout from '../Layouts/AdminLayout.vue'
+import ActivityLogManager from '../Components/admin/ActivityLogManager.vue'
+// import KnowledgeBaseManager from '../components/admin/KnowledgeBaseManager.vue'
 import GeneralSettings from '@/views/admin/settings/General.vue'
+import { useRoles } from '@/composables/useRoles'
 
 // Frontend routes
 const frontendRoutes = {
@@ -47,6 +57,12 @@ const frontendRoutes = {
             meta: { requiresAuth: true }
         },
         {
+            path: 'exams/:id/attempts/:attemptId/review',
+            name: 'exams.review',
+            component: () => import('@/views/exams/Review.vue'),
+            meta: { requiresAuth: true }
+        },
+        {
             path: 'my-learning',
             name: 'my-learning',
             component: () => import('../views/my-learning/Index.vue'),
@@ -84,6 +100,11 @@ const frontendRoutes = {
             meta: { requiresAuth: false }
         },
         // {
+        //     path: '/verify/:id',
+        //     name: 'certificates.verify',
+        //     component: () => import('@/views/certificates/Verify.vue')
+        // }
+        // {
         //     path: '/exams',
         //     name: 'exams.index',
         //     component: () => import('@/views/exams/Index.vue'),
@@ -102,7 +123,7 @@ const frontendRoutes = {
 const adminRoutes = {
     path: '/admin',
     component: AdminLayout,
-    meta: { requiresAuth: true, requiresAdmin: false },
+    meta: { requiresAuth: true, requiresAdmin: true },
     children: [
         {
             path: '',
@@ -114,12 +135,6 @@ const adminRoutes = {
             name: 'admin.users.index',
             component: () => import('../views/admin/users/Index.vue')
         },
-        // {
-        //     path: 'users/:id',
-        //     name: 'admin.users.show',
-        //     component: () => import('../views/admin/users/Show.vue'),
-        //     props: true
-        // },
         {
             path: 'exams',
             name: 'admin.exams.index',
@@ -150,7 +165,7 @@ const adminRoutes = {
         {
             path: 'questions',
             name: 'admin.questions.index',
-            component: () => import('../views/admin/questions/Index.vue')
+            component: () => import('@/views/admin/questions/Index.vue')
         },
         {
             path: 'questions/create',
@@ -160,11 +175,39 @@ const adminRoutes = {
         {
             path: 'questions/:id/edit',
             name: 'admin.questions.edit',
+            component: () => import('@/views/admin/questions/QuestionForm.vue'),
+            props: true
+        },
+        {
+            path: 'exams/:examId/questions',
+            name: 'admin.exams.questions',
+            component: () => import('../views/admin/exams/Questions.vue'),
+            props: true
+        },
+        {
+            path: 'exams/:examId/questions/create',
+            name: 'admin.exams.questions.create',
             component: () => import('../views/admin/questions/QuestionForm.vue'),
+            props: true
+        },
+        {
+            path: 'exams/:examId/questions/:id/edit',
+            name: 'admin.exams.questions.edit',
+            component: () => import('@/views/admin/questions/QuestionForm.vue'),
             props: route => ({
                 id: parseInt(route.params.id),
+                examId: parseInt(route.params.examId),
                 isEditing: true
-            })
+            }),
+            beforeEnter: (to, from, next) => {
+                const id = parseInt(to.params.id)
+                const examId = parseInt(to.params.examId)
+                if (isNaN(id) || isNaN(examId)) {
+                    next({ name: 'admin.exams.questions' })
+                } else {
+                    next()
+                }
+            }
         },
         {
             path: 'certificates',
@@ -175,12 +218,6 @@ const adminRoutes = {
             path: 'settings',
             name: 'admin.settings',
             component: () => import('../views/admin/Settings.vue')
-        },
-        {
-            path: 'exams/:examId/questions',
-            name: 'admin.exams.questions',
-            component: () => import('../views/admin/exams/Questions.vue'),
-            props: true
         },
         {
             path: 'activity-logs',
@@ -231,12 +268,12 @@ const adminRoutes = {
 
 // Auth routes
 const authRoutes = [
-    {
-        path: '/login',
-        name: 'login',
-        component: () => import('../views/auth/Login.vue'),
-        meta: { guest: true }
-    },
+    // {
+    //     path: '/login',
+    //     name: 'login',
+    //     component: () => import('../views/auth/Login.vue'),
+    //     meta: { guest: true }
+    // },
     {
         path: '/logout',
         name: 'logout',
@@ -246,12 +283,12 @@ const authRoutes = [
             next({ name: 'login' })
         }
     },
-    {
-        path: '/register',
-        name: 'register',
-        component: () => import('../views/auth/Register.vue'),
-        meta: { requiresGuest: true }
-    },
+    // {
+    //     path: '/register',
+    //     name: 'register',
+    //     component: () => import('../views/auth/Register.vue'),
+    //     meta: { requiresGuest: true }
+    // },
     {
         path: '/forgot-password',
         name: 'forgot-password',
@@ -269,31 +306,154 @@ const authRoutes = [
 const routes = [
     frontendRoutes,
     adminRoutes,
-    ...authRoutes
+    ...authRoutes,
+    {
+        path: '/error',
+        name: 'error',
+        component: ErrorPage,
+        props: true
+    },
+    {
+        path: '/404',
+        name: 'not-found',
+        component: () => import('@/views/errors/NotFound.vue'),
+        meta: { guest: true }
+    },
+    {
+        path: '/500',
+        name: 'server-error',
+        component: ServerError
+    },
+    {
+        path: '/test-code',
+        name: 'test-code',
+        component: TestCode,
+        meta: {
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/test-prompt',
+        name: 'test-prompt',
+        component: TestPrompt,
+        meta: {
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/email/verify/:id/:hash',
+        name: 'verification.verify',
+        component: () => import('@/views/auth/EmailVerification.vue'),
+        props: true,
+        meta: {
+            title: 'Email Verification',
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/exams/:slug',
+        name: 'exam.show',
+        component: () => import('@/views/exam/Show.vue'),
+        props: true,
+        meta: {
+            requiresAuth: true,
+            title: 'Take Exam'
+        }
+    },
+    {
+        path: '/exams/:examId/attempts/:attemptId/review',
+        name: 'exams.attempt.review',
+        component: AttemptReview,
+        meta: {
+            requiresAuth: true
+        }
+    },
+    {
+        path: '/forbidden',
+        name: 'forbidden',
+        component: () => import('@/views/errors/Forbidden.vue')
+    },
+    // {
+    //     path: '/email/verify',
+    //     name: 'verification.notice',
+    //     component: () => import('@/views/auth/EmailVerification.vue'),
+    //     meta: {
+    //         requiresAuth: true,
+    //         title: 'Verify Email'
+    //     }
+    // },
+    // {
+    //     path: '/dashboard',
+    //     name: 'dashboard',
+    //     component: () => import('@/views/Dashboard.vue'),
+    //     meta: {
+    //         requiresAuth: true,
+    //         requiresVerification: true,
+    //         title: 'Dashboard'
+    //     }
+    // },
+    {
+        path: '/:pathMatch(.*)*',
+        redirect: { name: 'not-found' }
+    }
 ]
 
 const router = createRouter({
     history: createWebHistory(),
-    routes
-})
-
-router.beforeEach((to, from, next) => {
-    const authStore = useAuthStore()
-
-    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-        next({ name: 'login' })
-    } else if (to.meta.guest && authStore.isAuthenticated) {
-        next({ name: 'home' })
-    } else if (to.meta.requiresAdmin && !authStore.user?.is_admin) {
-        next({ name: 'home' })
-    } else {
-        next()
+    routes,
+    scrollBehavior(to, from, savedPosition) {
+        if (savedPosition) {
+            return savedPosition
+        }
+        if (to.hash) {
+            return {
+                el: to.hash,
+                behavior: 'smooth'
+            }
+        }
+        return { 
+            top: 0,
+            left: 0,
+            behavior: 'smooth'
+        }
     }
 })
 
+router.beforeEach(async (to, from, next) => {
+    const authStore = useAuthStore();
+    
+    // Check if route requires authentication
+    if (to.meta.requiresAuth) {
+        if (!authStore.isAuthenticated) {
+            return next({ name: 'not-found' }); // Redirect to 404 instead of login
+        }
+
+        if (to.meta.requiresAdmin) {
+            try {
+                await authStore.checkAuth();
+                
+                const hasAdminRole = authStore.hasAnyRole(['admin', 'super-admin']);
+                
+                if (!hasAdminRole) {
+                    return next({ name: 'forbidden' });
+                }
+            } catch (error) {
+                console.error('Error checking auth:', error);
+                return next({ name: 'not-found' });
+            }
+        }
+    }
+    
+    if (to.meta.guest && authStore.isAuthenticated) {
+        return next({ name: 'home' });
+    }
+
+    next();
+});
+
 const fetchUser = async () => {
     try {
-        const response = await axios.get('/api/auth/user')
+        const response = await axios.get('/auth/user')
         authStore.setUser(response.data)
         return response.data
     } catch (error) {

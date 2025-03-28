@@ -2,8 +2,8 @@ import axios from 'axios';
 
 const examService = {
     // Get all exams
-    getAllExams() {
-        return axios.get('/exams');
+    getAllExams(params = {}) {
+        return axios.get('/exams', { params });
     },
 
     // Get a single exam by ID
@@ -18,7 +18,6 @@ const examService = {
 
     // Start an exam session
     startExam(examId) {
-        console.log('startExam examId', examId);
         return axios.post(`/exams/${examId}/start`);
     },
 
@@ -28,4 +27,4 @@ const examService = {
     }
 };
 
-export default examService; 
+export default examService;

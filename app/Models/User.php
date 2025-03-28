@@ -2,26 +2,29 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, Notifiable, LogsActivity;
+    use HasApiTokens, Notifiable, HasFactory, LogsActivity, HasRoles;
 
     protected $fillable = [
         'name',
         'fullname',
         'email',
         'password',
-        'avatar',
-        'department_id'
+        'avatar'
     ];
 
     protected $hidden = [
@@ -81,6 +84,7 @@ class User extends Authenticatable
         return LogOptions::defaults()
             ->logOnly(['name', 'email'])
             ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(fn(string $eventName) => "User has been {$eventName}");
     }
 
@@ -89,11 +93,17 @@ class User extends Authenticatable
     //  */
     // public function roles(): BelongsToMany
     // {
-    //     //return $this->belongsToMany(Role::class);
+    //     return $this->belongsToMany(Role::class);
     // }
 
     public function department()
     {
         return $this->belongsTo(Department::class);
+    }
+
+    // Add this method to override the default notification
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Notifications\VerifyEmailNotification);
     }
 }

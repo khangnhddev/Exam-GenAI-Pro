@@ -19,6 +19,11 @@ use App\Http\Controllers\Api\Admin\AdminUserController;
 use App\Http\Controllers\Api\Admin\ActivityLogController;
 use App\Http\Controllers\Api\Admin\KnowledgeBaseController;
 use App\Http\Controllers\Api\Admin\AdminDepartmentController;
+use App\Http\Controllers\Api\AIController;
+use App\Http\Controllers\Api\PromptController;
+use App\Http\Controllers\Api\Admin\AdminDashboardController;
+
+// use App\Http\Controllers\Api\CodeEvaluationController;
 
 Route::prefix('v1')->group(function () {
     Route::post('auth/register', [AuthController::class, 'register']);
@@ -26,27 +31,34 @@ Route::prefix('v1')->group(function () {
     Route::post('auth/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('auth/reset-password', [AuthController::class, 'resetPassword']);
 
+    Route::get('exams', [ExamController::class, 'index']);
+
+    // Public routes
+
+    Route::get('/exams/{id}/public', [ExamController::class, 'showPublic']);
+
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
-        Route::get('auth/me', [AuthController::class, 'me']);
+        Route::get('auth/user', [AuthController::class, 'user']);
 
         Route::get('/profile', [ProfileController::class, 'show']);
         Route::put('/profile', [ProfileController::class, 'update']);
         Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
 
-        Route::get('exams', [ExamController::class, 'index']);
-
         Route::prefix('exams')->group(function () {
             Route::get('/{exam}', [ExamController::class, 'show']);
             Route::post('/{exam}/start', [ExamController::class, 'start']);
             Route::post('/attempts/{attempt}/submit', [ExamController::class, 'submit']);
-            Route::get('/attempts/{attempt}/review', [ExamController::class, 'review'])
-                ->name('exams.review');
+            // Route::get('/attempts/{attempt}/review', [ExamController::class, 'review'])
+            //     ->name('exams.review');
             Route::get('/{exam}/attempt/{attempt}', [ExamController::class, 'getAttempt']);
             Route::get('/attempts/{attempt}/results', [ExamController::class, 'getAttemptResults']);
             Route::get('/{exam}/attempts', [ExamController::class, 'getAttempts']);
         });
+
+        // Route::get('/exams/{id}/attempts', [ExamController::class, 'getAttempts']);
+        // Route::get('/exams/{id}/history', [ExamController::class, 'getHistory']);
 
         Route::prefix('certificates')->group(function () {
             Route::get('/', [CertificateController::class, 'index']);
@@ -59,10 +71,12 @@ Route::prefix('v1')->group(function () {
         Route::get('user/learning-profile', [AIAssistantController::class, 'getLearningProfile']);
         Route::post('/ai-assistant/query', [AIAssistantController::class, 'query']);
 
-        // Profile
-        Route::get('profile', [ProfileController::class, 'show']);
-        // Route::post('profile', [ProfileController::class, 'update']);
-        // Route::post('profile/password', [ProfileController::class, 'updatePassword']);
+        // Route::post('code/execute', [CodeSubmissionController::class, 'execute']);
+        // Route::post('code/evaluate', [CodeEvaluationController::class, 'evaluate']);
+
+        Route::post('/ai/test-prompt', [AIController::class, 'testPrompt']);
+        Route::post('/exams/test-prompt', [ExamController::class, 'testPrompt']);
+        Route::get('/exams/{exam}/attempts/{attempt}/review', [ExamController::class, 'getAttemptReview']);
     });
 
     // Public certificate verification
@@ -71,12 +85,17 @@ Route::prefix('v1')->group(function () {
 
     // Admin Routes
     Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+        // Dashboard routes
+        Route::get('/dashboard/stats', [AdminDashboardController::class, 'getStats']);
+        Route::get('/dashboard/activities', [AdminDashboardController::class, 'getActivities']);
+        
         // Add test endpoint
         Route::post('exams/test-generate', [AdminExamController::class, 'testGenerate']);
 
         //Exam Management
         Route::apiResource('exams', AdminExamController::class);
         Route::post('exams/{exam}/questions/generate', [AdminExamController::class, 'generateQuestions']);
+        Route::put('exams/{exam}/publish', [AdminExamController::class, 'togglePublish']);
         // Route::post('exams/{exam}/publish', [AdminExamController::class, 'publish']);
 
         // Question Management
@@ -84,14 +103,6 @@ Route::prefix('v1')->group(function () {
         // Route::post('exams/{exam}/questions', [AdminExamController::class, 'storeQuestion']);
         // Route::put('exams/{exam}/questions/{question}', [AdminExamController::class, 'updateQuestion']);
         // Route::delete('exams/{exam}/questions/{question}', [AdminExamController::class, 'deleteQuestion']);
-
-        // // Question Management
-        // Route::apiResource('questions', AdminQuestionController::class);
-        // Route::post('questions/validate', [AdminQuestionController::class, 'validateWithAI']);
-
-        // // Certificate Management
-        // Route::apiResource('certificates', AdminCertificateController::class);
-        // Route::post('certificates/{certificate}/revoke', [AdminCertificateController::class, 'revoke']);
 
         // // Analytics
         // Route::get('analytics/exams', [AdminAnalyticsController::class, 'examStats']);
@@ -114,8 +125,19 @@ Route::prefix('v1')->group(function () {
 
         Route::post('/exams/generate-from-file', [AdminExamController::class, 'generateFromFile']);
 
+        // AI Exam Generation routes
+        Route::post('exams/generate', [AdminExamController::class, 'generate']);
+        Route::post('exams/save-generated', [AdminExamController::class, 'saveGeneratedExam']);
+        
+        Route::post('/exams/generate-prompt', [AdminExamController::class, 'generatePrompt']);
+        Route::post('/exams/save-prompt', [AdminExamController::class, 'savePromptExam']);
+        
+        Route::post('exams/generate-mixed', [AdminExamController::class, 'generateMixed']);
+
         Route::apiResource('questions', AdminQuestionController::class);
         Route::post('questions/generate', [AdminQuestionController::class, 'generate']);
+        Route::post('questions/save-generated', [AdminQuestionController::class, 'saveGeneratedQuestions'])
+            ->name('admin.questions.save-generated');
 
         // Knowledge Base Routes
         Route::get('knowledge-base', [KnowledgeBaseController::class, 'index']);
@@ -129,5 +151,13 @@ Route::prefix('v1')->group(function () {
         Route::post('departments/{department}/users', [AdminDepartmentController::class, 'assignUsers']);
         Route::delete('departments/{department}/users/{user}', [AdminDepartmentController::class, 'removeUser']);
     });
-
 });
+
+// Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])
+//     ->name('password.email');
+
+Route::get('/email/verify/{id}/{hash}', [AuthController::class, 'verifyEmail'])
+    ->middleware(['signed'])
+    ->name('verification.verify');
+
+Route::post('/evaluate-prompt', [PromptController::class, 'evaluatePrompt']);

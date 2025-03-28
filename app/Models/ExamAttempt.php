@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\CertificatePassedMail;
 
 class ExamAttempt extends Model
 {
@@ -14,6 +16,7 @@ class ExamAttempt extends Model
         'completed_at',
         'score',
         'status',
+        'attempt_number',
         'answers'
     ];
 
@@ -23,6 +26,24 @@ class ExamAttempt extends Model
         'score' => 'integer',
         'answers' => 'array'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::updated(function ($attempt) {
+            // Check if attempt was just completed and passed
+            if (
+                $attempt->isDirty('status') &&
+                $attempt->status === 'completed' &&
+                $attempt->score >= $attempt->exam->passing_score
+            ) {
+                // Send congratulatory email immediately without queue
+                Mail::to($attempt->user->email)
+                    ->send(new CertificatePassedMail($attempt));
+            }
+        });
+    }
 
     public function exam(): BelongsTo
     {
@@ -69,5 +90,32 @@ class ExamAttempt extends Model
         $remainingSeconds = $endTime->diffInSeconds(now(), false);
 
         return max(0, $remainingSeconds);
+    }
+
+    /**
+     * Get the prompt evaluations for the attempt.
+     */
+    public function promptEvaluations()
+    {
+        return $this->hasMany(PromptEvaluation::class, 'attempt_id')
+                    ->orderBy('created_at', 'desc');
+    }
+
+    /**
+     * Get all evaluations for this attempt with questions.
+     */
+    public function getEvaluationsWithQuestions()
+    {
+        return $this->promptEvaluations()
+                    ->with('question')
+                    ->get()
+                    ->mapWithKeys(function ($evaluation) {
+                        return [$evaluation->question_id => [
+                            'feedback' => $evaluation->ai_feedback,
+                            'score' => $evaluation->ai_score,
+                            'is_passed' => $evaluation->is_passed,
+                            'criteria' => $evaluation->evaluation_criteria
+                        ]];
+                    });
     }
 }

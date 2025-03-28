@@ -9,11 +9,13 @@ use App\Models\Question;
 use Illuminate\Http\Request;
 use OpenAI\Laravel\Facades\OpenAI;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class AdminQuestionController extends Controller
 {
     /**
      * index
+     * 
      */
     public function index()
     {
@@ -29,51 +31,151 @@ class AdminQuestionController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        return response()->json('Khang dev ok ok store exam');
-        // $validated = $request->validate([
-        //     'exam_id' => 'required|exists:exams,id',
-        //     'question_text' => 'required|string',
-        //     'type' => 'required|in:single,multiple',
-        //     'points' => 'required|integer|min:1|max:10',
-        //     'options' => 'required|array|min:2|max:6',
-        //     'options.*.text' => 'required|string',
-        //     'options.*.is_correct' => 'required|boolean',
-        //     'explanation' => 'nullable|string'
-        // ]);
+        try {
+            $validated = $request->validate([
+                'exam_id' => 'required|exists:exams,id',
+                'question_text' => 'required|string|min:10',
+                'type' => 'required|in:single,multiple',
+                'points' => 'required|integer|min:1|max:10',
+                'options' => 'required|array|min:2|max:6',
+                'options.*.option_text' => 'required|string|min:1',
+                'options.*.is_correct' => 'required|boolean',
+                'explanation' => 'nullable|string'
+            ]);
 
-        // $question = Question::create([
-        //     'exam_id' => $validated['exam_id'],
-        //     'question_text' => $validated['question_text'],
-        //     'type' => $validated['type'],
-        //     'points' => $validated['points'],
-        //     'explanation' => $validated['explanation'] ?? null
-        // ]);
+            // Validate that at least one option is marked as correct
+            $hasCorrectOption = collect($validated['options'])->contains('is_correct', true);
+            if (!$hasCorrectOption) {
+                return response()->json([
+                    'message' => 'At least one option must be marked as correct',
+                    'errors' => ['options' => ['No correct option provided']]
+                ], 422);
+            }
 
-        // $question->options()->createMany($validated['options']);
+            // For single choice questions, only one option can be correct
+            if ($validated['type'] === 'single') {
+                $correctOptionsCount = collect($validated['options'])->where('is_correct', true)->count();
+                if ($correctOptionsCount > 1) {
+                    return response()->json([
+                        'message' => 'Single choice questions can only have one correct answer',
+                        'errors' => ['options' => ['Multiple correct options provided for single choice question']]
+                    ], 422);
+                }
+            }
 
-        // return response()->json($question->load('options'), 201);
+            $question = Question::create([
+                'exam_id' => $validated['exam_id'],
+                'question_text' => $validated['question_text'],
+                'type' => $validated['type'],
+                'points' => $validated['points'],
+                'explanation' => $validated['explanation'] ?? null
+            ]);
+
+            $question->options()->createMany(
+                collect($validated['options'])->map(function ($option) {
+                    return [
+                        'option_text' => $option['option_text'],
+                        'is_correct' => $option['is_correct']
+                    ];
+                })->all()
+            );
+
+            return response()->json(
+                new QuestionResource($question->load('options')),
+                201
+            );
+        } catch (\Exception $e) {
+            // \Log::error('Failed to create question:', [
+            //     'error' => $e->getMessage(),
+            //     'exam_id' => $request->input('exam_id')
+            // ]);
+
+            return response()->json([
+                'message' => 'Failed to create question',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
+    /**
+     * update
+     * 
+     */
     public function update(Request $request, Question $question): JsonResponse
     {
-        $validated = $request->validate([
-            'question_text' => 'sometimes|string',
-            'type' => 'sometimes|in:single,multiple',
-            'points' => 'sometimes|integer|min:1|max:10',
-            'options' => 'sometimes|array|min:2|max:6',
-            'options.*.text' => 'required_with:options|string',
-            'options.*.is_correct' => 'required_with:options|boolean',
-            'explanation' => 'nullable|string'
-        ]);
+        try {
+            $validated = $request->validate([
+                'exam_id' => 'sometimes|exists:exams,id',
+                'question_text' => 'required|string|min:10',
+                'type' => 'required|in:single,multiple',
+                'points' => 'required|integer|min:1|max:10',
+                'options' => 'required|array|min:2|max:6',
+                'options.*.option_text' => 'required|string|min:1',
+                'options.*.is_correct' => 'required|boolean',
+                'explanation' => 'nullable|string'
+            ]);
 
-        $question->update($validated);
+            // Validate that at least one option is marked as correct
+            $hasCorrectOption = collect($validated['options'])->contains('is_correct', true);
+            if (!$hasCorrectOption) {
+                return response()->json([
+                    'message' => 'At least one option must be marked as correct',
+                    'errors' => ['options' => ['No correct option provided']]
+                ], 422);
+            }
 
-        if (isset($validated['options'])) {
+            // For single choice questions, only one option can be correct
+            if ($validated['type'] === 'single') {
+                $correctOptionsCount = collect($validated['options'])->where('is_correct', true)->count();
+                if ($correctOptionsCount > 1) {
+                    return response()->json([
+                        'message' => 'Single choice questions can only have one correct answer',
+                        'errors' => ['options' => ['Multiple correct options provided for single choice question']]
+                    ], 422);
+                }
+            }
+
+            DB::beginTransaction();
+
+            // Update question
+            $question->update([
+                'exam_id' => $validated['exam_id'] ?? $question->exam_id,
+                'question_text' => $validated['question_text'],
+                'type' => $validated['type'],
+                'points' => $validated['points'],
+                'explanation' => $validated['explanation'] ?? null
+            ]);
+
+            // Delete existing options and create new ones
             $question->options()->delete();
-            $question->options()->createMany($validated['options']);
-        }
+            $question->options()->createMany(
+                collect($validated['options'])->map(function ($option) {
+                    return [
+                        'option_text' => $option['option_text'],
+                        'is_correct' => $option['is_correct']
+                    ];
+                })->all()
+            );
 
-        return response()->json($question->load('options'));
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Question updated successfully',
+                'data' => new QuestionResource($question->load('options', 'exam'))
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // \Log::error('Failed to update question:', [
+            //     'error' => $e->getMessage(),
+            //     'question_id' => $question->id
+            // ]);
+
+            return response()->json([
+                'message' => 'Failed to update question',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function destroy(Question $question): JsonResponse
@@ -152,12 +254,11 @@ class AdminQuestionController extends Controller
     }
 
     /**
-     * Generate questions using AI
+     * Generate questions using OpenAI
      */
     public function generate(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'exam_id' => 'nullable|exists:exams,id',
             'source' => 'required|in:openai,knowledge',
             'topic' => 'required_if:source,openai|string|nullable',
             'difficulty' => 'required|in:easy,medium,hard',
@@ -217,30 +318,10 @@ class AdminQuestionController extends Controller
             }
 
             $generatedQuestions = $this->parseAIResponse($content);
-            $createdQuestions = [];
-
-            foreach ($generatedQuestions as $questionData) {
-                $question = Question::create([
-                    'exam_id' => $validated['exam_id'] ?? null,
-                    'question_text' => $questionData['question'],
-                    'type' => $questionData['type'],
-                    'points' => $questionData['points'],
-                    'explanation' => $questionData['explanation'] ?? null
-                ]);
-
-                foreach ($questionData['options'] as $option) {
-                    $question->options()->create([
-                        'option_text' => $option['text'],
-                        'is_correct' => $option['is_correct']
-                    ]);
-                }
-
-                $createdQuestions[] = $question;
-            }
 
             return response()->json([
                 'message' => 'Questions generated successfully',
-                'questions' => QuestionResource::collection(collect($createdQuestions))
+                'questions' => $generatedQuestions
             ]);
         } catch (\Exception $e) {
             // \Log::error('Question generation failed:', [
@@ -295,5 +376,78 @@ class AdminQuestionController extends Controller
         }
 
         return $questions;
+    }
+
+    // Add new method to save approved questions
+    public function saveGeneratedQuestions(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'questions' => 'required|array|min:1',
+            'questions.*.question' => 'required|string',
+            'questions.*.type' => 'required|in:single,multiple',
+            'questions.*.options' => 'required|array|min:2',
+            'questions.*.options.*.text' => 'required|string',
+            'questions.*.options.*.is_correct' => 'required|boolean',
+            'questions.*.points' => 'required|integer|min:1|max:5',
+            'questions.*.explanation' => 'nullable|string',
+            'exam_id' => 'nullable|exists:exams,id'
+        ]);
+
+        try {
+            $createdQuestions = [];
+
+            foreach ($validated['questions'] as $questionData) {
+                $question = Question::create([
+                    'exam_id' => $validated['exam_id'] ?? null,
+                    'question_text' => $questionData['question'],
+                    'type' => $questionData['type'],
+                    'points' => $questionData['points'],
+                    'explanation' => $questionData['explanation'] ?? null
+                ]);
+
+                foreach ($questionData['options'] as $option) {
+                    $question->options()->create([
+                        'option_text' => $option['text'],
+                        'is_correct' => $option['is_correct']
+                    ]);
+                }
+
+                $createdQuestions[] = $question;
+            }
+
+            return response()->json([
+                'message' => 'Questions saved successfully',
+                'questions' => QuestionResource::collection(collect($createdQuestions))
+            ], 201);
+        } catch (\Exception $e) {
+            // \Log::error('Failed to save generated questions:', [
+            //     'error' => $e->getMessage()
+            // ]);
+
+            return response()->json([
+                'message' => 'Failed to save questions',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Show the specified question.
+     */
+    public function show(Question $question)
+    {
+        try {
+            return new QuestionResource($question->load('options', 'exam'));
+        } catch (\Exception $e) {
+            // \Log::error('Failed to retrieve question:', [
+            //     'error' => $e->getMessage(),
+            //     'question_id' => $question->id
+            // ]);
+
+            return response()->json([
+                'message' => 'Failed to retrieve question',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

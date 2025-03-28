@@ -9,18 +9,14 @@
                         <router-link to="/admin" class="flex items-center gap-3 py-2">
                             <div class="flex-shrink-0">
                                 <div class="flex items-center">
-                                    <div class="flex items-center bg-gradient-to-r from-indigo-600 to-purple-600 p-1.5 rounded-lg">
-                                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                        </svg>
-                                    </div>
+                                    <img src="/images/JVITTechs-Logo.png" alt="JVITTechs Logo" class="h-10 w-auto" />
                                     <div class="flex items-center gap-1 ml-2">
                                         <span class="text-lg font-medium text-indigo-600">AI</span>
-                                        <span class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Pro</span>
+                                        <span
+                                            class="text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Pro</span>
                                     </div>
                                 </div>
-                        </div>
+                            </div>
                         </router-link>
                     </div>
 
@@ -38,24 +34,22 @@
                                                 ? 'bg-indigo-50 text-indigo-600'
                                                 : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                         ]">
-                                        <component :is="item.icon" 
-                                            class="mr-3 flex-shrink-0 h-6 w-6" 
-                                            :class="[
-                                                isActive(item.path) ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
-                                            ]" />
+                                        <component :is="item.icon" class="mr-3 flex-shrink-0 h-6 w-6" :class="[
+                                            isActive(item.path) ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
+                                        ]" />
                                         <span class="flex-1 text-left">{{ item.name }}</span>
                                         <!-- Dropdown arrow -->
                                         <svg :class="[item.isOpen ? 'transform rotate-180' : '', 'h-5 w-5 transition-transform']"
                                             xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                            <path fill-rule="evenodd"
+                                                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                clip-rule="evenodd" />
                                         </svg>
                                     </button>
-                                    
+
                                     <!-- Submenu items -->
                                     <div v-show="item.isOpen" class="space-y-1">
-                                        <router-link v-for="child in item.children" 
-                                            :key="child.path" 
-                                            :to="child.path"
+                                        <router-link v-for="child in item.children" :key="child.path" :to="child.path"
                                             class="group flex items-center pl-10 pr-2 py-2 text-sm font-medium rounded-md"
                                             :class="[
                                                 isActive(child.path)
@@ -68,21 +62,17 @@
                                 </div>
 
                                 <!-- Single menu item -->
-                                <router-link v-else 
-                                :to="item.path"
-                                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
-                                :class="[
-                                    isActive(item.path)
-                                        ? 'bg-indigo-50 text-indigo-600'
-                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                <router-link v-else :to="item.path"
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md" :class="[
+                                        isActive(item.path)
+                                            ? 'bg-indigo-50 text-indigo-600'
+                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                     ]">
-                                    <component :is="item.icon" 
-                                    class="mr-3 flex-shrink-0 h-6 w-6"
-                                    :class="[
+                                    <component :is="item.icon" class="mr-3 flex-shrink-0 h-6 w-6" :class="[
                                         isActive(item.path) ? 'text-indigo-600' : 'text-gray-400 group-hover:text-gray-500'
-                                        ]" />
-                                {{ item.name }}
-                            </router-link>
+                                    ]" />
+                                    {{ item.name }}
+                                </router-link>
                             </div>
                         </nav>
                     </div>
@@ -118,7 +108,7 @@
                     <span class="sr-only">Open sidebar</span>
                     <MenuIcon class="h-6 w-6" />
                 </button>
-                
+
                 <!-- Top nav content -->
                 <div class="flex-1 px-4 flex justify-between">
                     <div class="flex-1 flex items-center">
@@ -127,7 +117,8 @@
                             <ol role="list" class="flex items-center space-x-4">
                                 <li>
                                     <div class="flex">
-                                        <router-link to="/admin" class="text-sm font-medium text-gray-500 hover:text-gray-700">
+                                        <router-link to="/admin"
+                                            class="text-sm font-medium text-gray-500 hover:text-gray-700">
                                             Admin
                                         </router-link>
                                     </div>
@@ -136,15 +127,11 @@
                                     <li>
                                         <div class="flex items-center">
                                             <ChevronRightIcon class="flex-shrink-0 h-5 w-5 text-gray-400" />
-                                            <router-link 
-                                                v-if="crumb.path && !isLastCrumb(index)" 
-                                                :to="crumb.path"
+                                            <router-link v-if="crumb.path && !isLastCrumb(index)" :to="crumb.path"
                                                 class="ml-4 text-sm font-medium text-gray-500 hover:text-gray-700">
                                                 {{ crumb.name }}
                                             </router-link>
-                                            <span 
-                                                v-else
-                                                class="ml-4 text-sm font-medium text-gray-900">
+                                            <span v-else class="ml-4 text-sm font-medium text-gray-900">
                                                 {{ crumb.name }}
                                             </span>
                                         </div>
@@ -153,14 +140,13 @@
                             </ol>
                         </nav>
                     </div>
-                    
+
                     <!-- Right side navigation items -->
                     <div class="ml-4 flex items-center space-x-4">
                         <!-- Search -->
                         <div class="hidden md:block">
                             <div class="relative">
-                                <input type="text" 
-                                    placeholder="Search..." 
+                                <input type="text" placeholder="Search..."
                                     class="w-64 pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <MagnifyingGlassIcon class="h-5 w-5 text-gray-400" />
@@ -170,20 +156,23 @@
 
                         <!-- Quick Actions -->
                         <div class="relative">
-                            <button @click.stop="showQuickActions = !showQuickActions" 
+                            <button @click.stop="showQuickActions = !showQuickActions"
                                 class="dropdown-trigger p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <PlusIcon class="h-6 w-6" />
                             </button>
                             <!-- Quick Actions Dropdown -->
-                            <div v-if="showQuickActions" 
+                            <div v-if="showQuickActions"
                                 class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                <router-link to="/admin/exams/create" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <router-link to="/admin/exams/create"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     New Exam
                                 </router-link>
-                                <router-link to="/admin/questions/create" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <router-link to="/admin/questions/create"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     New Question
                                 </router-link>
-                                <router-link to="/admin/resources/create" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <router-link to="/admin/resources/create"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     New Resource
                                 </router-link>
                             </div>
@@ -194,14 +183,15 @@
                             <button @click.stop="showNotifications = !showNotifications"
                                 class="dropdown-trigger p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 <div class="relative">
-                            <BellIcon class="h-6 w-6" />
-                                    <span class="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-xs font-bold text-white">
+                                    <BellIcon class="h-6 w-6" />
+                                    <span
+                                        class="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-xs font-bold text-white">
                                         3
                                     </span>
                                 </div>
                             </button>
                             <!-- Notifications Dropdown -->
-                            <div v-show="showNotifications" 
+                            <div v-show="showNotifications"
                                 class="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
                                 <div class="py-2">
                                     <div class="px-4 py-2 border-b border-gray-200">
@@ -214,7 +204,8 @@
                                                     <UserCircleIcon class="h-6 w-6 text-gray-400" />
                                                 </div>
                                                 <div class="ml-3 w-0 flex-1">
-                                                    <p class="text-sm font-medium text-gray-900">New user registration</p>
+                                                    <p class="text-sm font-medium text-gray-900">New user registration
+                                                    </p>
                                                     <p class="mt-1 text-sm text-gray-500">John Doe has registered</p>
                                                     <p class="mt-1 text-xs text-gray-400">2 minutes ago</p>
                                                 </div>
@@ -243,17 +234,20 @@
                                 </div>
                             </button>
                             <!-- User Menu Dropdown -->
-                            <div v-if="showUserMenu" 
+                            <div v-if="showUserMenu"
                                 class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                                <router-link to="/admin/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <router-link to="/admin/profile"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     Your Profile
                                 </router-link>
-                                <router-link to="/admin/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <router-link to="/admin/settings"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     Settings
                                 </router-link>
-                                <button @click="handleLogout" class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                <button @click="handleLogout"
+                                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                                     Sign out
-                        </button>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -304,9 +298,9 @@ const sidebarOpen = ref(false)
 
 // Add reactive state for menu items
 const navigationItems = ref([
-    { 
-        name: 'Dashboard', 
-        path: '/admin', 
+    {
+        name: 'Dashboard',
+        path: '/admin',
         icon: HomeIcon,
         description: 'Overview and statistics'
     },
@@ -332,7 +326,7 @@ const navigationItems = ref([
                 name: 'Exams',
                 path: '/admin/exams',
                 description: 'Manage certification exams'
-            },
+        },
             {
                 name: 'Questions Bank',
                 path: '/admin/questions',
@@ -591,7 +585,7 @@ const isActive = (path) => {
 
 const handleLogout = async () => {
     try {
-    await authStore.logout()
+        await authStore.logout()
         router.push('/')
     } catch (error) {
         console.error('Logout failed:', error)
@@ -615,10 +609,10 @@ onUnmounted(() => {
 const closeDropdowns = (event) => {
     // Don't close if clicking inside dropdown content
     if (event.target.closest('.origin-top-right')) return;
-    
+
     // Don't close if clicking dropdown trigger
     if (event.target.closest('.dropdown-trigger')) return;
-    
+
     showQuickActions.value = false;
     showNotifications.value = false;
     showUserMenu.value = false;
@@ -649,7 +643,7 @@ const findParentItem = (path, items = navigationItems.value, parent = null) => {
 const breadcrumbs = computed(() => {
     const crumbs = [];
     let currentPath = route.path;
-    
+
     // Find current page
     const currentItem = findMenuItem(currentPath);
     if (!currentItem) return [{ name: currentPageTitle.value, path: currentPath }];
@@ -657,7 +651,7 @@ const breadcrumbs = computed(() => {
     // Build breadcrumb array
     let item = currentItem;
     crumbs.unshift({ name: item.name, path: item.path });
-    
+
     // Find parent items
     while (true) {
         const parent = findParentItem(item.path);

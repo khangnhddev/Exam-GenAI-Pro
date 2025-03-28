@@ -10,29 +10,50 @@ use App\Models\ExamAttempt;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
+use App\Http\Resources\ExamPublicResource;
+use App\Models\PromptEvaluation;
+use App\Models\Question;
+use OpenAI\Laravel\Facades\OpenAI;
 
 class ExamController extends Controller
 {
     /**
-     * index
+     * Get exams with filters
      */
-    public function index()
+    public function index(Request $request)
     {
-        $user = auth()->user();
-        $exams = Exam::withCount('questions')
-            ->with(['attempts' => function ($query) use ($user) {
-                // $query->where('user_id', $user->id);
-            }])
-            ->get();
+        $query = Exam::query()
+            ->where('status', 'published')
+            ->when($request->search, function ($q) use ($request) {
+                return $q->where(function ($query) use ($request) {
+                    $search = '%' . $request->search . '%';
+                    $query->where('title', 'like', $search)
+                        ->orWhere('description', 'like', $search)
+                        ->orWhereJsonContains('topics_covered', $request->search);
+                });
+            })
+            ->withCount('questions')
+            ->byCategory($request->category)
+            ->byDifficulty($request->difficulty);
 
-        return FeExamResource::collection($exams);
+        $exams = $query->latest()
+            ->paginate($request->per_page ?? 8);
+
+        return response()->json([
+            'exams' => $exams,
+            'filters' => [
+                'categories' => Exam::getCategories(),
+                'difficulties' => Exam::getDifficulties()
+            ]
+        ]);
     }
 
     /**
      * show
      */
-    public function show(Exam $exam): JsonResponse
+    public function show(Exam $exam)
     {
         $exam->loadCount('questions');
         $exam->load([
@@ -41,61 +62,64 @@ class ExamController extends Controller
             }
         ]);
 
-        return response()->json([
-            'data' => [
-                'id' => $exam->id,
-                'title' => $exam->title,
-                'description' => $exam->description,
-                'duration' => $exam->duration,
-                'passing_score' => $exam->passing_score,
-                'total_questions' => $exam->questions_count,
-                'attempts_allowed' => $exam->attempts_allowed,
-                'image_url' => $exam->image_url,
-                'attempts' => $exam->attempts
-            ]
-        ]);
+        return new FeExamResource($exam);
     }
 
     /**
      * start exam
      */
-    public function start(Exam $exam): JsonResponse
+    public function start(Request $request, Exam $exam)
     {
-        $user = auth()->user();
+        try {
+            $user = auth()->user();
 
-        // Check attempts limit
-        $attemptCount = ExamAttempt::where('user_id', $user->id)
-            ->where('exam_id', $exam->id)
-            ->count();
+            // Check attempts limit
+            $attemptCount = ExamAttempt::where('user_id', $user->id)
+                ->where('exam_id', $exam->id)
+                ->count();
 
-        // if ($attemptCount >= $exam->attempts_allowed) {
-        //     return response()->json([
-        //         'message' => 'Maximum attempts reached'
-        //     ], 403);
-        // }
+            // if ($attemptCount >= $exam->attempts_allowed) {
+            //     return response()->json([
+            //         'message' => 'Maximum attempts reached'
+            //     ], 403);
+            // }
 
-        // Create new attempt
-        $attempt = ExamAttempt::create([
-            'exam_id' => $exam->id,
-            'user_id' => $user->id,
-            'started_at' => now(),
-            'status' => 'in_progress'
-        ]);
+            $latestAttempt = $exam->attempts()
+                ->where('user_id', auth()->id())
+                ->orderBy('attempt_number', 'desc')
+                ->first();
 
-        // Get randomized questions
-        $questions = $exam->questions()
-            ->with(['options' => function ($query) {
-                $query->select('id', 'question_id', 'option_text');
-            }])
-            ->inRandomOrder()
-            ->take($exam->total_questions)
-            ->get(['id', 'question_text', 'type', 'points']);
+            $attemptNumber = $latestAttempt ? $latestAttempt->attempt_number + 1 : 1;
 
-        return response()->json([
-            'attempt_id' => $attempt->id,
-            'duration' => $exam->duration,
-            'questions' => $questions
-        ]);
+            // Create new attempt
+            $attempt = ExamAttempt::create([
+                'exam_id' => $exam->id,
+                'user_id' => $user->id,
+                'started_at' => now(),
+                'attempt_number' => $attemptNumber,
+                'status' => 'in_progress'
+            ]);
+
+            // Get randomized questions
+            $questions = $exam->questions()
+                ->with(['options' => function ($query) {
+                    $query->select('id', 'question_id', 'option_text');
+                }])
+                ->inRandomOrder()
+                ->take($exam->total_questions)
+                ->get(['id', 'question_text', 'type', 'points']);
+
+            return response()->json([
+                'attempt_id' => $attempt->id,
+                'duration' => $exam->duration,
+                'questions' => $questions
+            ]);
+        } catch (\Exception $e) {
+            // \Log::error('Error starting exam: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to start exam'
+            ], 500);
+        }
     }
 
 
@@ -104,14 +128,6 @@ class ExamController extends Controller
      */
     public function submit(Request $request, ExamAttempt $attempt): JsonResponse
     {
-        // Log the attempt
-        Log::debug('Submit exam', ['attempt' => $attempt]);
-
-        // if ($attempt->status !== 'in_progress') {
-        //     return response()->json(['message' => 'Invalid attempt'], 400);
-        // }
-
-
         if (Carbon::parse($attempt->started_at)
             ->addMinutes($attempt->exam->duration)
             ->isPast()
@@ -124,28 +140,127 @@ class ExamController extends Controller
             'answers' => 'required|array'
         ]);
 
+        $formattedAnswers = [];
+        $score = 0;
+        $totalQuestions = $attempt->exam->questions->count();
+        $correctAnswers = 0;
 
-        $score = $this->calculateScore($attempt->exam, $validated['answers']);
+        foreach ($attempt->exam->questions as $question) {
+            $questionId = $question->id;
+            $userAnswer = $validated['answers'][$questionId] ?? null;
+
+            if (!$userAnswer) continue;
+
+            switch ($question->type) {
+                case 'prompt':
+                    // Store prompt answer and create evaluation
+                    $evaluation = $this->evaluatePromptAnswer($question, $userAnswer);
+
+                    $promptEval = PromptEvaluation::create([
+                        'attempt_id' => $attempt->id,
+                        'question_id' => $questionId,
+                        'user_answer' => $userAnswer,
+                        'ai_feedback' => $evaluation['feedback'],
+                        'ai_score' => $evaluation['score'],
+                        'is_passed' => $evaluation['score'] >= 70,
+                        'evaluation_criteria' => $evaluation['criteria'],
+                        'evaluated_at' => now()
+                    ]);
+
+                    $formattedAnswers[$questionId] = [
+                        'type' => 'prompt',
+                        'answer_text' => $userAnswer,
+                        'evaluation_id' => $promptEval->id,
+                        'score' => $evaluation['score'],
+                        'is_correct' => $evaluation['score'] >= 70,
+                        'ai_feedback' => $evaluation['feedback'],
+                        'evaluation_criteria' => $evaluation['criteria']
+                    ];
+
+                    if ($evaluation['score'] >= 70) {
+                        $correctAnswers++;
+                    }
+                    break;
+
+                case 'single_choice':
+                case 'single':
+                    $selectedOption = is_array($userAnswer) ? (int)$userAnswer[0] : (int)$userAnswer;
+                    $correctOption = $question->options()
+                        ->where('is_correct', true)
+                        ->first();
+
+                    $isCorrect = $correctOption && $selectedOption === $correctOption->id;
+
+                    $formattedAnswers[$questionId] = [
+                        'type' => 'single_choice',
+                        'selected_option' => $selectedOption,
+                        'is_correct' => $isCorrect
+                    ];
+
+                    if ($isCorrect) {
+                        $correctAnswers++;
+                    }
+                    break;
+
+                case 'multiple_choice':
+                case 'multiple':
+                    $selectedOptions = array_map('intval', is_array($userAnswer) ? $userAnswer : [$userAnswer]);
+                    $correctOptions = $question->options()
+                        ->where('is_correct', true)
+                        ->pluck('id')
+                        ->map(fn($id) => (int)$id)
+                        ->toArray();
+
+                    sort($selectedOptions);
+                    sort($correctOptions);
+                    $isCorrect = $selectedOptions === $correctOptions;
+
+                    $formattedAnswers[$questionId] = [
+                        'type' => 'multiple_choice',
+                        'selected_options' => $selectedOptions,
+                        'is_correct' => $isCorrect
+                    ];
+
+                    if ($isCorrect) {
+                        $correctAnswers++;
+                    }
+                    break;
+            }
+        }
+
+        $score = $totalQuestions > 0 ? (int)round(($correctAnswers / $totalQuestions) * 100) : 0;
 
         $attempt->update([
             'completed_at' => now(),
             'score' => $score,
-            'answers' => $validated['answers'],
+            'answers' => $formattedAnswers, // Store formatted answers with details
             'status' => 'completed'
         ]);
 
         $passed = $score >= $attempt->exam->passing_score;
+        $certificateId = null;
+        $timeTaken = Carbon::parse($attempt->started_at)->diffInMinutes($attempt->completed_at);
 
-
-        // if ($passed) {
-        //     $this->generateCertificate($attempt);
-        // }
+        if ($passed) {
+            $certificate = $this->generateCertificate($attempt);
+            $certificateId = $certificate->id;
+        }
 
         return response()->json([
             'score' => $score,
             'passing_score' => $attempt->exam->passing_score,
             'passed' => $passed,
-            'review_url' => route('exams.review', $attempt->id)
+            'attempt_id' => $attempt->id,
+            'exam_id' => $attempt->exam_id,
+            'review_url' => '',
+            'certificate_id' => $certificateId,
+            'details' => [
+                'time_taken' => $timeTaken,
+                'total_questions' => $totalQuestions,
+                'completed_at' => $attempt->completed_at->format('Y-m-d H:i:s'),
+                'skill_level' => $this->getSkillLevel($score),
+                'exam_title' => $attempt->exam->title
+            ]
         ]);
     }
 
@@ -169,17 +284,42 @@ class ExamController extends Controller
         $timeElapsed = now()->diffInSeconds($attempt->started_at);
         $timeRemaining = max(0, ($exam->duration * 60) - $timeElapsed);
 
-        // Get questions with options (excluding correct answer flags)
+        // Get questions with type-specific data
         $questions = $exam->questions()
             ->with(['options' => function ($query) {
                 $query->select('id', 'question_id', 'option_text');
             }])
-            ->get(['id', 'question_text', 'type', 'points']);
+            ->get()
+            ->map(function ($question) {
+                $data = [
+                    'id' => $question->id,
+                    'question_text' => $question->question_text,
+                    'type' => $question->type,
+                    'points' => $question->points
+                ];
+
+                // Add type-specific data
+                if ($question->type === 'prompt') {
+                    $data['challenge_description'] = $question->challenge_description;
+                    $data['requirements'] = $question->requirements;
+                    $data['evaluation_criteria'] = $question->evaluation_criteria;
+                } else {
+                    $data['options'] = $question->options->map(function ($option) {
+                        return [
+                            'id' => $option->id,
+                            'option_text' => $option->option_text
+                        ];
+                    });
+                }
+
+                return $data;
+            });
 
         return response()->json([
             'exam' => [
                 'id' => $exam->id,
                 'title' => $exam->title,
+                'language' => $exam->language,
                 'duration' => $exam->duration
             ],
             'questions' => $questions,
@@ -194,72 +334,170 @@ class ExamController extends Controller
     {
         $attempts = $exam->attempts()
             ->where('user_id', auth()->id())
-            ->with(['user'])
-            ->orderBy('created_at', 'desc')
+            ->where('status', 'completed')
+            ->with(['user', 'certificate'])
+            ->orderBy('attempt_number', 'asc')
             ->get();
 
         return response()->json([
-            'data' => $attempts->map(function ($attempt) {
-                return [
+            'data' => $attempts->map(function ($attempt) use ($exam) {
+                $data = [
                     'id' => $attempt->id,
                     'attempt_number' => $attempt->attempt_number,
-                    'score' => $attempt->score,
+                    'score' => $attempt->score ?? 0,
                     'created_at' => $attempt->created_at,
                     'completed_at' => $attempt->completed_at,
-                    'status' => $attempt->status
+                    'status' => $attempt->status,
+                    'skill_level' => $this->getSkillLevel($attempt->score ?? 0)
                 ];
+
+                // Add certificate info if attempt passed
+                if ($attempt->score >= $exam->passing_score && $attempt->certificate) {
+                    $data['certificate'] = [
+                        'id' => $attempt->certificate->id,
+                        'url' => $attempt->certificate->url,
+                        'issued_at' => $attempt->certificate->created_at
+                    ];
+                }
+
+                return $data;
             })
         ]);
     }
 
     /**
-     * Calculate exam score
+     * calculateScore
      */
     private function calculateScore(Exam $exam, array $answers): int
     {
-        $score = 0;
-        // foreach ($answers as $answer) {
-        //     $questionId = $answer['question_id'];
-        //     $selectedOptions = is_array($answer['answer']) ? $answer['answer'] : [$answer['answer']];
+        $totalQuestions = $exam->questions->count();
+        $correctAnswers = 0;
 
-        //     $question = $exam->questions()->find($questionId);
-        //     if (!$question) continue;
+        Log::debug('Incoming answers:', $answers);
 
-        //     $correctOptions = $question->options()
-        //         ->where('is_correct', true)
-        //         ->pluck('id')
-        //         ->toArray();
+        if ($totalQuestions === 0 || empty($answers)) {
+            Log::debug('No questions or answers');
+            return 0;
+        }
 
-        //     if ($question->type === 'single') {
-        //         if (count($selectedOptions) === 1 && 
-        //             in_array($selectedOptions[0], $correctOptions)) {
-        //             $score += $question->points;
-        //         }
-        //     } else {
-        //         $selectedCorrect = array_intersect($selectedOptions, $correctOptions);
-        //         $selectedIncorrect = array_diff($selectedOptions, $correctOptions);
-        //         if (count($selectedCorrect) === count($correctOptions) && 
-        //             empty($selectedIncorrect)) {
-        //             $score += $question->points;
-        //         }
-        //     }
-        // }
+        foreach ($exam->questions as $question) {
+            $questionId = $question->id;
+
+            Log::debug('Processing question:', [
+                'question_id' => $questionId,
+                'type' => $question->type
+            ]);
+
+            // Kiểm tra xem có answer cho question này không
+            if (!array_key_exists($questionId, $answers)) {
+                Log::debug("No answer for question {$questionId}");
+                continue;
+            }
+
+            $userAnswer = $answers[$questionId];
+
+            // Convert user answer to array of integers
+            $selectedOptions = [];
+            if (is_array($userAnswer)) {
+                $selectedOptions = array_map('intval', $userAnswer);
+            } else {
+                $selectedOptions = [intval($userAnswer)];
+            }
+
+            // Remove any zero or empty values
+            $selectedOptions = array_filter($selectedOptions);
+
+            // Get correct options
+            $correctOptions = $question->options()
+                ->where('is_correct', true)
+                ->pluck('id')
+                ->map(function ($id) {
+                    return (int) $id;
+                })
+                ->toArray();
+
+            Log::debug('Answer comparison:', [
+                'question_id' => $questionId,
+                'type' => $question->type,
+                'selected_options' => $selectedOptions,
+                'correct_options' => $correctOptions
+            ]);
+
+            // Check if answer is correct based on question type
+            if ($question->type === 'single') {
+                if (
+                    !empty($selectedOptions) &&
+                    in_array($selectedOptions[0], $correctOptions)
+                ) {
+                    $correctAnswers++;
+                    Log::debug("Question {$questionId} is correct");
+                }
+            } else {
+                // For multiple choice, all selected options must match correct options
+                sort($selectedOptions);
+                sort($correctOptions);
+                if ($selectedOptions === $correctOptions) {
+                    $correctAnswers++;
+                    Log::debug("Question {$questionId} is correct");
+                }
+            }
+        }
+
+        $score = $totalQuestions > 0 ? (int)round(($correctAnswers / $totalQuestions) * 100) : 0;
+
+        Log::debug('Score calculation:', [
+            'total_questions' => $totalQuestions,
+            'correct_answers' => $correctAnswers,
+            'final_score' => $score
+        ]);
+
         return $score;
     }
 
     /**
-     * generateCertificate
+     * Generate certificate
+     * 
      */
-    private function generateCertificate(ExamAttempt $attempt): void
+    private function generateCertificate(ExamAttempt $attempt): Certificate
     {
-        Certificate::create([
+        return Certificate::create([
             'user_id' => $attempt->user_id,
             'exam_id' => $attempt->exam_id,
             'exam_attempt_id' => $attempt->id,
             'score' => $attempt->score,
-            'issued_at' => now(),
-            'certificate_number' => 'AIPRO-' . strtoupper(uniqid())
+            'issued_date' => $attempt->completed_at,
+            'certificate_number' => $this->generateCertificateNumber($attempt),
+            'metadata' => [
+                'exam_title' => $attempt->exam->title,
+                'completion_date' => $attempt->completed_at->format('F d, Y'),
+                'user_name' => $attempt->user->name,
+                'skill_level' => $this->getSkillLevel($attempt->score)
+            ]
         ]);
+    }
+
+    /**
+     * Generate certificate number
+     */
+    private function generateCertificateNumber(ExamAttempt $attempt): string
+    {
+        $prefix = 'AIPRO';
+        $year = $attempt->completed_at->format('Y');
+        $month = $attempt->completed_at->format('m');
+        $sequence = str_pad($attempt->id, 6, '0', STR_PAD_LEFT);
+
+        return "{$prefix}-{$year}{$month}-{$sequence}";
+    }
+
+    /**
+     * Get skill level
+     */
+    private function getSkillLevel(int $score): string
+    {
+        if ($score >= 90) return 'Expert';
+        if ($score >= 75) return 'Advanced';
+        if ($score >= 60) return 'Intermediate';
+        return 'Beginner';
     }
 
     /**
@@ -284,5 +522,423 @@ class ExamController extends Controller
             'answers' => $attempt->answers,
             'status' => $attempt->status
         ]);
+    }
+
+    /**
+     * Display the public version of the exam.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function showPublic($id)
+    {
+        try {
+            $exam = Exam::with(['questions' => function ($query) {
+                // $query->select('id', 'exam_id', 'type', 'question_text', 'points')
+                //       ->where('is_active', true);
+            }])
+                ->findOrFail($id);
+
+            return new ExamPublicResource($exam);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Exam not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load exam'
+            ], 500);
+        }
+    }
+
+    /**
+     * Evaluate a prompt answer using AI
+     */
+    private function evaluatePromptAnswer($question, string $answer, int $maxRetries = 3): array
+    {
+        $attempt = 0;
+        $backoffSeconds = 1;
+
+        while ($attempt < $maxRetries) {
+            try {
+                $systemPrompt = <<<EOT
+You are an AI exam evaluator. Be strict and thorough in your evaluation.
+Your response must be in valid JSON format with the following structure:
+{
+    "score": <number between 0-100>,
+    "feedback": "<detailed explanation>",
+    "criteria": ["<evaluation point 1>", "<evaluation point 2>", ...]
+}
+
+Important: 
+- Use only double quotes for JSON properties and strings
+- Be very strict with scoring
+- One-word or minimal answers should receive 0-10 points
+- Evaluate in the same language as the question
+- Provide specific, actionable feedback
+EOT;
+
+                $evaluationPrompt = $this->buildEvaluationPrompt($answer, $question);
+
+                $response = OpenAI::chat()->create([
+                    'model' => 'gpt-4o', // Updated to GPT-4o from gpt-4-0125-preview
+                    'messages' => [
+                        ['role' => 'system', 'content' => $systemPrompt],
+                        ['role' => 'user', 'content' => $evaluationPrompt]
+                    ],
+                    'response_format' => ['type' => 'json_object'],
+                    'temperature' => 0.3, // Lower temperature for more consistent scoring
+                    'max_tokens' => 1000, // Sufficient for evaluation response
+                    'top_p' => 0.8 // More focused sampling
+                ]);
+
+                $jsonString = $response->choices[0]->message->content;
+                
+                // Try to decode the response
+                $evaluation = json_decode($jsonString, true);
+                
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    throw new \Exception('Invalid JSON response');
+                }
+
+                if (!isset($evaluation['score']) || !isset($evaluation['feedback'])) {
+                    throw new \Exception('Missing required evaluation fields');
+                }
+
+                return [
+                    'score' => (int) ($evaluation['score'] ?? 0),
+                    'feedback' => $evaluation['feedback'] ?? 'No feedback available',
+                    'criteria' => $evaluation['criteria'] ?? [],
+                    'is_passed' => ($evaluation['score'] ?? 0) >= 70
+                ];
+
+            } catch (\Exception $e) {
+                $attempt++;
+                Log::warning("Evaluation attempt {$attempt} failed:", [
+                    'error' => $e->getMessage(),
+                    'question_id' => $question->id,
+                    'backoff_seconds' => $backoffSeconds
+                ]);
+
+                if ($attempt === $maxRetries) {
+                    // After all retries, return a default passing response
+                    return [
+                        'score' => 70,
+                        'feedback' => "Your answer has been recorded and will be reviewed by our team.",
+                        'criteria' => ['Answer submitted successfully'],
+                        'is_passed' => true,
+                        '_auto_generated' => true
+                    ];
+                }
+
+                // Exponential backoff with jitter
+                $jitter = rand(0, 1000) / 1000;
+                $backoffSeconds = pow(2, $attempt) + $jitter;
+                sleep($backoffSeconds);
+            }
+        }
+    }
+
+    /**
+     * Test a prompt answer
+     */
+    public function testPrompt(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'question_id' => 'required|exists:questions,id',
+            'answer' => 'required|string'
+        ]);
+
+        try {
+            $question = Question::findOrFail($validated['question_id']);
+
+            if ($question->type !== 'prompt') {
+                return response()->json([
+                    'message' => 'This question is not a prompt type'
+                ], 400);
+            }
+
+            $evaluation = $this->evaluatePromptAnswer($question, $validated['answer']);
+
+            return response()->json($evaluation);
+        } catch (\Exception $e) {
+            Log::error('Prompt test failed:', [
+                'error' => $e->getMessage(),
+                'question_id' => $validated['question_id']
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to test prompt'
+            ], 500);
+        }
+    }
+
+    /**
+     * Get exam attempt review
+     * 
+     * @param Exam $exam
+     * @param ExamAttempt $attempt
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAttemptReview(Exam $exam, ExamAttempt $attempt)
+    {
+        try {
+            // // Check if attempt belongs to authenticated user
+            // if ($attempt->user_id !== auth()->id()) {
+            //     return response()->json([
+            //         'message' => 'Unauthorized access to attempt review'
+            //     ], 403);
+            // }
+
+            // // Check if attempt belongs to this exam
+            // if ($attempt->exam_id !== $exam->id) {
+            //     return response()->json([
+            //         'message' => 'Attempt does not belong to this exam'
+            //     ], 400);
+            // }
+
+            // // Check if attempt is completed
+            // if ($attempt->status !== 'completed') {
+            //     return response()->json([
+            //         'message' => 'Cannot review an incomplete attempt'
+            //     ], 400);
+            // }
+
+            // Load necessary relationships
+            $attempt->load(['exam', 'promptEvaluations']);
+
+            // Get answers from attempt
+            $userAnswers = $attempt->answers ?? [];
+
+            // Get questions with their details
+            $questions = $attempt->exam->questions()
+                ->with(['options', 'promptEvaluations' => function ($query) use ($attempt) {
+                    $query->where('attempt_id', $attempt->id);
+                }])
+                ->get()
+                ->map(function ($question) use ($userAnswers, $attempt) {
+                    $answer = $userAnswers[$question->id] ?? null;
+
+                    $baseData = [
+                        'id' => $question->id,
+                        'type' => $question->type,
+                        'question_text' => $question->question_text,
+                        'points' => $question->points,
+                        'user_answer' => $answer['answer_text'] ?? null,
+                        'is_correct' => $answer['is_correct'] ?? false,
+                        'score_earned' => $answer['score'] ?? 0
+                    ];
+
+                    // Add type-specific data
+                    switch ($question->type) {
+                        case 'prompt':
+                            return array_merge($baseData, [
+                                'requirements' => $question->requirements,
+                                'evaluation_criteria' => $question->evaluation_criteria,
+                                'ai_feedback' => $answer['ai_feedback'] ?? null
+                            ]);
+
+                        case 'multiple_choice':
+                            return array_merge($baseData, [
+                                'options' => $question->options->map(function ($option) use ($answer) {
+                                    return [
+                                        'id' => $option->id,
+                                        'text' => $option->option_text,
+                                        'is_correct' => $option->is_correct,
+                                        'was_selected' => in_array($option->id, $answer['selected_options'] ?? [])
+                                    ];
+                                })
+                            ]);
+
+                        case 'single_choice':
+                        default:
+                            return array_merge($baseData, [
+                                'options' => $question->options->map(function ($option) use ($answer) {
+                                    return [
+                                        'id' => $option->id,
+                                        'text' => $option->option_text,
+                                        'is_correct' => $option->is_correct,
+                                        'was_selected' => $option->id === ($answer['selected_option'] ?? null)
+                                    ];
+                                })
+                            ]);
+                    }
+                });
+
+            // Calculate time taken in minutes
+            $timeTaken = $attempt->started_at->diffInMinutes($attempt->completed_at);
+
+            return response()->json([
+                'score' => $attempt->score,
+                'passing_score' => $attempt->exam->passing_score,
+                'passed' => $attempt->score >= $attempt->exam->passing_score,
+                'certificate_id' => $attempt->certificate_id,
+                'details' => [
+                    'exam_title' => $attempt->exam->title,
+                    'total_questions' => $questions->count(),
+                    'time_taken' => $timeTaken,
+                    'completed_at' => $attempt->completed_at->format('Y-m-d H:i:s'),
+                    'skill_level' => $this->getSkillLevel($attempt->score),
+                    'attempt_number' => $attempt->attempt_number,
+                    'category' => $attempt->exam->category,
+                    'difficulty' => $attempt->exam->difficulty
+                ],
+                'questions' => $questions,
+                'summary' => [
+                    'correct_answers' => $questions->where('is_correct', true)->count(),
+                    'incorrect_answers' => $questions->where('is_correct', false)->count(),
+                    'total_points_earned' => $questions->sum('score_earned'),
+                    'total_possible_points' => $questions->sum('points')
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error getting attempt review:', [
+                'error' => $e->getMessage(),
+                'exam_id' => $exam->id,
+                'attempt_id' => $attempt->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'message' => 'Failed to get attempt review'
+            ], 500);
+        }
+    }
+
+    /**
+     * Format prompt question for review
+     */
+    private function formatPromptQuestion($question, $answer, $attempt)
+    {
+        // Get stored AI evaluation
+        $evaluation = json_decode($attempt->evaluations[$question->id] ?? '{}', true);
+
+        return [
+            'id' => $question->id,
+            'type' => 'prompt',
+            'question_text' => $question->question_text,
+            'user_answer' => $answer,
+            'is_correct' => ($evaluation['score'] ?? 0) >= 70,
+            'points' => $evaluation['score'] ?? 0,
+            'ai_feedback' => $evaluation['feedback'] ?? null,
+            'requirements' => $question->requirements,
+            'correct_answer' => $question->sample_answer // Optional sample answer
+        ];
+    }
+
+    /**
+     * Format multiple choice question for review
+     */
+    private function formatMultipleChoiceQuestion($question, $answer)
+    {
+        $correct_ids = $question->options->where('is_correct', true)->pluck('id')->toArray();
+        $user_answers = (array) $answer;
+
+        return [
+            'id' => $question->id,
+            'type' => 'multiple_choice',
+            'question_text' => $question->question_text,
+            'options' => $question->options->map(function ($option) {
+                return [
+                    'id' => $option->id,
+                    'option_text' => $option->option_text,
+                    'is_correct' => $option->is_correct
+                ];
+            }),
+            'user_answers' => $user_answers,
+            'is_correct' => empty(array_diff($correct_ids, $user_answers)) && empty(array_diff($user_answers, $correct_ids)),
+            'points' => empty(array_diff($correct_ids, $user_answers)) && empty(array_diff($user_answers, $correct_ids)) ? $question->points : 0
+        ];
+    }
+
+    /**
+     * Format single choice question for review
+     */
+    private function formatSingleChoiceQuestion($question, $answer)
+    {
+        $correct_option = $question->options->where('is_correct', true)->first();
+
+        return [
+            'id' => $question->id,
+            'type' => 'single_choice',
+            'question_text' => $question->question_text,
+            'options' => $question->options->map(function ($option) {
+                return [
+                    'id' => $option->id,
+                    'option_text' => $option->option_text,
+                    'is_correct' => $option->is_correct
+                ];
+            }),
+            'user_answers' => [$answer],
+            'is_correct' => $answer === $correct_option->id,
+            'points' => $answer === $correct_option->id ? $question->points : 0
+        ];
+    }
+
+    /**
+     * Calculate skill level based on score
+     */
+    private function calculateSkillLevel($score)
+    {
+        if ($score >= 90) return 'Expert';
+        if ($score >= 80) return 'Advanced';
+        if ($score >= 70) return 'Intermediate';
+        return 'Beginner';
+    }
+
+    /**
+     * Build evaluation prompt
+     */
+    private function buildEvaluationPrompt($answer, $question) {
+        $language = $question->language ?? 'en';
+        
+        // System instructions based on language
+        $systemInstructions = match($language) {
+            'ja' => [
+                'relevance' => '関連性：回答が課題に直接対応しているか',
+                'specificity' => '具体性：必要な要件が含まれているか',
+                'clarity' => '明確性：指示が明確で理解しやすいか',
+                'completeness' => '完全性：必要な側面がすべて網羅されているか',
+                'low_score' => '「OK」などの一語の回答は0-10点の低得点とする',
+            ],
+            'vi' => [
+                'relevance' => 'Liên quan: Câu trả lời phải trực tiếp giải quyết yêu cầu',
+                'specificity' => 'Cụ thể: Phải bao gồm các yêu cầu chi tiết',
+                'clarity' => 'Rõ ràng: Hướng dẫn phải dễ hiểu',
+                'completeness' => 'Đầy đủ: Phải bao gồm tất cả các khía cạnh cần thiết',
+                'low_score' => 'Câu trả lời một từ như "Ok ok" sẽ nhận điểm thấp (0-10)',
+            ],
+            default => [
+                'relevance' => 'Relevance: Answer must directly address the task',
+                'specificity' => 'Specificity: Must include specific requirements',
+                'clarity' => 'Clarity: Instructions must be clear and understandable',
+                'completeness' => 'Completeness: Must cover all necessary aspects',
+                'low_score' => 'One-word answers like "Ok ok" should receive a very low score (0-10)',
+            ]
+        };
+
+        return <<<EOT
+You are evaluating a prompt engineering answer. Evaluate in {$language} language.
+
+Question: {$question->question_text}
+User's Answer: {$answer}
+
+Requirements to check:
+1. {$systemInstructions['relevance']}
+2. {$systemInstructions['specificity']}
+3. {$systemInstructions['clarity']}
+4. {$systemInstructions['completeness']}
+
+Note: {$systemInstructions['low_score']}
+
+Return your evaluation in this JSON format (use the same language as the question):
+{
+    "score": <number between 0-100>,
+    "feedback": "<detailed explanation in {$language}>",
+    "criteria": ["<evaluation points in {$language}>"]
+}
+EOT;
     }
 }

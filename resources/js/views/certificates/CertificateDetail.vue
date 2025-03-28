@@ -103,7 +103,7 @@ const certificate = ref(null)
 
 onMounted(async () => {
   try {
-    const response = await axios.get(`/api/v1/certificates/${route.params.id}`)
+    const response = await axios.get(`/certificates/${route.params.id}`)
     certificate.value = response.data.certificate
   } catch (error) {
     console.error('Error loading certificate:', error)

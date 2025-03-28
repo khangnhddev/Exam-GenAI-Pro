@@ -8,6 +8,6 @@
 </template>
 
 <script setup>
-import AIAssistant from '@/components/AIAssistant.vue'
-import AppNavigation from '@/components/AppNavigation.vue'
+// import AIAssistant from '@/components/AIAssistant.vue'
+// import AppNavigation from '@/components/AppNavigation.vue'
 </script>
