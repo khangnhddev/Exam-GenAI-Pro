@@ -177,33 +177,47 @@ class Exam extends Model
     }
 
     /**
-     * Get all available categories with counts
+     * Get all available categories with counts - Optimized
+     * @return \Illuminate\Support\Collection
      */
     public static function getCategories()
     {
-        return collect(self::CATEGORIES)->map(function($label, $value) {
+        // Get all category counts in a single query
+        $categoryCounts = self::where('status', 'published')
+            ->selectRaw('category, COUNT(*) as count')
+            ->groupBy('category')
+            ->pluck('count', 'category')
+            ->toArray();
+        
+        // Map the counts to the categories
+        return collect(self::CATEGORIES)->map(function($label, $value) use ($categoryCounts) {
             return [
                 'value' => $value,
                 'label' => $label,
-                'count' => self::where('category', $value)
-                              ->where('status', 'published')
-                              ->count()
+                'count' => $categoryCounts[$value] ?? 0
             ];
         })->values();
     }
 
     /**
-     * Get all difficulties with counts
+     * Get all difficulties with counts - Optimized
+     * @return \Illuminate\Support\Collection
      */
     public static function getDifficulties()
     {
-        return collect(self::DIFFICULTIES)->map(function($label, $value) {
+        // Get all difficulty counts in a single query
+        $difficultyCounts = self::where('status', 'published')
+            ->selectRaw('difficulty, COUNT(*) as count')
+            ->groupBy('difficulty')
+            ->pluck('count', 'difficulty')
+            ->toArray();
+        
+        // Map the counts to the difficulties
+        return collect(self::DIFFICULTIES)->map(function($label, $value) use ($difficultyCounts) {
             return [
                 'value' => $value,
                 'label' => $label,
-                'count' => self::where('difficulty', $value)
-                              ->where('status', 'published')
-                              ->count()
+                'count' => $difficultyCounts[$value] ?? 0
             ];
         })->values();
     }

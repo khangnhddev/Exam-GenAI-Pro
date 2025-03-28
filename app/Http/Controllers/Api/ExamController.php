@@ -124,144 +124,207 @@ class ExamController extends Controller
 
 
     /**
-     * Submit exam
+     * Submit exam - Optimized version
      */
     public function submit(Request $request, ExamAttempt $attempt): JsonResponse
     {
-        if (Carbon::parse($attempt->started_at)
-            ->addMinutes($attempt->exam->duration)
-            ->isPast()
-        ) {
-            $attempt->update(['status' => 'expired']);
-            return response()->json(['message' => 'Exam time expired'], 400);
-        }
+        try {
+            // Early check for exam time expiration
+            if (Carbon::parse($attempt->started_at)
+                ->addMinutes($attempt->exam->duration)
+                ->isPast()
+            ) {
+                $attempt->update(['status' => 'expired']);
+                return response()->json(['message' => 'Exam time expired'], 400);
+            }
 
-        $validated = $request->validate([
-            'answers' => 'required|array'
-        ]);
+            $validated = $request->validate([
+                'answers' => 'required|array'
+            ]);
 
-        $formattedAnswers = [];
-        $score = 0;
-        $totalQuestions = $attempt->exam->questions->count();
-        $correctAnswers = 0;
+            // Load all questions with options in a single query to avoid N+1
+            $questions = $attempt->exam->questions()
+                ->with(['options' => function ($query) {
+                    $query->select('id', 'question_id', 'option_text', 'is_correct');
+                }])
+                ->get();
 
-        foreach ($attempt->exam->questions as $question) {
-            $questionId = $question->id;
-            $userAnswer = $validated['answers'][$questionId] ?? null;
-
-            if (!$userAnswer) continue;
-
-            switch ($question->type) {
-                case 'prompt':
-                    // Store prompt answer and create evaluation
-                    $evaluation = $this->evaluatePromptAnswer($question, $userAnswer);
-
-                    $promptEval = PromptEvaluation::create([
-                        'attempt_id' => $attempt->id,
-                        'question_id' => $questionId,
-                        'user_answer' => $userAnswer,
-                        'ai_feedback' => $evaluation['feedback'],
-                        'ai_score' => $evaluation['score'],
-                        'is_passed' => $evaluation['score'] >= 70,
-                        'evaluation_criteria' => $evaluation['criteria'],
-                        'evaluated_at' => now()
-                    ]);
-
-                    $formattedAnswers[$questionId] = [
-                        'type' => 'prompt',
-                        'answer_text' => $userAnswer,
-                        'evaluation_id' => $promptEval->id,
-                        'score' => $evaluation['score'],
-                        'is_correct' => $evaluation['score'] >= 70,
-                        'ai_feedback' => $evaluation['feedback'],
-                        'evaluation_criteria' => $evaluation['criteria']
-                    ];
-
-                    if ($evaluation['score'] >= 70) {
-                        $correctAnswers++;
-                    }
-                    break;
-
-                case 'single_choice':
-                case 'single':
-                    $selectedOption = is_array($userAnswer) ? (int)$userAnswer[0] : (int)$userAnswer;
-                    $correctOption = $question->options()
-                        ->where('is_correct', true)
-                        ->first();
-
-                    $isCorrect = $correctOption && $selectedOption === $correctOption->id;
-
-                    $formattedAnswers[$questionId] = [
-                        'type' => 'single_choice',
-                        'selected_option' => $selectedOption,
-                        'is_correct' => $isCorrect
-                    ];
-
-                    if ($isCorrect) {
-                        $correctAnswers++;
-                    }
-                    break;
-
-                case 'multiple_choice':
-                case 'multiple':
-                    $selectedOptions = array_map('intval', is_array($userAnswer) ? $userAnswer : [$userAnswer]);
-                    $correctOptions = $question->options()
+            // Create a lookup table for question types and correct options
+            $questionData = [];
+            $correctOptionsMap = [];
+            
+            foreach ($questions as $question) {
+                $questionData[$question->id] = [
+                    'type' => $question->type,
+                    'points' => $question->points
+                ];
+                
+                if ($question->type !== 'prompt') {
+                    $correctOptionsMap[$question->id] = $question->options
                         ->where('is_correct', true)
                         ->pluck('id')
-                        ->map(fn($id) => (int)$id)
+                        ->map(function($id) {
+                            return (int)$id;
+                        })
                         ->toArray();
-
-                    sort($selectedOptions);
-                    sort($correctOptions);
-                    $isCorrect = $selectedOptions === $correctOptions;
-
-                    $formattedAnswers[$questionId] = [
-                        'type' => 'multiple_choice',
-                        'selected_options' => $selectedOptions,
-                        'is_correct' => $isCorrect
-                    ];
-
-                    if ($isCorrect) {
-                        $correctAnswers++;
-                    }
-                    break;
+                }
             }
+
+            // Process answers and calculate score
+            $formattedAnswers = [];
+            $score = 0;
+            $totalQuestions = $questions->count();
+            $correctAnswers = 0;
+            $promptEvaluations = [];
+
+            foreach ($validated['answers'] as $questionId => $userAnswer) {
+                // Skip if question doesn't exist
+                if (!isset($questionData[$questionId])) continue;
+                
+                $questionType = $questionData[$questionId]['type'];
+
+                switch ($questionType) {
+                    case 'prompt':
+                        // Defer prompt evaluation to avoid blocking
+                        $promptEvaluations[] = [
+                            'question_id' => $questionId,
+                            'user_answer' => $userAnswer
+                        ];
+                        
+                        // Store a placeholder
+                        $formattedAnswers[$questionId] = [
+                            'type' => 'prompt',
+                            'answer_text' => $userAnswer,
+                            // We'll update these after evaluation
+                            'score' => null,
+                            'is_correct' => null,
+                            'ai_feedback' => null,
+                            'evaluation_criteria' => null,
+                        ];
+                        break;
+
+                    case 'single_choice':
+                    case 'single':
+                        $selectedOption = is_array($userAnswer) ? (int)$userAnswer[0] : (int)$userAnswer;
+                        $correctOption = $correctOptionsMap[$questionId][0] ?? null;
+                        $isCorrect = $correctOption && $selectedOption === $correctOption;
+
+                        $formattedAnswers[$questionId] = [
+                            'type' => 'single_choice',
+                            'selected_option' => $selectedOption,
+                            'is_correct' => $isCorrect,
+                            'score' => $isCorrect ? $questionData[$questionId]['points'] : 0
+                        ];
+
+                        if ($isCorrect) {
+                            $correctAnswers++;
+                        }
+                        break;
+
+                    case 'multiple_choice':
+                    case 'multiple':
+                        $selectedOptions = array_map('intval', is_array($userAnswer) ? $userAnswer : [$userAnswer]);
+                        $correctOptions = $correctOptionsMap[$questionId] ?? [];
+
+                        sort($selectedOptions);
+                        sort($correctOptions);
+                        $isCorrect = $selectedOptions === $correctOptions;
+
+                        $formattedAnswers[$questionId] = [
+                            'type' => 'multiple_choice',
+                            'selected_options' => $selectedOptions,
+                            'is_correct' => $isCorrect,
+                            'score' => $isCorrect ? $questionData[$questionId]['points'] : 0
+                        ];
+
+                        if ($isCorrect) {
+                            $correctAnswers++;
+                        }
+                        break;
+                }
+            }
+
+            // Process prompt evaluations
+            foreach ($promptEvaluations as $promptData) {
+                $question = $questions->firstWhere('id', $promptData['question_id']);
+                $evaluation = $this->evaluatePromptAnswer($question, $promptData['user_answer']);
+                
+                // Create prompt evaluation in a single query
+                $promptEval = PromptEvaluation::create([
+                    'attempt_id' => $attempt->id,
+                    'question_id' => $promptData['question_id'],
+                    'user_answer' => $promptData['user_answer'],
+                    'ai_feedback' => $evaluation['feedback'],
+                    'ai_score' => $evaluation['score'],
+                    'is_passed' => $evaluation['score'] >= 70,
+                    'evaluation_criteria' => $evaluation['criteria'],
+                    'evaluated_at' => now()
+                ]);
+
+                // Update the formatted answer with evaluation results
+                $formattedAnswers[$promptData['question_id']] = [
+                    'type' => 'prompt',
+                    'answer_text' => $promptData['user_answer'],
+                    'evaluation_id' => $promptEval->id,
+                    'score' => $evaluation['score'],
+                    'is_correct' => $evaluation['score'] >= 70,
+                    'ai_feedback' => $evaluation['feedback'],
+                    'evaluation_criteria' => $evaluation['criteria']
+                ];
+
+                if ($evaluation['score'] >= 70) {
+                    $correctAnswers++;
+                }
+            }
+
+            // Calculate final score
+            $score = $totalQuestions > 0 ? (int)round(($correctAnswers / $totalQuestions) * 100) : 0;
+
+            // Use a single update query
+            $attempt->update([
+                'completed_at' => now(),
+                'score' => $score,
+                'answers' => $formattedAnswers,
+                'status' => 'completed'
+            ]);
+
+            // Certificate generation
+            $passed = $score >= $attempt->exam->passing_score;
+            $certificateId = null;
+            $timeTaken = Carbon::parse($attempt->started_at)->diffInMinutes($attempt->completed_at);
+
+            if ($passed) {
+                $certificate = $this->generateCertificate($attempt);
+                $certificateId = $certificate->id;
+            }
+
+            return response()->json([
+                'score' => $score,
+                'passing_score' => $attempt->exam->passing_score,
+                'passed' => $passed,
+                'attempt_id' => $attempt->id,
+                'exam_id' => $attempt->exam_id,
+                'review_url' => '',
+                'certificate_id' => $certificateId,
+                'details' => [
+                    'time_taken' => $timeTaken,
+                    'total_questions' => $totalQuestions,
+                    'completed_at' => $attempt->completed_at->format('Y-m-d H:i:s'),
+                    'skill_level' => $this->getSkillLevel($score),
+                    'exam_title' => $attempt->exam->title
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error submitting exam attempt', [
+                'error' => $e->getMessage(),
+                'attempt_id' => $attempt->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'message' => 'Failed to submit exam'
+            ], 500);
         }
-
-        $score = $totalQuestions > 0 ? (int)round(($correctAnswers / $totalQuestions) * 100) : 0;
-
-        $attempt->update([
-            'completed_at' => now(),
-            'score' => $score,
-            'answers' => $formattedAnswers, // Store formatted answers with details
-            'status' => 'completed'
-        ]);
-
-        $passed = $score >= $attempt->exam->passing_score;
-        $certificateId = null;
-        $timeTaken = Carbon::parse($attempt->started_at)->diffInMinutes($attempt->completed_at);
-
-        if ($passed) {
-            $certificate = $this->generateCertificate($attempt);
-            $certificateId = $certificate->id;
-        }
-
-        return response()->json([
-            'score' => $score,
-            'passing_score' => $attempt->exam->passing_score,
-            'passed' => $passed,
-            'attempt_id' => $attempt->id,
-            'exam_id' => $attempt->exam_id,
-            'review_url' => '',
-            'certificate_id' => $certificateId,
-            'details' => [
-                'time_taken' => $timeTaken,
-                'total_questions' => $totalQuestions,
-                'completed_at' => $attempt->completed_at->format('Y-m-d H:i:s'),
-                'skill_level' => $this->getSkillLevel($score),
-                'exam_title' => $attempt->exam->title
-            ]
-        ]);
     }
 
     /**
