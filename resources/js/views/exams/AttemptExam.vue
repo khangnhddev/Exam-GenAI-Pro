@@ -621,7 +621,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
+// Add these imports at the top with your other imports
+import { ref, computed, onMounted, onUnmounted, nextTick, onBeforeMount } from 'vue'
+// Other existing imports...
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeftIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
 import axios from 'axios'
@@ -631,6 +633,9 @@ import { onBeforeRouteLeave } from 'vue-router'
 // Add new import
 import * as monaco from 'monaco-editor-vue3'
 const MonacoEditor = monaco.default
+
+// Add this after your existing refs
+const isPageRefreshing = ref(false);
 
 const route = useRoute()
 const router = useRouter()
@@ -686,42 +691,6 @@ const startTimer = () => {
       }
     }
   }, 1000)
-}
-
-const loadExam = async () => {
-  try {
-    const response = await axios.get(`/exams/${route.params.id}/attempt/${route.params.attemptId || ''}`)
-    exam.value = response.data.exam
-    questions.value = response.data.questions
-
-    // Initialize answers for all questions
-    questions.value.forEach(question => {
-      initializeAnswer(question)
-    })
-
-    // Get exam start time from server or localStorage
-    const storedStartTime = localStorage.getItem(`exam_${route.params.attemptId}_start_time`)
-    examStartTime.value = storedStartTime ? parseInt(storedStartTime) : Date.now()
-
-    // Calculate remaining time
-    const totalDuration = exam.value.duration * 60
-    const elapsedSeconds = Math.floor((Date.now() - examStartTime.value) / 1000)
-    timeLeft.value = Math.max(0, totalDuration - elapsedSeconds)
-
-    // Store start time if not already stored
-    if (!storedStartTime) {
-      localStorage.setItem(`exam_${route.params.attemptId}_start_time`, examStartTime.value.toString())
-    }
-
-    if (timeLeft.value > 0) {
-      startTimer()
-    } else {
-      showTimeoutModal.value = true
-    }
-  } catch (error) {
-    console.error('Error loading exam:', error)
-    // toast.error('Failed to load exam')
-  }
 }
 
 // Add editor options after the existing const declarations
@@ -795,6 +764,9 @@ const nextQuestion = () => {
   }
 
   if (currentQuestionIndex.value < questions.value.length - 1) {
+    // Save answers before moving to next question
+    saveAnswersToLocalStorage();
+    
     resetEditor()
     resetTestResults()
     currentQuestionIndex.value++
@@ -802,6 +774,7 @@ const nextQuestion = () => {
     // Scroll to top of the question container with smooth animation
     nextTick(() => {
       scrollToTop()
+      updateSingleChoiceAnswer();
     })
   }
 }
@@ -809,6 +782,9 @@ const nextQuestion = () => {
 // Update the previousQuestion function
 const previousQuestion = () => {
   if (currentQuestionIndex.value > 0) {
+    // Save answers before moving to previous question
+    saveAnswersToLocalStorage();
+    
     resetEditor()
     resetTestResults()
     currentQuestionIndex.value--
@@ -816,6 +792,7 @@ const previousQuestion = () => {
     // Scroll to top of the question container with smooth animation
     nextTick(() => {
       scrollToTop()
+      updateSingleChoiceAnswer();
     })
   }
 }
@@ -1020,6 +997,10 @@ const handleExamSubmission = (results) => {
   if (timer) {
     clearInterval(timer);
   }
+  
+  // Clear localStorage data for this exam attempt
+  localStorage.removeItem(`exam_${route.params.attemptId}_start_time`);
+  localStorage.removeItem(`exam_${route.params.attemptId}_answers`);
 
   // Navigate based on context
   if (exitAfterSubmit.value) {
@@ -1058,6 +1039,9 @@ const handleMultipleChoice = (optionIndex) => {
   } else {
     selectedAnswers.value[questionId].splice(index, 1)
   }
+  
+  // Save answers after change
+  saveAnswersToLocalStorage();
 }
 
 const handleTimeout = () => {
@@ -1147,6 +1131,7 @@ const shouldShowEditor = ref(true)
 // Add editor change handler
 const handleEditorChange = (value) => {
   selectedAnswers.value[currentQuestion.value.id] = value
+  saveAnswersToLocalStorage();
 }
 
 // Add new state
@@ -1178,8 +1163,132 @@ const resetTestResults = () => {
   testResults.value = null
 }
 
+// Add this to detect page refresh/unload
+const handleBeforeUnload = (event) => {
+  // If exam is already submitted or time is up, allow refresh without warning
+  if (examResults.value || timeLeft.value === 0) {
+    return;
+  }
+  
+  // Modern browsers mostly ignore this message but we still need to set it
+  const message = t.value.exitConfirm;
+  event.preventDefault();
+  event.returnValue = message; // Required for Chrome
+  return message; // Required for other browsers
+};
+
+// Add handler to restore state after refresh
+const restoreStateAfterRefresh = () => {
+  // Check if this is a refresh of an ongoing exam
+  const storedStartTime = localStorage.getItem(`exam_${route.params.attemptId}_start_time`);
+  const storedAnswers = localStorage.getItem(`exam_${route.params.attemptId}_answers`);
+  
+  if (storedStartTime && storedAnswers) {
+    try {
+      selectedAnswers.value = JSON.parse(storedAnswers);
+    } catch (e) {
+      console.error('Failed to parse stored answers:', e);
+    }
+  }
+};
+
+// Modify the loadExam function to handle saved state
+const loadExam = async () => {
+  try {
+    const response = await axios.get(`/exams/${route.params.id}/attempt/${route.params.attemptId || ''}`)
+    exam.value = response.data.exam
+    questions.value = response.data.questions
+
+    // Restore answers from local storage if available, otherwise initialize
+    const storedAnswers = localStorage.getItem(`exam_${route.params.attemptId}_answers`);
+    if (storedAnswers) {
+      try {
+        const parsedAnswers = JSON.parse(storedAnswers);
+        selectedAnswers.value = parsedAnswers;
+      } catch (e) {
+        console.error('Failed to parse stored answers:', e);
+        // Initialize answers if parsing fails
+        questions.value.forEach(question => {
+          initializeAnswer(question);
+        });
+      }
+    } else {
+      // Initialize answers for all questions
+      questions.value.forEach(question => {
+        initializeAnswer(question);
+      });
+    }
+
+    // Get exam start time from server or localStorage
+    const storedStartTime = localStorage.getItem(`exam_${route.params.attemptId}_start_time`);
+    examStartTime.value = storedStartTime ? parseInt(storedStartTime) : Date.now();
+
+    // Calculate remaining time
+    const totalDuration = exam.value.duration * 60;
+    const elapsedSeconds = Math.floor((Date.now() - examStartTime.value) / 1000);
+    timeLeft.value = Math.max(0, totalDuration - elapsedSeconds);
+
+    // Store start time if not already stored
+    if (!storedStartTime) {
+      localStorage.setItem(`exam_${route.params.attemptId}_start_time`, examStartTime.value.toString());
+    }
+
+    if (timeLeft.value > 0) {
+      startTimer();
+    } else {
+      showTimeoutModal.value = true;
+    }
+  } catch (error) {
+    console.error('Error loading exam:', error);
+    // toast.error('Failed to load exam');
+  }
+};
+
+// Add a function to periodically save answers to localStorage
+const saveAnswersToLocalStorage = () => {
+  try {
+    localStorage.setItem(`exam_${route.params.attemptId}_answers`, JSON.stringify(selectedAnswers.value));
+  } catch (e) {
+    console.error('Failed to save answers to localStorage:', e);
+  }
+};
+
+// Add a watch to save single choice answers
+const updateSingleChoiceAnswer = () => {
+  // For radio button selections
+  const questionInputs = document.querySelectorAll('input[type="radio"]');
+  questionInputs.forEach(input => {
+    input.addEventListener('change', saveAnswersToLocalStorage);
+  });
+};
+
 onMounted(() => {
-  loadExam()
+  loadExam();
+  
+  // Add event listener for page refresh/close
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  
+  // Set up automatic saving every 5 seconds
+  const autoSaveTimer = setInterval(saveAnswersToLocalStorage, 5000);
+  
+  // Clean up the timer on component unmount
+  onUnmounted(() => {
+    clearInterval(autoSaveTimer);
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+    
+    if (timer) {
+      clearInterval(timer);
+    }
+    
+    if (loadingMessageInterval.value) {
+      clearInterval(loadingMessageInterval.value);
+    }
+  });
+  
+  // Initialize event listeners for inputs
+  nextTick(() => {
+    updateSingleChoiceAnswer();
+  });
 })
 
 onUnmounted(() => {
